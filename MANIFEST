@@ -1,0 +1,8 @@
+Changes
+Makefile.PL
+MANIFEST
+README
+t/configurationdata.t
+t/configuredobject.t
+lib/ConfigurationData.pm
+lib/ConfiguredObject.pm

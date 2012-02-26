@@ -1,0 +1,17 @@
+--- #YAML:1.0
+name:               Stiki
+version:            0.01
+abstract:           Static Website Editor
+author:
+    - Bernie Simon <bernie.simon@gmail.com>
+license:            perl
+distribution_type:  module
+configure_requires:
+    ExtUtils::MakeMaker:  0
+build_requires:
+    ExtUtils::MakeMaker:  0
+requires:
+    Test::More:  0.47
+no_index:
+    directory:
+        - t
