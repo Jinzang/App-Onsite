@@ -46,6 +46,25 @@ sub aggregate {
 }
 
 #----------------------------------------------------------------------
+# Convert array to hash
+
+sub hashify {
+    my ($self, @args) = @_;
+    
+    my %hash;
+    foreach my $arg (@args) {
+        if ($arg =~ /=/) {
+            my ($name, $value) = split(/=/, $arg, 2);
+            $hash{$name} = $value;
+        } else {
+            $hash{$arg} = 1;
+        }
+    }
+    
+    return \%hash;
+}
+
+#----------------------------------------------------------------------
 # Return a string with the time, machine name, and script name
 
 sub mail_header {
@@ -101,7 +120,8 @@ sub run {
     }
 
     my $to;
-    my $message = eval {$self->{handler}->batch(@args)};
+    my $request = $self->hashify(@args);
+    my $message = eval {$self->{handler}->batch($request)};
 
     if ($@) {
 		$message = $@;

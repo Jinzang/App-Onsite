@@ -40,12 +40,6 @@ use constant ERROR_DETAIL_TEMPLATE => <<'EOS';
 </html>
 EOS
 
-use constant PLAIN_TEMPLATE => <<'EOS';
-RESPONSE
---------
-{{response}}
-EOS
-
 #----------------------------------------------------------------------
 # Set default values
 
@@ -53,11 +47,11 @@ sub parameters {
   my ($pkg) = @_;
 
     my %parameters = (
-                    handler => {},
                     data_dir => '',
-					detail_errors => 1,
-                    io => {DEFAULT => IO::File},
+					detail_errors => 0,
+                    io => {DEFAULT => 'IO::File'},
                     cgi => {DEFAULT => 'CGI'},
+                    handler => {},
 	);
 
     return %parameters;
@@ -82,7 +76,7 @@ sub error {
         $template = ERROR_TEMPLATE;
     }
 
-    return $self->render('text/html', $data, $template);
+    return $self->render($data, $template);
 }
 
 #----------------------------------------------------------------------
@@ -118,11 +112,16 @@ sub populate_object {
 # Default renderer
 
 sub render {
-    my ($self, $format, $data, $template) = @_;
+    my ($self, $data, $template) = @_;
 
     my $result = $template;
-    $result =~ s/{{(\w+)}}/$self->substitute($format, $data, $1)/ge;
-    my $response = {code => 200, protocol => $format, results => $result};
+    $result =~ s/{{(\w+)}}/$self->substitute($data, $1)/ge;
+
+    my $response = {code => 200,
+                    msg => 'OK',
+                    protocol => 'text/html',
+                    results => $result
+                    };
 
     return $response;
 }
@@ -176,7 +175,7 @@ sub run {
                                -url => $response->{url});
     } else {
         $self->{io}->print("Content-type: $response->{protocol}\n\n");
-        $self->{io}->print($response->{result});
+        $self->{io}->print($response->{results});
     }
 
     return;
@@ -186,7 +185,7 @@ sub run {
 # Substitute for data for macro in template
 
 sub substitute {
-    my ($self, $format, $data, $field) = @_;
+    my ($self, $data, $field) = @_;
 
     my $value = '';
     if (exists $data->{$field}) {
@@ -194,7 +193,7 @@ sub substitute {
             my $dumper = Data::Dumper->new([$data->{$field}], [$field]);
 
             $value = $dumper->Dump();
-            $value = "<pre>\n$value</pre>\n" if $format =~ /html/;
+            $value = "<pre>\n$value</pre>\n";
 
         } else {
             $value = $data->{$field};

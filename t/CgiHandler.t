@@ -1,9 +1,9 @@
-#!/usr/local/bin/perl
+#!/usr/local/bin/perl -T
 use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 7;
+use Test::More tests => 12;
 
 use Cwd qw(abs_path getcwd);
 use CMS::Onsite::Support::WebFile;
@@ -14,10 +14,12 @@ use CMS::Onsite::Support::WebFile;
 BEGIN {use_ok("CMS::Onsite::Support::CgiHandler");} # test 1
 
 my $params = {
-              min => 0,
+              min => 10,
               max => 20,
-              handler => 'Mock::MinMax',
+              detail_errors => 0,
               script_url => 'http://www.test.org/test.cgi',
+              io => 'Mock::IO',
+              handler => 'Mock::MinMax',
              };
 
 my $o = CMS::Onsite::Support::CgiHandler->new(%$params);
@@ -37,34 +39,71 @@ is($h->{data_dir}, "$cwd/t", "Data dir configuration"); # test 6
 is($h->{template_dir}, "$cwd/t/templates", "Templates dir configuration"); # test 7
 
 #----------------------------------------------------------------------
-# TODO: finish
+# Hashify
+my $hash = $o->hashify('one=1', 'two=2', 'flag');
+is_deeply($hash, {one => 1, two => 2, flag => 1}, "Hashify"); # test 8
 
-my $request = {value => 15};
-my $response = $o->run($request);
-is($response->{results}, "Value in bounds", "valid request"); # test  8
+#----------------------------------------------------------------------
+# error
 
-$request->{value} = 25;
-$response = $o->run($request);
-is($response->{results}, "Value out of bounds", "invalid request"); # test 5
+my $request = {expr => '1/0'};
+my $response = {code => 500, msg => 'Division by zero', results => 'NaN'};
 
-$request = {foo => 'bar'};
-$response = $o->run($request);
-is($response, "Value not set", "empty request"); # test 6
+my $html = <<'EOS';
+<head><title>Script Error</title></head>
+<body>
+<h1>Script Error</h1>
+<p>Please report this error to the developer.</p>
+<pre>Division by zero</pre>
+</body></html>
+EOS
 
-$request->{value} = 15;
-$o->{handler}{die} = 1;
-$response = $o->run($request);
-is($response, "Debug dump", "die during valid request"); # test 7
+$response  = $o->error($request, $response);
 
-$request->{value} = 25;
-$response = $o->run($request);
-is($response, "Value out of bounds\n",
-   "die during invalid request"); # test 8
+my $ok_response = {code => 200,
+                    msg => 'OK',
+                    protocol => 'text/html',
+                    results => $html
+                    };
 
-$response = $o->run(foo => 'bar');
-is($response, "Value not set\n", "die during empty request"); # test 9
+is_deeply($response, $ok_response, "Error with short template"); # test 9
 
-$o->{handler}{die} = 2;
-$response = $o->run(value => 25);
-ok($response =~ /Error while handling error/,
-   "die during error handling"); # test 10
+#----------------------------------------------------------------------
+# Run
+
+$response = $o->run('value=15');
+my $buffer = $o->{io}->empty_buffer();
+
+is($buffer, "Content-type: text/html\n\nValue in bounds: 15",
+   "Run valid request"); # test 10
+
+$response = $o->run('value=25');
+$buffer = $o->{io}->empty_buffer();
+
+$html = <<'EOS';
+<head><title>Script Error</title></head>
+<body>
+<h1>Script Error</h1>
+<p>Please report this error to the developer.</p>
+<pre>ERROR Value out of bounds: 25</pre>
+</body></html>
+EOS
+
+is($buffer, "Content-type: text/html\n\n$html",
+   "Run invalid request"); # test 11
+
+$response = $o->run('foo=bar');
+$buffer = $o->{io}->empty_buffer();
+
+$html = <<'EOS';
+<head><title>Script Error</title></head>
+<body>
+<h1>Script Error</h1>
+<p>Please report this error to the developer.</p>
+<pre>Value not set
+</pre>
+</body></html>
+EOS
+
+is($buffer, "Content-type: text/html\n\n$html",
+   "Run invalid request"); # test 12

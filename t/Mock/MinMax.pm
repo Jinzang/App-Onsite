@@ -19,7 +19,6 @@ sub parameters {
                     script_url => '',
                     data_dir => '',
                     template_dir => '',
-                    die => 0,
                     min => 1,
                     max => 10,
 	);
@@ -28,23 +27,22 @@ sub parameters {
 }
 
 #----------------------------------------------------------------------
-# Batch check and run
+# Execute command
 
 sub batch {
     my ($self, $request) = @_;
 
-    my $msg;
     my $error = $self->check($request);
 
-    my $response;
+    my $msg;
     if (defined $error) {
-        $response = {code => 400, msg => $error, results => ''};
+        $msg = "ERROR $error";
+
     } else {
-        $response = {code => 200, msg => 'OK', results => 'Value in bounds'};
+        $msg = "Value in bounds: $request->{value}";
     }
 
-    die "$error\n" if $self->{die};
-    return $response;
+    return $msg;
 }
 
 #----------------------------------------------------------------------
@@ -55,25 +53,14 @@ sub check {
 
     my $error;
     if (exists $request->{value}) {
-        $error = "Value out of bounds"
+        $error = "Value out of bounds: $request->{value}"
             if $request->{value} < $self->{min} ||
                $request->{value} > $self->{max};
     } else {
-        $error = "Value not set";
+        die "Value not set\n";
     }
 
     return $error;
-}
-
-#----------------------------------------------------------------------
-# Generate error message
-
-sub error {
-    my ($self, $error) = @_;
-    die "Error while handling error\n" if $self->{die} == 2;
-
-    my $response = {code => 200, msg => 'OK', results => $error};
-    return ;
 }
 
 #----------------------------------------------------------------------
@@ -83,16 +70,17 @@ sub run {
     my ($self, $request) = @_;
 
     my $response;
-    eval {
-        $response = $self->batch($request);
-        $response = $self->error($response->{msg}) if $request->{code} == 400;
-    };
-    
-    if ($@) {
-        $response = $self->error($@);
+    my $msg = $self->batch($request);
+
+    if ($msg =~ /^ERROR/) {
+        $response = {code => 400, msg => $msg,
+                     protocol => 'text/html', results => ''};
+
+    } else {
+        $response = {code => 200, msg => 'OK', 
+                     protocol => 'text/html', results => $msg};
     }
 
-    return $response;
 }
 
 1;

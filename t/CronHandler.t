@@ -3,7 +3,7 @@ use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 7;
+use Test::More tests => 6;
 
 #----------------------------------------------------------------------
 # Create objext
@@ -27,15 +27,11 @@ my $o = CMS::Onsite::Support::CronHandler->new(%$params);
 isa_ok($o, "CMS::Onsite::Support::CronHandler"); # test 2
 can_ok($o, qw(run)); # test 3
 
-my $msg = $o->run(15);
-is($msg, "Value in bounds", "valid request"); # test 4
+my $msg = $o->run("value=15");
+is($msg, "Value in bounds: 15", "valid request"); # test 4
 
-$msg = $o->run(25);
-is($msg, "Value out of bounds", "invalid request"); # test 5
+$msg = $o->run("value=25");
+is($msg, "ERROR Value out of bounds: 25", "invalid request"); # test 5
 
-$o->{handler}{die} = 1;
-$msg = $o->run(15);
-is($msg, "Debug dump\n", "die during valid request"); # test 6
-
-$msg = $o->run(25);
-is($msg, "Value out of bounds\n", "die during invalid request"); # test 7
+$msg = $o->run("foo=bar");
+is($msg, "Value not set\n", "die from invalid request"); # test 6
