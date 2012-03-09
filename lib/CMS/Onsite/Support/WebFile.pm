@@ -461,7 +461,7 @@ sub visitor {
             # Find matching files and directories
 
             while (defined (my $file = $dd->read())) {
-                next unless $file =~ /^([\-\w]+\.?\w*)$/;
+                next unless $file =~ /^([a-z][\-\w]*\.?\w*)$/;
 
                 my $path = "$dir/$1";
                 push(@filelist, $path);
