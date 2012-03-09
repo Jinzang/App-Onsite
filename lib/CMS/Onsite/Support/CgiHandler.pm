@@ -269,6 +269,9 @@ sub update_config {
     $configuration->{base_url} =
             $self->terminate_url($configuration->{base_url});
 
+    $configuration->{valid_read} = [$configuration->{template_dir}];
+    $configuration->{valid_write} = [$configuration->{data_dir}];
+    
     return $configuration;
 }
 
