@@ -125,7 +125,7 @@ my $template =<<'EOQ';
 <html>
 <head>
 <!-- begin header -->
-<title>$(title)</title>
+<title>{{title}}</title>
 <!-- end header -->
 </head>
 <body bgcolor=\"#ffffff\">
@@ -150,7 +150,7 @@ Bernie Simon
 <!-- begin sidebar -->
 <ul>
 <!-- with others -->
-<li><a href="$(url)">$(title)</a></li>
+<li><a href="{{url}}">{{title}}</a></li>
 <!-- end others -->
 </ul>
 <!-- end sidebar -->

@@ -113,7 +113,7 @@ my $create_dir = <<'EOQ';
 <html>
 <head>
 <!-- begin meta -->
-<title>$(title)</title>
+<title>{{title}}</title>
 <!-- end meta -->
 </head>
 <body bgcolor=\"#ffffff\">
