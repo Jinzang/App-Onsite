@@ -49,7 +49,7 @@ sub parameters {
     my %parameters = (
                     data_dir => '',
 					detail_errors => 0,
-                    io => {DEFAULT => 'IO::File'},
+                    io => {DEFAULT => 'CMS::Onsite::Support::IO'},
                     cgi => {DEFAULT => 'CGI'},
                     handler => {},
 	);
