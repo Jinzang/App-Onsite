@@ -19,4 +19,4 @@ my $cgi = CMS::Onsite::Support::CgiHandler->new(
                                         handler => 'CMS::Onsite::Editor',
                                         );
 
-$cgi->run();
+$cgi->run(@ARGV);
