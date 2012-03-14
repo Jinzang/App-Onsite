@@ -25,7 +25,7 @@ BEGIN {use_ok("CMS::Onsite::ConfigurationData");} # test 1
 
 my $params = {
               data_dir => $data_dir,
-              config_file => 'configuration.cfg',
+              config_file => 'editor.cfg',
               valid_write => "$data_dir",
              };
 
@@ -45,7 +45,7 @@ EXPIRES = 600
 SUMMARY_LENGTH = 300
 EOQ
 
-my $filename = "$data_dir/configuration.cfg";
+my $filename = "$data_dir/editor.cfg";
 $filename = $data->{wf}->validate_filename($filename, 'w');
 
 $data->{wf}->relocate($data_dir);
@@ -55,7 +55,7 @@ $data->{wf}->writer($filename, $config);
 # Test id to filename
 
 my $id = $data->filename_to_id($filename);
-is($id, 'configuration', "Filename to id"); # test 4
+is($id, 'editor', "Filename to id"); # test 4
 
 my ($file, $extra) = $data->id_to_filename($id);
 is($file, $filename, "Id to filename"); # test 5
@@ -63,8 +63,13 @@ is($file, $filename, "Id to filename"); # test 5
 #----------------------------------------------------------------------
 # Read data
 
-my $r = {expires => 600, summary_length => 300, id => 'configuration'};
-my $d = $data->read_data('configuration');
+my $r = {expires => 600,
+         title => 'Editor Configuration',
+         summary => 'Make changes to the editor configuration',
+         summary_length => 300,
+         id => 'editor'};
+
+my $d = $data->read_data('editor');
 is_deeply($d, $r, "Read data"); # Test 6
 
 #----------------------------------------------------------------------
@@ -73,8 +78,8 @@ is_deeply($d, $r, "Read data"); # Test 6
 $d->{expires} = 1000;
 $d->{summary_length} = 500;
 
-$data->edit_data('configuration', $d);
-my $s = $data->read_data('configuration');
+$data->edit_data('editor', $d);
+my $s = $data->read_data('editor');
 
 is_deeply($s, $d, "Edit data"); # Test 7
 
@@ -90,5 +95,5 @@ my $i = [
          title => 'Length of Summary'},
         ];
 
-$d = $data->field_info('a-title');
+$d = $data->field_info('editor.cfg');
 is_deeply($d, $i, "Field Info"); # Test 8

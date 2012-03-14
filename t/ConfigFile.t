@@ -74,7 +74,7 @@ my $io = IO::File->new($filename, 'w');
 print $io $config;
 close($io);
 
-$lines = $cf->read_lines();
+$lines = $cf->read_lines($filename);
 is_deeply($lines, \@config_lines, "Read lines"); # test 8
 
 my %configuration = $cf->read_file();
@@ -87,5 +87,5 @@ my $configuration_result = {
 is_deeply(\%configuration, $configuration_result, "Read file"); #test 9
 
 $cf->write_file(\%configuration);
-$lines = $cf->read_lines();
+$lines = $cf->read_lines($filename);
 is_deeply($lines, \@config_lines, "Write file"); # test 10

@@ -23,14 +23,27 @@ sub parameters {
 }
 
 #----------------------------------------------------------------------
+# Add extra data to the data read from file
+
+sub extra_data {
+    my ($self, $data) = @_;
+
+    my $id = $data->{id};
+    $data->{title} = ucfirst("$id Configuration");
+    $data->{summary} = "Make changes to the $id configuration";
+
+    return $data;
+}
+
+#----------------------------------------------------------------------
 # Get field information (stub)
 
 sub field_info {
-    my ($self) = @_;
+    my ($self, $filename) = @_;
 
 	my @info;
 	my $title = '';
-	my $lines = $self->{cf}->read_lines();
+	my $lines = $self->{cf}->read_lines($filename);
 
 	while (my ($value, $field) = $self->{cf}->read_field($lines)) {
 		if (defined $field) {
@@ -83,7 +96,7 @@ sub id_to_type {
 sub read_primary {
 	my ($self, $filename) = @_;
 
-	my %record = $self->{cf}->read_file();
+	my %record = $self->{cf}->read_file($filename);
 	return \%record;
 }
 

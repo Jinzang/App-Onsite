@@ -69,14 +69,15 @@ sub read_field {
 # Read a configuration file into an array of parameters
 
 sub read_file {
-    my ($self) = @_;
-	return unless $self->{config_file};
+    my ($self, $filename) = @_;
+	$filename ||= $self->{config_file};
+	return unless $filename;
 
-	my $cache = $self->{cache}->fetch($self->{config_file});
+	my $cache = $self->{cache}->fetch($filename);
 
 	unless ($cache) {
 		my %record;
-		my $lines = $self->read_lines();
+		my $lines = $self->read_lines($filename);
 
 		while (my ($value, $field) = $self->read_field($lines)) {
 			last unless defined $value;
@@ -95,7 +96,7 @@ sub read_file {
 		}
 
 		$cache = \%record;
-		$self->{cache}->save($self->{config_file}, $cache);
+		$self->{cache}->save($filename, $cache);
 	}
 
     return %$cache;
@@ -105,12 +106,13 @@ sub read_file {
 # Read configuration file into an array of lines
 
 sub read_lines {
-    my ($self) = @_;
+    my ($self, $filename) = @_;
+	$filename ||= $self->{config_file};
 
 	my @lines;
-	if (-e $self->{config_file}) {
-		my $in = IO::File->new($self->{config_file}, 'r');
-		die "Can't open $self->{config_file}: $!\n" unless $in;
+	if (-e $filename) {
+		my $in = IO::File->new($filename, 'r');
+		die "Can't open $filename: $!\n" unless $in;
 
 		@lines = <$in>;
 		close($in);
@@ -123,13 +125,14 @@ sub read_lines {
 # Read and parse a configuration file
 
 sub write_file {
-    my ($self, $parameters) = @_;
+    my ($self, $parameters, $filename) = @_;
+	$filename ||= $self->{config_file};
 
 	my %skip;
-	my $lines = $self->read_lines();
+	my $lines = $self->read_lines($filename);
 
-	my $out = IO::File->new($self->{config_file}, 'w');
-	die "Couldn't open $self->{config_file}: $!\n" unless $out;
+	my $out = IO::File->new($filename, 'w');
+	die "Couldn't open $filename: $!\n" unless $out;
 
 	while (my ($value, $field) = $self->read_field($lines)) {
 		if (defined $field) {
@@ -163,7 +166,7 @@ sub write_file {
 		}
 	}
 
-	$self->{cache}->free($self->{config_file});
+	$self->{cache}->free($filename);
 	close($out);
 
 	return;

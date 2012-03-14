@@ -1,8 +1,11 @@
-#!/usr/local/bin/perl -T
+#!/usr/local/bin/perl
 use strict;
 
-use lib 't';
-use lib 'lib';
+use FindBin qw($Bin);
+FindBin::again();
+
+use lib $Bin;
+use lib "$Bin/../lib";
 use Test::More tests => 21;
 
 use Cwd qw(abs_path getcwd);
@@ -17,6 +20,7 @@ system("/bin/rm -rf $data_dir");
 mkdir $data_dir;
 $data_dir = abs_path($data_dir);
 my $template_dir = "$data_dir/templates";
+my $config_file = "$data_dir/editor.cfg";
 
 #----------------------------------------------------------------------
 # Create object
@@ -25,7 +29,8 @@ BEGIN {use_ok("CMS::Onsite::DirData");} # test 1
 
 my $params = {
               data_dir => $data_dir,
-              template_dir => "$template_dir",
+              template_dir => $template_dir,
+              config_file => $config_file,
               script_url => 'test.cgi',
               base_url => 'http://www.stsci.edu',
               valid_write => [$data_dir, $template_dir],
@@ -191,6 +196,19 @@ my $update_template = <<'EOQ';
 </html>
 EOQ
 
+my $config = <<'EOQ';
+# Maximum number of results to diplay on page
+ITEMS = 20
+# Maximum beginning result number
+MAXSTART = 200
+# Dump variables on error
+DETAIL_ERRORS = 0
+# Length of summary
+SUMMARY_LENGTH = 300
+# Group that owns files
+GROUP = admin
+EOQ
+
 # Write dir as templates and pages
 
 $data->{wf}->relocate($data_dir);
@@ -210,6 +228,9 @@ $data->{wf}->writer($templatename, $dir_template);
 $templatename = "$template_dir/update_dir.htm";
 $templatename = $data->{wf}->validate_filename($templatename, 'w');
 $data->{wf}->writer($templatename, $update_template);
+
+$config_file = $data->{wf}->validate_filename($config_file, 'w');
+$data->{wf}->writer($config_file, $config);
 
 #----------------------------------------------------------------------
 # Test id to filename
@@ -309,31 +330,44 @@ $s->{summary} = $e->{summary};
 is_deeply($e, $s, "Add second directory"); # Test 14
 
 #----------------------------------------------------------------------
-# Search data
+# Browse data
 
 my $i;
 %$i = %$r;
 $i->{id} = '';
+$i->{url} = "$params->{base_url}/index.html";
+
+my $c = {
+      'detail_errors' => 0,
+      'group' => 'admin',
+      'id' => 'editor',
+      'items' => 20,
+      'maxstart' => 200,
+      'summary_length' => 300,
+      'title' => 'Editor Configuration',
+      'summary' => 'Make changes to the editor configuration'
+        };
+
+my $results = $data->browse_data();
+is_deeply($results, [$i, $c], "Browse data"); # test 15
+
+#----------------------------------------------------------------------
+# Search data
+
 $indexname = $data->{wf}->abs2rel($indexname);
 $i->{url} = join('/', $params->{base_url}, $indexname);
 
 my $list = $data->search_data({author => 'author'});
-is_deeply($list, [$i, $r, $s], "Search data"); # test 15
+is_deeply($list, [$i, $r, $s], "Search data"); # test 16
 
 $list = $data->search_data({author => 'author'}, '', 2);
-is_deeply($list, [$i, $r], "Search data with limit"); # test 16
+is_deeply($list, [$i, $r], "Search data with limit"); # test 17
 
 $list = $data->search_data({author => 'An'});
-is_deeply($list, [$i, $r], "Search data single term"); # test 17
+is_deeply($list, [$i, $r], "Search data single term"); # test 18
 
 $list = $data->search_data({body =>'New', title => 'New'});
-is_deeply($list, [$s], "Search data multiple terms"); # test 18
-
-#----------------------------------------------------------------------
-# Browse data
-
-my $results = $data->browse_data();
-is_deeply($results, [$i], "Browse data"); # test 19
+is_deeply($list, [$s], "Search data multiple terms"); # test 19
 
 #----------------------------------------------------------------------
 # Edit data

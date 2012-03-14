@@ -142,7 +142,9 @@ sub get_next {
     my ($self, $parentid, $subfolders, @extensions) = @_;
 
     my $sort_field = $self->get_trait('sort_field');
-    push(@extensions, $self->get_trait('extension')) unless @extensions;
+    my $extension = $self->get_trait('extension');
+    
+    push(@extensions, $extension) unless @extensions;
     $subfolders = $self->get_trait('has_subfolders') unless defined $subfolders;
 
     my $dir = $self->get_repository($parentid);
@@ -150,19 +152,31 @@ sub get_next {
     my $visitor = $self->{wf}->visitor($dir, $subfolders, $sort_field);
 
     return sub {
+        my $ext;
     	my $filename;
+
     	for (;;) {
     	    $filename = &$visitor();
             return unless defined $filename;
 
-            my ($ext) = $filename =~ /\.([^\.]*)$/;
+            ($ext) = $filename =~ /\.([^\.]*)$/;
     	    last if defined $ext && $extensions{$ext};
         }
+
+        my $obj;
+        my $id = $self->filename_to_id($filename);
+
+        if ($ext eq $extension) {
+            $obj = $self;
+
+        } else {
+            my $type = $self->id_to_type($id);
+            $obj = $self->create_subobject($type);
+        }
         
-        my $data = $self->read_primary($filename);
-        $data->{id} = $self->filename_to_id($filename);
-        $data = $self->extra_data($data);
-        
+        my $data = $obj->read_primary($filename);
+        $data->{id} = $id;
+        $data = $obj->extra_data($data);        
 
         return $data;
    };
@@ -212,7 +226,10 @@ sub id_to_type {
     
     die "Invalid id: $id\n" unless $pkg;
 
-	my $obj = $pkg->new(%$self);
+    eval "require $pkg" or die "$@\n";
+    my %parameters = (%$self, type => '');
+	my $obj = $pkg->new(%parameters);
+
 	return $obj->id_to_type($id);
 }
 
