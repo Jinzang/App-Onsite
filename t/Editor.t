@@ -3,7 +3,7 @@ use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 39;
+use Test::More tests => 38;
 
 use Cwd qw(abs_path getcwd);
 use CMS::Onsite::Support::WebFile;
@@ -690,12 +690,6 @@ $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $show_form);
 
 #----------------------------------------------------------------------
-# Create subobject
-
-my $obj = $con->create_subobject('page');
-is($obj->get_type(), 'page', "Create subobject"); #test 21
-
-#----------------------------------------------------------------------
 # add_check
 
 my $data = {
@@ -712,13 +706,13 @@ my $test = $con->add_check($data);
 $response = {code => 200, msg => 'OK', protocol => 'text/html',
              url => $params->{base_url}};
 
-is_deeply($test, $response, "add_check"); # test 22
+is_deeply($test, $response, "add_check"); # test 21
 
 delete $data->{title};
 $test = $con->add_check($data);
 $response->{code} = 400;
 $response->{msg} = "Invalid or missing fields: title";
-is_deeply($test, $response, "add_check with missing data"); # test 23
+is_deeply($test, $response, "add_check with missing data"); # test 22
 
 #----------------------------------------------------------------------
 # Add
@@ -750,7 +744,7 @@ my $r = {
         id => $id,
 };
 
-is_deeply($d, $r, "add"); # Test 24
+is_deeply($d, $r, "add"); # Test 23
 
 #----------------------------------------------------------------------
 # Edit
@@ -781,7 +775,7 @@ $r = {
       id => 'new-title',
 };
 
-is_deeply($d, $r, "Edit"); # Test 25
+is_deeply($d, $r, "Edit"); # Test 24
 
 #----------------------------------------------------------------------
 # View
@@ -790,12 +784,12 @@ $request = {cmd => 'view', id => 'new-title', };
 $d = $con->view_check($request);
 $response = {code => 200, msg => 'OK', protocol => 'text/html',
              url => $r->{url}};
-is_deeply($d, $response, "View check"); # Test 26
+is_deeply($d, $response, "View check"); # Test 25
 
 $d = $con->batch($request);
 $response = {code => 302, msg => 'Found', protocol => 'text/html',
              url => $r->{url}};
-is_deeply($d, $response, "View"); # Test 27
+is_deeply($d, $response, "View"); # Test 26
 
 #----------------------------------------------------------------------
 # Remove
@@ -803,7 +797,7 @@ is_deeply($d, $response, "View"); # Test 27
 foreach $id (('new-title', 'test-title')) {
     $con->batch({cmd => 'remove', id => $id, nonce => $params->{nonce}});
     my $found = -e "$data_dir/$id.html" ? 1 : 0;
-    is($found, 0, "Remove $id"); # Test 28-29
+    is($found, 0, "Remove $id"); # Test 27-28
 }
 
 #----------------------------------------------------------------------
@@ -836,7 +830,7 @@ $response = $con->batch($request);
 my $results = $response->{results}{data};
 shift(@$results);
 
-is_deeply($results, \@data, "Browse all"); # Test 30
+is_deeply($results, \@data, "Browse all"); # Test 29
 
 my @subset = @data[0..1];
 my $max = $con->{items};
@@ -846,7 +840,7 @@ $response = $con->browse($request);
 $results = $response->{results}{data};
 shift(@$results);
 
-is_deeply($results, \@subset, "Browse with limit"); # Test 31
+is_deeply($results, \@subset, "Browse with limit"); # Test 30
 $con->{items} = $max;
 
 #----------------------------------------------------------------------
@@ -859,7 +853,7 @@ $request = {query => 'file', cmd => 'search'};
 
 $response = $con->search($request);
 $results = $response->{results}{data};
-is_deeply($results, \@data, "Search"); # Test 32
+is_deeply($results, \@data, "Search"); # Test 31
 
 $max = $con->{items};
 $con->{items} = 3;
@@ -867,13 +861,13 @@ $response = $con->search($request);
 $results = $response->{results}{data};
 pop(@$results);
 
-is_deeply($results, \@subset, "Search with limit"); # Test 33
+is_deeply($results, \@subset, "Search with limit"); # Test 32
 $con->{items} = $max;
 
 $request->{query} = 'First author';
 $response = $con->search($request);
 $results = $response->{results}{data};
-is_deeply($results, [$data[0]], "Search with multiple terms"); # Test 34
+is_deeply($results, [$data[0]], "Search with multiple terms"); # Test 33
 
 #----------------------------------------------------------------------
 # Render form
@@ -885,12 +879,12 @@ $request = {cmd => 'edit', id => ''};
 my $rendered_form = $con->render($request, $response, 'edit.htm');
 my $rendered_data = $con->{nt}->data($rendered_form);
 
-is($rendered_data->{meta}{title}, 'Edit Dir', "render form title"); # test 35
+is($rendered_data->{meta}{title}, 'Edit Dir', "render form title"); # test 34
 my @rendered_form_fields = sort keys %{$rendered_data->{primary}{form}};
 is_deeply(\@rendered_form_fields, [qw(buttons hidden visible)],
-          "render form fields"); #test 36
+          "render form fields"); #test 35
 my $commandlinks = @{$rendered_data->{commandlinks}{data}};
-is($commandlinks, 5, "render form commands"); # test 37
+is($commandlinks, 5, "render form commands"); # test 36
 
 #----------------------------------------------------------------------
 # Error page
@@ -904,7 +898,7 @@ $response = $con->error($request, $response);
 $response->{results} = $con->render($request, $response, $subtemplate);
 
 $rendered_data = $con->{nt}->data($response->{results});
-is($rendered_data->{primary}{error}, 'Debug Dump', "Error page error"); # test 38
+is($rendered_data->{primary}{error}, 'Debug Dump', "Error page error"); # test 37
 
 my $rendered_request = <<EOS;
 <dl>
@@ -917,4 +911,4 @@ EOS
 chomp $rendered_request;
 
 is($rendered_data->{primary}{request}, $rendered_request,
-   "Error page request"); # test 39
+   "Error page request"); # test 38

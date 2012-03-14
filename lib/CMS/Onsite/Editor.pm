@@ -59,7 +59,7 @@ sub add {
     my ($self, $request) = @_;
 
     my $parentid = $request->{id};
-    my $subobject = $self->create_subobject($request->{subtype});
+    my $subobject = $self->{data}->create_subobject($request->{subtype});
     $subobject->add_data($parentid, $request);
 
 	return $self->set_response($request->{id}, 302);
@@ -100,7 +100,7 @@ sub add_check {
     }
 
     # Create child object to get its field information
-    my $child = $self->create_subobject($request->{subtype});
+    my $child = $self->{data}->create_subobject($request->{subtype});
     $request->{field_info} = $child->field_info();
 
     # Clean the request data
@@ -150,7 +150,7 @@ sub batch {
         # Overwrite proxy data object with real object
         $request->{id} = '' unless exists $request->{id};
         $request->{type} ||= $self->{data}->id_to_type($request->{id});
-        $self->{data} = $self->create_subobject($request->{type});
+        $self->{data} = $self->{data}->create_subobject($request->{type});
     
         # Set command if not found or not valid
         my $cmd = $self->pick_command($request);
@@ -347,28 +347,6 @@ sub clean_data {
     }
 
     return $request;
-}
-
-#----------------------------------------------------------------------
-# Create a new data object of the specified type
-
-sub create_subobject {
-    my ($self, $type) = @_;
-
-	my $subobject;
-	if ($self->{data}->get_type() eq $type) {
-		$subobject = $self->{data};
-
-	} else {
-        # TODO: get the pkg from a type registry
-		my $utype = ucfirst($type);
-		my $pkg = "CMS::Onsite::${utype}Data";
-        my %parameters = (%{$self->{data}}, type => $type);
-        
-		$subobject = $pkg->new(%parameters);
-	}
-
-    return $subobject;
 }
 
 #----------------------------------------------------------------------

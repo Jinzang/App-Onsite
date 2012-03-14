@@ -156,7 +156,7 @@ sub command_links {
     $commands ||= $self->get_trait('commands');
     
     my @links;
-    my $type = $self->{type};
+    my $type = $self->get_type();
     my $subtypes = $self->get_subtypes($id);
     my %parent_commands = map {$_ => 1} @{$self->get_trait('parent_commands')};
 
@@ -211,6 +211,28 @@ sub command_title {
 }
 
 #----------------------------------------------------------------------
+# Create a new data object of the specified type
+
+sub create_subobject {
+    my ($self, $type) = @_;
+
+	my $subobject;
+	if ($self->get_type() eq $type) {
+		$subobject = $self;
+
+	} else {
+        # TODO: get the pkg from a type registry
+		my $utype = ucfirst($type);
+		my $pkg = "CMS::Onsite::${utype}Data";
+        my %parameters = (%$self, type => $type);
+        
+		$subobject = $pkg->new(%parameters);
+	}
+
+    return $subobject;
+}
+
+#----------------------------------------------------------------------
 # Edit a file
 
 sub edit_data {
@@ -224,14 +246,14 @@ sub edit_data {
 # Add extra data to the data read from file
 
 sub extra_data {
-    my ($self, $hash) = @_;
+    my ($self, $data) = @_;
 
     my $summary_field = $self->get_trait('summary_field');
-    if (exists $hash->{$summary_field} && ! exists $hash->{summary}) {
-    	$hash->{summary} = $self->summarize($hash->{$summary_field});
+    if (exists $data->{$summary_field} && ! exists $data->{summary}) {
+    	$data->{summary} = $self->summarize($data->{$summary_field});
     }
 
-    return $hash;
+    return $data;
 }
 
 #----------------------------------------------------------------------
@@ -408,6 +430,11 @@ sub get_trait {
 sub get_type {
     my ($self) = @_;
     
+    unless ($self->{type}) {
+        my ($type) = $self =~ /CMS::Onsite::(\w+)Data/;
+        $self->{type} = lc($type);
+    }
+    
     return $self->{type};
 }
 
@@ -470,7 +497,7 @@ sub id_to_filename_with_ext {
 sub id_to_type {
     my ($self, $id) = @_;
 
-    return $self->{type};
+    return $self->get_type();
 }
 
 #----------------------------------------------------------------------
@@ -569,7 +596,7 @@ sub redirect_url {
     my $args = {
 		id => $id,
 		cmd => $cmd,
-		type => $self->{type},
+		type => $self->get_type(),
 	};
 
     my $link = $self->single_command_link($args);
