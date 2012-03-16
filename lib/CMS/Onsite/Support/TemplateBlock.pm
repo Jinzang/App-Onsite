@@ -248,7 +248,7 @@ sub parse {
 
 sub render {
     my ($self, $data) = @_;
-
+    
     my $pattern = $self->{LEXER}->build_macro_pattern();
     my $result = $self->{VALUE};
     return '' unless defined $result;
@@ -347,7 +347,7 @@ sub render_data {
 sub render_macro {
     my ($self, $bin, $name) = @_;
 
-    my $result = '';
+    my $result;
     if ($name =~ /^\d+$/) {
         my $block = $self->{BLOCKS}[$name];
         $result = $block->render_block($bin) if defined $block;
@@ -357,6 +357,7 @@ sub render_macro {
         $result = $self->render_data($data);
     }
 
+    $result = '' unless defined $result;
     return $result;
 }
 

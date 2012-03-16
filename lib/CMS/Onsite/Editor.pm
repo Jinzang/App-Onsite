@@ -301,7 +301,7 @@ sub check_nonce {
     my ($self, $nonce) = @_;
 
     my $response;
-    if ($nonce ne $self->get_nonce()) {
+    if ($nonce && $nonce ne $self->get_nonce()) {
         my $msg = 'Bad form submission, try again';
         $response = $self->set_response('', 400, $msg);
     } else {
@@ -317,6 +317,7 @@ sub check_nonce {
 sub check_type {
     my ($self, $parentid, $type) = @_;
 
+    $type ||= '';
     my $code = 400;
     my $subtypes = $self->{data}->get_subtypes($parentid);
     foreach my $subtype (@$subtypes) {
