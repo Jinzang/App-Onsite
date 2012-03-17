@@ -1,0 +1,53 @@
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+<!-- begin meta -->
+<base href="{{base_url}}" />
+<title>
+<!-- with title --><!-- end title -->
+</title>
+<!-- end meta -->
+<link rel="stylesheet" type="text/css" href="style.css" title="style" />
+<link rel="stylesheet" type="text/css" href="mobile.css" title="mobile" />
+</head>
+<body>
+<div id="container">
+<div id="primary">
+<!-- begin primary -->
+<h1>{{title}}</h1>
+
+<p class="error">{{error}}</p>
+
+<!-- with data -->
+<h3 class="title">{{title}}</h3>
+<p class="summary">{{summary}}<br />
+<!-- with browselink -->
+<a href="{{url}}">{{title}}</a>
+<!-- end browselink --></p>
+
+<!-- end data -->
+
+<!-- if paginglinks -->
+<p><!-- with paginglinks -->
+<!-- with data -->
+<a href="{{url}}">{{title}}</a>&nbsp;&nbsp;
+<!-- end data -->
+<!-- end paginglinks --></p>
+<!-- end paginglinks -->
+
+<!-- end primary -->
+</div>
+<div id="navigation">
+<ul>
+<!-- begin commandlinks -->
+<!-- with data -->
+<a href="{{url}}">
+<!-- with title --><!-- end title -->
+</a>
+<!-- end data -->
+<!-- end commandlinks -->
+</ul>
+</div>
+</div>
+</body>
+</html>
