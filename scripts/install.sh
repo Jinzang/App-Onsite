@@ -1,13 +1,17 @@
 #!/bin/sh
 #install.sh -- restore demo website to initial state
 
-cd ~/Code/Onsite
-rm -rf test
-cp -R site test
-cp scripts/editor.pl test/editor.cgi
-chmod +x test/editor.cgi
-ln -s ../templates test/Templates
-ln -s ../lib test/Lib
+SOURCE=/home/bernie/Code/Onsite
+TARGET=/home/bernie/Webdev/onsite
+LIB=$SOURCE/lib
+
+cd $SOURCE
+rm -rf $TARGET
+cp -R site $TARGET
+cp scripts/editor.pl $TARGET/editor.cgi
+chmod +x $TARGET/editor.cgi
+ln -s $SOURCE/templates $TARGET/Templates
+ln -s $LIB $TARGET/Lib
 #chgrp webmast ../index.html
 #chmod 664 ../index.html
 #cp style.css ../style.css
