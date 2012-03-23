@@ -21,6 +21,7 @@ sub parameters {
 
     my %parameters = (
                     group => '',
+					permissions => 0664,
                     valid_read => [],
                     valid_write => [],
 		    cache => {DEFAULT => 'CMS::Onsite::Support::CachedFile'},
@@ -92,7 +93,8 @@ sub create_dirs {
         if (! -d $path) {
             mkdir ($path) or die "Couldn't create $path: $!\n";
             $self->set_group($path);
-            chmod(0775, $path);
+			my $permissions = $self->{permissions} | 0111;
+            chmod($permissions, $path);
         }
     }
 
@@ -511,7 +513,7 @@ sub writer {
 
     $self->set_modtime($modtime);
     $self->set_group($filename);
-    chmod(0664, $filename);
+    chmod($self->{permissions}, $filename);
 
     return;
 }
