@@ -2,18 +2,14 @@
 
 use strict;
 use warnings;
-
-BEGIN {unshift @INC, '' . '/lib'}; # SOURCE
+use lib '../lib';
 use CMS::Onsite::Support::CgiHandler;
 
-$ENV{PATH} = '';
+my $parameters;
 
-my $cgi = CMS::Onsite::Support::CgiHandler->new(
-                                        group => '', # GROUP
-                                        data_dir => '', # TARGET
-                                        config_file => '' . '/editor.cfg', # TARGET
-                                        template_dir => '', # TEMPLATES
-                                        handler => 'CMS::Onsite::Editor',
-                                        );
+$parameters->{handler} = 'CMS::Onsite::Editor';
+$parameters->{valid_read} = [$parameters->{template_dir}];
+$parameters->{valid_write} = [$parameters->{data_dir}];
 
+my $cgi = CMS::Onsite::Support::CgiHandler->new(%$parameters);
 $cgi->run(@ARGV);
