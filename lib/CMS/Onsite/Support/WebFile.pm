@@ -13,6 +13,8 @@ use IO::File;
 
 use base qw(CMS::Onsite::Support::ConfiguredObject);
 
+use constant VALID_NAME => qr(^([a-z][\-\w]*\.?\w*)$);
+
 #----------------------------------------------------------------------
 # Set default values
 
@@ -56,7 +58,8 @@ sub abs2rel {
     }
 
     push(@new_path, @file_path);
-    $filename = join('/', @new_path) || '.';
+    ##$filename = join('/', @new_path) || '.';
+	$filename = join('/', @new_path);
 
     return $filename;
 }
@@ -389,12 +392,15 @@ sub under_any_dir {
         $valid_dirs = $self->{valid_write};
     }
 
-    if ($valid_dirs) {
-        my $match = 0;
+    if (@$valid_dirs) {
+        my $valid_name = VALID_NAME;
         my $path = $self->rel2abs($filename);
 
         foreach my $dir (@$valid_dirs) {
-            return 1 if ($self->abs2rel($path, $dir) !~ /^\.\./);
+			my $path = $self->abs2rel($path, $dir);
+			my @path = split(/\//, $path);
+
+			return 1 unless grep {! /$valid_name/} @path;
         }
     }
 
@@ -461,9 +467,9 @@ sub visitor {
             my $dd = IO::Dir->new($dir) or die "Couldn't open $dir: $!\n";
 
             # Find matching files and directories
-
+			my $valid_name = VALID_NAME;
             while (defined (my $file = $dd->read())) {
-                next unless $file =~ /^([a-z][\-\w]*\.?\w*)$/;
+                next unless $file =~ /$valid_name/;
 
                 my $path = "$dir/$1";
                 push(@filelist, $path);

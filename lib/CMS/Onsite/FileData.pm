@@ -292,9 +292,11 @@ sub filename_to_id {
     $filename =~ s/\.[^\.]*$//;
 	$filename = $self->{wf}->abs2rel($filename, $self->{data_dir});
 
-	my @path = split(/\//, $filename);
-    pop(@path) if $path[-1] eq $self->get_trait('index_name');
-    shift(@path) if @path && $path[0] eq '.';
+    my @path;
+    if (length $filename) {
+        @path = split(/\//, $filename);
+        pop(@path) if $path[-1] eq $self->get_trait('index_name');
+    }
 
     my $id;
     if (@path) {

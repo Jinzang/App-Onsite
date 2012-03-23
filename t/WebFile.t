@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -T
+#!/usr/bin/env perl
 use strict;
 
 use lib 't';
@@ -67,13 +67,13 @@ eval {
 is($@, "Invalid filename: $filename\n",
    "validate_filename outside dir"); # test 7
 
-$filename = '../forbidden.html; rm *';
+$filename = 'Forbidden.html';
 eval {
     $filename = $wf->validate_filename($filename, 'r');
 };
 
 is($@, "Invalid filename: $filename\n",
-   "validate_filename with bad filename"); # test 8
+   "validate_filename with hidden filename"); # test 8
 
 #----------------------------------------------------------------------
 # Relative and Absolute pathnames
