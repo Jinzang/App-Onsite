@@ -10,8 +10,8 @@ use Data::Dumper;
 # You can change the values or add new ones
 
 my %parameters = (
-                  group => '',
-                  permissions => 0666,
+                  group => 'web-data',
+                  permissions => 0664,
                  );
 
 # Set directory to one containing this script
@@ -42,9 +42,23 @@ my $library = rel2abs('../lib');
 
 erase_target($target, %parameters);
 copy_site($source, $target, %parameters);
+copy_scripts('.', $target, $library, %parameters);
 
-foreach my $script (@scripts) {
-    copy_script($script, '.', $target, $library, %parameters);
+#----------------------------------------------------------------------
+# Return a list of all the files in a directory
+
+sub all_files {
+    my ($dir) = @_;   
+    my $dd = IO::Dir->new($dir) or die "Couldn't open $dir: $!";
+
+    my @files;
+    while (defined (my $file = $dd->read())) {
+        next if -d $file;
+        push(@files, $file);
+    }
+
+    $dd->close;
+    return @files;
 }
 
 #----------------------------------------------------------------------
@@ -63,48 +77,22 @@ sub copy_file {
 }
 
 #----------------------------------------------------------------------
-# Copy and edit script
+# Copy modified versions of scripts to target
 
-sub copy_script {
-    my ($script, $source, $target, $library, %parameters) = @_;
-    
-    my $input = "$source/$script";
-    my $output = "$target/$script";
-    
-    # Read inout file
-    
-    my $in = IO::File->new($input, 'r')
-             or die "Can't read $script";
+sub copy_scripts {
+    my ($source, $target, $library, %parameters) = @_;   
 
-    my $text = do {local $/; <$in>};
-
-    close $in;
-    
-    # Change shebang line
-    my $perl = `/usr/bin/which perl`;
-    chomp $perl;
-    $text =~ s/\#\!(\S+)/\#\!$perl/;
-
-    # Set use lib line
-    $text  =~ s/use lib \'(\S+)\'/use lib \'$library\'/;
-
-    # Set parameters
-    my $dumper = Data::Dumper->new([\%parameters], ['parameters']);
-    my $parameters = $dumper->Dump();    
-    $text =~ s/my \$parameters;/my $parameters/;
-    
-    # Write output file
-    
-    my $out = IO::File->new($output, 'w')
-              or die "Can't write to $target";
-    
-    print $out $text;
-
-    close $out;
-    
-    set_group($output, $parameters{group});
     my $permissions = $parameters{permissions} | 0111;
-    chmod($permissions, $output);
+    foreach my $file (all_files($source)) {
+        next unless $file =~ /\.cgi$/;
+
+        my $input = "$source/$file";
+        my $output = "$target/$file";
+
+        edit_script($input, $output, $library, %parameters);
+        set_group($output, $parameters{group});
+        chmod($permissions, $output);
+    }
 
     return;
 }
@@ -114,20 +102,52 @@ sub copy_script {
 
 sub copy_site {
     my ($source, $target, %parameters) = @_;   
-    my $dd = IO::Dir->new($source) or die "Couldn't open $source: $!";
 
-    while (defined (my $file = $dd->read())) {
-        next unless $file =~ /^([\-\w]+\.?\w*)$/;
-        
-        my $input = "$source/$1";
-        my $output = "$target/$1";
+    foreach my $file (all_files($source)) {
+        my $input = "$source/$file";
+        my $output = "$target/$file";
 
         copy_file($input, $output);
         set_group($output, $parameters{group});
         chmod($parameters{permissions}, $output);   
     }
 
-    $dd->close;
+    return;
+}
+
+#----------------------------------------------------------------------
+# Edit script and write new version to output
+
+sub edit_script {
+    my ($input, $output, $library, %parameters) = @_;
+    
+    # Read input file
+    my $in = IO::File->new($input, 'r') or die "Can't read $input";
+    my $text = do {local $/; <$in>};
+    close $in;
+    
+    # Change shebang line
+    my $perl = `/usr/bin/which perl`;
+    chomp $perl;
+    $text =~ s/\#\!(\S+)/\#\!$perl/;
+
+    # Change use lib line
+    if ($text =~ /use lib/) {
+        $text  =~ s/use lib \'(\S+)\'/use lib \'$library\'/;
+    }
+    
+    # Set parameters
+    if ($text =~ /my \%parameters/) {
+        my $dumper = Data::Dumper->new([\%parameters], ['parameters']);
+        my $parameters = $dumper->Dump();    
+        $text =~ s/my \$parameters;/my $parameters/;
+    }
+    
+    # Write output file  
+    my $out = IO::File->new($output, 'w') or die "Can't write to $output";
+    print $out $text;
+    close $out;
+
     return;
 }
 
