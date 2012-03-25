@@ -301,7 +301,7 @@ sub check_nonce {
     my ($self, $nonce) = @_;
 
     my $response;
-    if ($nonce && $nonce ne $self->get_nonce()) {
+    if (! defined $nonce || $nonce ne $self->get_nonce()) {
         my $msg = 'Bad form submission, try again';
         $response = $self->set_response('', 400, $msg);
     } else {
