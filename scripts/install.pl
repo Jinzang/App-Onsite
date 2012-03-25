@@ -14,6 +14,11 @@ my %parameters = (
                   permissions => 0664,
                  );
 
+# Get target directory from command line
+
+my $target = shift(@ARGV) || '../test';
+$target =~ s/\/$//;
+
 # Set directory to one containing this script
 
 my $dir = $0;
@@ -25,18 +30,15 @@ chdir $dir or die "Cannot cd to $dir";
 # Set reasonable defaults for parameters that aren't set above
 
 my %defaults = (
-                data_dir => rel2abs('../test'),
-                config_file => rel2abs('../test/editor.cfg'),
+                data_dir => rel2abs($target),
+                config_file => "$target/editor.cfg",
                 template_dir => rel2abs('../templates'),
                );
-
 
 %parameters = (%defaults, %parameters);
 
 # Install
 
-my $target = shift(@ARGV) || rel2abs('../test');
-my @scripts = @ARGV || qw(editor.cgi);
 my $source = rel2abs('../site');
 my $library = rel2abs('../lib');
 
@@ -137,7 +139,7 @@ sub edit_script {
     }
     
     # Set parameters
-    if ($text =~ /my \%parameters/) {
+    if ($text =~ /my \$parameters/) {
         my $dumper = Data::Dumper->new([\%parameters], ['parameters']);
         my $parameters = $dumper->Dump();    
         $text =~ s/my \$parameters;/my $parameters/;
