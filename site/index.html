@@ -1,20 +1,18 @@
-<!DOCTYPE html> 
-<html lang="en">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
 <head>
-<meta charset="utf-8" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8">
+<link rel="stylesheet" type="text/css" href="Style.css" />
 <!-- begin meta -->
-<base href="{{base_url}}" />
-<title>{{title}}</title>
+<title><!-- begin title -->
+Welcome<!-- end title --></title>
 <meta name="robots" content="index, follow" />
 <!-- end meta -->
-<link rel="stylesheet" type="text/css" href="style.css" title="style" />
-<link rel="stylesheet" type="text/css" href="mobile.css" title="mobile" />
 </head>
-
 <body>
-<div id = "container">
-
+<div id="container">
 <div id="header">
+<h1>Your Header Goes Here</h1>
 <ul>
 <!-- begin toplinks -->
 <!-- begin data -->
@@ -27,25 +25,27 @@ Home
 <!-- end toplinks -->
 </ul>
 </div>
-
+<div id="wrapper">
+<div id="content">
 <div  id="primary">
 <!-- begin primary -->
 <!-- begin dirdata -->
 <h1><!-- begin title valid="&" -->
-<!-- end title --></h1>
+Welcome<!-- end title --></h1>
 
-<!-- begin body valid="&" -->
+<!-- begin body required valid="&html" style="rows=20;cols=80" -->
+<p>Welcome to your new web site. You can start changing it by clicking this
+<a href="editor.cgi?cmd=edit">edit link</a>.</p>
 <!-- end body -->
-
 <!-- end dirdata -->
 <!-- end primary -->
 </div>
-
 <div id="secondary">
 <!-- begin secondary -->
 <!-- end secondary -->
 </div>
-
+</div>
+</div>
 <div id="navigation">
 <ul>
 <!-- begin parentlinks -->
@@ -59,20 +59,17 @@ Home
 <!-- end parentlinks -->
 <!-- begin pagelinks -->
 <!-- end pagelinks -->
+</ul>
 <ul>
 <!-- begin commandlinks -->
 <!-- begin data -->
-<li><a href="{{url}}"><!-- begin title -->
-<!--end title --></a><!-- set url [[]] --></li>
+<li><a href="editor.cgi?cmd=edit"><!-- begin title -->
+Edit Dir<!--end title --></a><!-- set url [[editor.cgi?cmd=edit]] --></li>
 <!-- end data -->
 </ul>
 <!-- end commandlinks -->
-</ul>
 </div>
-
-<div id="footer">
-</div>
-
+<div id="footer"><p>Your footer goes here</p></div>
 </div>
 </body>
 </html>
