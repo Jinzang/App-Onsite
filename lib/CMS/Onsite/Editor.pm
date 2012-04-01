@@ -114,7 +114,7 @@ sub add_check {
             $response = $self->set_response($request->{id}, 400, $error);
 
         } else {
-            $response = $self->check_nonce($request->{nonce});
+            $response = $self->check_nonce($request->{id}, $request->{nonce});
             $response = $self->check_fields($request)
                 if $response->{code} == 200;
         }
@@ -298,14 +298,16 @@ sub check_fields {
 # Check the value of the nonce, push it on the bad list if no match
 
 sub check_nonce {
-    my ($self, $nonce) = @_;
+    my ($self, $id, $nonce) = @_;
 
     my $response;
-    if (! defined $nonce || $nonce ne $self->get_nonce()) {
+    if (! defined $nonce) {
+        $response = $self->set_response($id, 400, '');
+    } elsif ($nonce ne $self->get_nonce()) {
         my $msg = 'Bad form submission, try again';
-        $response = $self->set_response('', 400, $msg);
+        $response = $self->set_response($id, 400, $msg);
     } else {
-        $response = $self->set_response('', 200);
+        $response = $self->set_response($id, 200);
     }
 
     return $response;
@@ -388,7 +390,7 @@ sub edit_check {
         $response = $self->set_response($request->{id}, 400, $error);
 
     } else {
-        $response = $self->check_nonce($request->{nonce});
+        $response = $self->check_nonce($id, $request->{nonce});
         $response = $self->check_fields($request) if $response->{code} == 200;
     }
     
@@ -435,6 +437,7 @@ sub error {
     $results->{title} = 'Script Error';
     $results->{error} = $response->{msg};
 
+    $results->{env} = \%ENV;
     $results->{request} = $request;
     $results->{results} = $self->encode_hash($response->{results});
 
@@ -739,7 +742,7 @@ sub remove_check {
 
     # Check for nonce
 
-    my $response = $self->check_nonce($request->{nonce});
+    my $response = $self->check_nonce($id, $request->{nonce});
     if ($response->{code} != 200) {
         my $data = $self->{data}->read_data($id);
         %$request = (%$request, %$data);
@@ -845,7 +848,7 @@ sub set_response {
     
     my %response;
     $response{code} = $code;
-    $response{msg} = $msg || RESPONSE_MSG->{$code};
+    $response{msg} = defined $msg ? $msg : RESPONSE_MSG->{$code};
     $response{url} = $self->{data}->redirect_url($id);
     $response{protocol} = RESPONSE_PROTOCOL;
     
