@@ -32,6 +32,8 @@ use constant ERROR_DETAIL_TEMPLATE => <<'EOS';
 <h1>Script Error</h1>
 <p>Please report this error to the developer.</p>
 <pre>{{error}}</pre>
+<h2>HANDLER</h2>
+{{handler}}
 <h2>REQUEST</h2>
 {{request}}
 <h2>RESPONSE</h2>
@@ -70,6 +72,7 @@ sub error {
     if ($self->{detail_errors}) {
         $data->{request} = $request;
         $data->{response} = $response;
+        $data->{handler} = $self;
         $template = ERROR_DETAIL_TEMPLATE;
 
     } else {
@@ -161,6 +164,7 @@ sub run {
         $response = $self->{handler}->run($request);
     };
 
+    $response = $self->error($request, $response);
     if ($@) {
         $response->{code} = 500;
         $response->{msg} = $@;
@@ -171,8 +175,8 @@ sub run {
     }
     
     if ($response->{code} >= 300) {
-        $self->{cgi}->redirect(-status => $response->{code}.
-                               -url => $response->{url});
+        $self->{cgi}->redirect($response->{url});
+
     } else {
         $self->{io}->print("Content-type: $response->{protocol}\n\n");
         $self->{io}->print($response->{results});
@@ -249,8 +253,19 @@ sub update_config {
         $self->untaint_filename($configuration->{template_dir});
 
     unless ($configuration->{script_url}) {
-        my ($script_url) = split (/\?/, $ENV{SCRIPT_URI});
-        $configuration->{script_url} = $script_url;
+        my $script_url;
+        if (exists $ENV{SCRIPT_URI}) {
+            $script_url = $ENV{SCRIPT_URI};
+
+        } elsif (exists $ENV{SERVER_NAME} && exists $ENV{REQUEST_URI}) {
+            my $server = $ENV{SERVER_NAME};
+            $server =~ s(/+$)();
+            my $request = $ENV{REQUEST_URI};
+            $request =~ s(^/+)();
+            $script_url = "http://$server/$request";
+        }
+
+        ($configuration->{script_url}) = split (/\?/, $script_url);
     }
 
     $configuration->{script_url} =
