@@ -10,8 +10,8 @@ use Data::Dumper;
 # You can change the values or add new ones
 
 my %parameters = (
-                  group => 'web-data',
-                  permissions => 0664,
+                  group => '',
+                  permissions => 0666,
                  );
 
 # Get target directory from command line
@@ -202,7 +202,7 @@ sub rel2abs {
 # Set the group of a file
 
 sub set_group  {
-    my ($self, $filename, $group) = @_;
+    my ($filename, $group) = @_;
 
     return unless -e $filename;
     return unless $group;
@@ -210,6 +210,6 @@ sub set_group  {
     my $gid = getgrnam($group);
     return unless $gid;
 
-    chown(-1, $gid, $filename);
+    my $status = chown(-1, $gid, $filename);
     return;
 }
