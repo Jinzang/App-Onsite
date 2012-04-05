@@ -164,7 +164,6 @@ sub run {
         $response = $self->{handler}->run($request);
     };
 
-    $response = $self->error($request, $response);
     if ($@) {
         $response->{code} = 500;
         $response->{msg} = $@;
@@ -175,7 +174,7 @@ sub run {
     }
     
     if ($response->{code} >= 300) {
-        $self->{cgi}->redirect($response->{url});
+        $self->{io}->print("Location: $response->{url}\n\n");
 
     } else {
         $self->{io}->print("Content-type: $response->{protocol}\n\n");
