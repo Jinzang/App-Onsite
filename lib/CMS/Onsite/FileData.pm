@@ -121,7 +121,7 @@ sub check_data {
 }
 
 #----------------------------------------------------------------------
-# Check for a valid id TODO: buggy for non-page types
+# Check for a valid id
 
 sub check_id {
     my ($self, $id, $mode) = @_;
