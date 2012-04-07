@@ -151,7 +151,7 @@ $response = $con->error($request, $response);
 $d ={code => 200, msg => 'OK',
      protocol => 'text/html',
      url => $params->{base_url},
-     results => {request => $request, results => undef,
+     results => {request => $request, results => undef, env => \%ENV,
                  title => 'Script Error', error => $error}};
 
 is_deeply($response, $d, "error"); # test 12
