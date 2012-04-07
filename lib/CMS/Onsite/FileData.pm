@@ -121,26 +121,31 @@ sub check_data {
 }
 
 #----------------------------------------------------------------------
-# Check for a valid id
+# Check for a valid id TODO: buggy for non-page types
 
 sub check_id {
     my ($self, $id, $mode) = @_;
     $mode = 'r' unless defined $mode;
 
     my $test;
-    if ($mode eq 'w') {
-        my ($parentid, $seq) = $self->split_id($id);
-        $test = $self->check_id($parentid, 'r');
-	
-    } else {
-        my ($filename, $extra) = $self->id_to_filename($id);
+    my ($filename, $extra) = $self->id_to_filename($id);
 
-    	if ($extra) {
+    if ($extra) {
+        if ($mode eq 'w') {
+            my ($parentid, $seq) = $self->split_id($id);
+            $test = $self->can('write_secondary') &&
+                    $self->check_id($parentid, 'r');
+        } else {
             my $record = $self->read_data($id);
             $test = defined $record;
-
+        }
+ 
+    } else {
+        if ($mode eq 'w') {
+            $test = $self->can('write_primary') &&
+                    $self->{wf}->under_any_dir($filename, 'w');
         } else {
-            $test = -e $filename && $self->can('write_primary');
+            $test = -e $filename;
         }
     }
     

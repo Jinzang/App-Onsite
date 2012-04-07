@@ -3,7 +3,7 @@ use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 8;
+use Test::More tests => 11;
 
 use IO::File;
 use Cwd qw(abs_path);
@@ -61,6 +61,18 @@ my ($file, $extra) = $data->id_to_filename($id);
 is($file, $filename, "Id to filename"); # test 5
 
 #----------------------------------------------------------------------
+# Check id
+
+my $test = $data->check_id('editor', 'r');
+is($test, 1, "Check id, read mode"); # test 6
+
+$test = $data->check_id('editor', 'w');
+is($test, 1, "Check id, write mode"); # test 7
+
+$test = $data->check_id('foobar', 'r');
+is($test, undef, "Check id, bad id"); # test 8
+
+#----------------------------------------------------------------------
 # Read data
 
 my $r = {expires => 600,
@@ -70,7 +82,7 @@ my $r = {expires => 600,
          id => 'editor'};
 
 my $d = $data->read_data('editor');
-is_deeply($d, $r, "Read data"); # Test 6
+is_deeply($d, $r, "Read data"); # Test 9
 
 #----------------------------------------------------------------------
 # Edit data
@@ -81,7 +93,7 @@ $d->{summary_length} = 500;
 $data->edit_data('editor', $d);
 my $s = $data->read_data('editor');
 
-is_deeply($s, $d, "Edit data"); # Test 7
+is_deeply($s, $d, "Edit data"); # Test 10
 
 #----------------------------------------------------------------------
 # Field info
@@ -96,4 +108,4 @@ my $i = [
         ];
 
 $d = $data->field_info('editor.cfg');
-is_deeply($d, $i, "Field Info"); # Test 8
+is_deeply($d, $i, "Field Info"); # Test 11
