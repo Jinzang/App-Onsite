@@ -229,8 +229,9 @@ sub create_subobject {
         # TODO: get the pkg from a type registry
 		my $utype = ucfirst($type);
 		my $pkg = "CMS::Onsite::${utype}Data";
-        my %parameters = (%$self, type => $type);
-        
+        eval "require $pkg" or die "$@\n";
+
+        my %parameters = (%$self, type => $type);        
 		$subobject = $pkg->new(%parameters);
 	}
 

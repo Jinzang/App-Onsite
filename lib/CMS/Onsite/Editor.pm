@@ -755,9 +755,8 @@ sub remove_check {
 # Render page with templates stored in response
 
 sub render {
-    my ($self, $request, $response, $subsubtemplate) = @_;
-
-    my ($template, $extra) = $self->{data}->id_to_filename('');
+    my ($self, $request, $response, $template, $subsubtemplate) = @_;
+    
     $subsubtemplate = "$self->{template_dir}/$subsubtemplate";
     my $subtemplate = join('/', $self->{template_dir}, SUBTEMPLATE);
     
@@ -779,6 +778,7 @@ sub render {
 sub run {
     my ($self, $request) = @_;
 
+    my ($template, $extra) = $self->{data}->id_to_filename('');
     my $response = $self->batch($request);
 
     $response = $self->query($request, $response)
@@ -792,7 +792,8 @@ sub run {
    
     if ($response->{code} == 200) {
         $subtemplate ||= "$request->{cmd}.htm";
-        $response->{results} = $self->render($request, $response, $subtemplate);
+        $response->{results} = $self->render($request, $response,
+                                             $template, $subtemplate);
     }
     
     return $response;

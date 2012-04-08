@@ -39,11 +39,14 @@ sub extra_data {
 # Get field information (stub)
 
 sub field_info {
-    my ($self, $filename) = @_;
+    my ($self, $id) = @_;
+
+	my ($filename, $extra) = $self->id_to_filename($id);
+    die "No secondary data in configuration file: $id" if $extra;
 
 	my @info;
 	my $title = '';
-	my $lines = $self->{cf}->read_lines($filename);
+ 	my $lines = $self->{cf}->read_lines($filename);
 
 	while (my ($value, $field) = $self->{cf}->read_field($lines)) {
 		if (defined $field) {
@@ -106,7 +109,7 @@ sub read_primary {
 sub write_primary {
 	my ($self, $filename, $record) = @_;
 
-	$self->{cf}->write_file($record);
+	$self->{cf}->write_file($record, $filename);
 	return;
 }
 

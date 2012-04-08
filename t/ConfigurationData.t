@@ -107,5 +107,5 @@ my $i = [
          title => 'Length of Summary'},
         ];
 
-$d = $data->field_info('editor.cfg');
+$d = $data->field_info('editor');
 is_deeply($d, $i, "Field Info"); # Test 11

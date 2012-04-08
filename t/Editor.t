@@ -876,7 +876,8 @@ $response = $con->set_response('', 200);
 $response->{results} = $result_form;
 
 $request = {cmd => 'edit', id => ''};
-my $rendered_form = $con->render($request, $response, 'edit.htm');
+my $rendered_form = $con->render($request, $response,
+                                 "$data_dir/index.html", 'edit.htm');
 my $rendered_data = $con->{nt}->data($rendered_form);
 
 is($rendered_data->{meta}{title}, 'Edit Dir', "render form title"); # test 34
@@ -895,7 +896,8 @@ $response->{results} = $result_form;
 my $subtemplate = 'error.htm';
 $request = {cmd => 'edit', id => ''};
 $response = $con->error($request, $response);
-$response->{results} = $con->render($request, $response, $subtemplate);
+$response->{results} = $con->render($request, $response,
+                                    "$data_dir/index.html", $subtemplate);
 
 $rendered_data = $con->{nt}->data($response->{results});
 is($rendered_data->{primary}{error}, 'Debug Dump', "Error page error"); # test 37
