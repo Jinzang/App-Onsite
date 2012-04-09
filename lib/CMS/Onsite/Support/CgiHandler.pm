@@ -237,7 +237,7 @@ sub update_config {
     my ($self, $configuration) = @_;
 
     unless ($configuration->{data_dir}) {
-        $configuration->{data_dir} = $0;
+        $configuration->{data_dir} = rel2abs($0);
         $configuration->{data_dir}  =~ s!/[^/]*$!!;
     }
     
@@ -262,6 +262,10 @@ sub update_config {
             my $request = $ENV{REQUEST_URI};
             $request =~ s(^/+)();
             $script_url = "http://$server/$request";
+
+        } else {
+            my $file = rel2abs($0);
+            $script_url = "file::/$file"
         }
 
         ($configuration->{script_url}) = split (/\?/, $script_url);

@@ -18,6 +18,7 @@ sub parameters {
     my %parameters = (
                     type => '',
                     data_dir => '',
+                    base_url => '',
                     script_url => '',
                     summary_length => 300,
                     lo => {DEFAULT => 'CMS::Onsite::Listops'},
@@ -227,7 +228,9 @@ sub create_subobject {
 
 	} else {
         # TODO: get the pkg from a type registry
-		my $utype = ucfirst($type);
+        my ($utype) = $type =~ /^(\w+)$/; # untaint
+		$utype = ucfirst($utype);
+
 		my $pkg = "CMS::Onsite::${utype}Data";
         eval "require $pkg" or die "$@\n";
 
@@ -598,17 +601,7 @@ sub read_secondary {
 sub redirect_url {
     my ($self, $id) = @_;
     
-    my ($filename, $extra) = $self->id_to_filename($id);
-    my $cmd = $extra ? 'edit' : 'browse';
-
-    my $args = {
-		id => $id,
-		cmd => $cmd,
-		type => $self->get_type(),
-	};
-
-    my $link = $self->single_command_link($args);
-    return $link->{url};
+    return $self->{base_url};
 }
 
 #----------------------------------------------------------------------

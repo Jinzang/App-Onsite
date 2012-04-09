@@ -77,8 +77,7 @@ is ($test, 1, "Does have id");  # test 8
 # Test redirect url
 
 my $url = $data->redirect_url('a-title');
-is($url, "$params->{script_url}?cmd=browse&id=a-title&type=dumper",
-   "Redirect to view"); # test 9
+is($url, $params->{base_url}, "Redirect url"); # test 9
 
 #----------------------------------------------------------------------
 # Read data
