@@ -320,16 +320,18 @@ sub check_type {
     my ($self, $parentid, $type) = @_;
 
     $type ||= '';
+    my $msg = '';
     my $code = 400;
     my $subtypes = $self->{data}->get_subtypes($parentid);
     foreach my $subtype (@$subtypes) {
         if ($type eq $subtype) {
             $code = 200;
+            $msg = 'OK';
             last;
         }
     }
 
-    return $self->set_response($parentid, $code);
+    return $self->set_response($parentid, $code, $msg);
 }
 
 #----------------------------------------------------------------------
