@@ -43,8 +43,7 @@ my $source = rel2abs('../site');
 my $library = rel2abs('../lib');
 
 erase_target($target, %parameters);
-copy_site($source, $target, %parameters);
-copy_scripts('.', $target, $library, %parameters);
+copy_site($source, $target, $library, %parameters);
 
 #----------------------------------------------------------------------
 # Return a list of all the files in a directory
@@ -79,48 +78,9 @@ sub copy_file {
 }
 
 #----------------------------------------------------------------------
-# Copy modified versions of scripts to target
+# Edit script and copy new version to output
 
-sub copy_scripts {
-    my ($source, $target, $library, %parameters) = @_;   
-
-    my $permissions = $parameters{permissions} | 0111;
-    foreach my $file (all_files($source)) {
-        next unless $file =~ /\.cgi$/;
-
-        my $input = "$source/$file";
-        my $output = "$target/$file";
-
-        edit_script($input, $output, $library, %parameters);
-        set_group($output, $parameters{group});
-        chmod($permissions, $output);
-    }
-
-    return;
-}
-
-#----------------------------------------------------------------------
-# Copy initial version of website to target
-
-sub copy_site {
-    my ($source, $target, %parameters) = @_;   
-
-    foreach my $file (all_files($source)) {
-        my $input = "$source/$file";
-        my $output = "$target/$file";
-
-        copy_file($input, $output);
-        set_group($output, $parameters{group});
-        chmod($parameters{permissions}, $output);   
-    }
-
-    return;
-}
-
-#----------------------------------------------------------------------
-# Edit script and write new version to output
-
-sub edit_script {
+sub copy_script {
     my ($input, $output, $library, %parameters) = @_;
     
     # Read input file
@@ -149,6 +109,33 @@ sub edit_script {
     my $out = IO::File->new($output, 'w') or die "Can't write to $output";
     print $out $text;
     close $out;
+
+    return;
+}
+
+#----------------------------------------------------------------------
+# Copy initial version of website to target
+
+sub copy_site {
+    my ($source, $target, $library, %parameters) = @_;   
+
+    foreach my $file (all_files($source)) {
+        my $input = "$source/$file";
+        my $output = "$target/$file";
+
+        my $permissions;
+        if ($input =~ /\.cgi$/) {
+            copy_script($input, $output, $library, %parameters);
+            $permissions = ($parameters{permissions} & 0775) | 0111;
+
+        } else {
+            copy_file($input, $output);
+            $permissions = $parameters{permissions};
+        }
+
+        set_group($output, $parameters{group});
+        chmod($permissions, $output);
+    }
 
     return;
 }
