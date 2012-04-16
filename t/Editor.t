@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -T
+#!/usr/local/bin/perl
 use strict;
 
 use lib 't';
@@ -767,7 +767,7 @@ $con->batch($data);
 $d = $con->{data}->read_data('new-title');
 
 $r = {
-      author => '',
+      author => 'An author',
       body => $data->{body},
       summary => $data->{body},
       title => $data->{title},

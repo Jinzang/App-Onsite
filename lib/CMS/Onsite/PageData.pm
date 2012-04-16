@@ -59,6 +59,26 @@ sub build_commandlinks {
 }
 
 #----------------------------------------------------------------------
+# Set up data for primary block
+
+sub build_primary {
+    my ($self, $data) = @_;
+    
+    my $type = $self->get_type();
+    return {"${type}data" => $data};
+}
+
+#----------------------------------------------------------------------
+# Set up data for secondary block
+
+sub build_secondary {
+    my ($self, $data) = @_;
+    
+    my $type = $self->get_type();
+    return {"${type}data" => $data};
+}
+
+#----------------------------------------------------------------------
 # Change the filename to match request
 
 sub change_filename {
@@ -345,7 +365,7 @@ sub navigation_links {
         $new_links = $self->{lo}->list_sort($new_links, $sort_field);
         $same  &&= $self->{lo}->list_same($current_links, $new_links);
 
-        $data->{$blockname} = {data => $new_links};
+        $data = {data => $new_links};
     }
     
     return $same ? undef : $data;   

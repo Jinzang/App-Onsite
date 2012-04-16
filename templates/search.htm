@@ -18,23 +18,40 @@
 
 <p class="error">{{error}}</p>
 
-<!-- with data -->
-<h3 class="title">{{title}}</h3>
-<p class="summary">{{summary}}</p>
+<!-- with form -->
+<form id="edit_form" method="post" action="{{url}}" enctype="{{encoding}}">
+<!-- with hidden -->
+<!-- with field --><!-- end field -->
+<!-- end hidden -->
+<!-- with visible -->
+<div class="title {{class}}">
+<!-- with title --><!-- end title -->
+</div>
+<div class="formfield">
+<!-- with field --><!-- end field -->
+</div>
+<!-- end visible -->
+<div><!-- with buttons -->
+<!-- with field --><!-- end field -->
+<!-- end buttons --></div>
+</form>
+<!--end form -->
 
+<!-- with data -->
+<h3 class="title"><!-- with title -->
+<!-- end title--></h3>
+<p class="summary"><!-- with summary -->
+<!-- end summary --></p>
 <!-- end data -->
 
 <!-- if paginglinks -->
 <p><!-- with paginglinks -->
 <!-- with data -->
-<a href="{{url}}">{{title}}</a>&nbsp;&nbsp;
+<a href="{{url}}"><!-- with title -->
+<!-- end title --></a>&nbsp;&nbsp;
 <!-- end data -->
 <!-- end paginglinks --></p>
 <!-- end paginglinks -->
-
-<!-- unless data -->
-<p>No results found.</p>
-<!-- end data -->
 <!-- end primary -->
 </div>
 <div id="navigation">

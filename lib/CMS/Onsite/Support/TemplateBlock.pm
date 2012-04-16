@@ -74,33 +74,15 @@ sub data {
 sub distribute_data {
     my ($self, $object, $data) = @_;
 
-    return $data unless ref $data eq 'HASH';
-
     my $result;
-    %$result = %$data;
-
     foreach my $block (@{$self->{BLOCKS}}) {                
         my $name = $block->{NAME};
         my $cmd = "build_$name";
 
         if ($object->can($cmd)) {
             $result->{$name} = $object->$cmd($data);
-
         } else {
-            my $pattern = $block->{LEXER}->build_macro_pattern();
-            if ($block->{VALUE} !~ /$pattern/) {
-                $result->{$name} = exists $data->{$name}
-                                   ? $data->{$name}
-                                   : '';					
-    
-            } else {
-                my $subdata = exists $data->{$name}
-                             ? $data->{$name}
-                             : $data;
-                             
-                $result->{$name} = $block->distribute_data($object,
-                                                           $subdata);
-            }
+            $result->{$name} = $data;
         }
     }
 

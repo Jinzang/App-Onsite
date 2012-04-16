@@ -41,7 +41,7 @@ sub data {
 
 sub distribute_data {
     my ($self, $object, $data, @sources) = @_;
-    
+
     my $template = $self->parse(@sources);
     return $template->distribute_data($object, $data);
 }
