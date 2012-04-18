@@ -224,6 +224,14 @@ sub build_commandlinks {
 }
 
 #----------------------------------------------------------------------
+# Build an empty data set for thr secondary block
+
+sub build_secondary {
+	my ($self, $request) = @_;
+    return '';
+}
+
+#----------------------------------------------------------------------
 # Redirect to previous page
 
 sub cancel {
