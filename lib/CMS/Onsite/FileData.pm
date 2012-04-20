@@ -376,7 +376,6 @@ sub get_next {
 sub get_repository {
     my ($self, $id) = @_;
 
-    my $ext = $self->get_trait('extension');
     my ($filename, $extra) = $self->id_to_filename($id);
 
     my $repository;
@@ -399,7 +398,6 @@ sub get_subtypes {
     my ($self, $parentid) = @_;
 
     my $subtypes;
-    my $ext = $self->get_trait('extension');
     my ($filename, $extra) = $self->id_to_filename($parentid);
 
     if ($extra) {
@@ -555,7 +553,6 @@ sub populate_object {
 sub read_data {
     my ($self, $id) = @_;
 
-    my $ext = $self->get_trait('extension');
     my ($filename, $extra) = $self->id_to_filename($id);
 	die "Invalid id: $id\n" unless -e $filename;
 
