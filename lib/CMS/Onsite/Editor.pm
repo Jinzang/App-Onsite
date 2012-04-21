@@ -107,8 +107,7 @@ sub add_check {
     $request = $self->clean_data($request);
 
     # Validate the data fields
-
-   if ($self->any_data($request)) {
+    if ($self->any_data($request)) {
         my $error = $child->check_data($request);
         if ($error) {
             $response = $self->set_response($request->{id}, 400, $error);
@@ -118,6 +117,8 @@ sub add_check {
             $response = $self->check_fields($request)
                 if $response->{code} == 200;
         }
+    } else {
+        $response = $self->set_response($request->{id}, 400, '');
     }
 
     return $response;
