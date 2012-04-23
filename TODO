@@ -1,13 +1,13 @@
-Add command doesn't work, deletes index page
+No title for browse command
+Calculation of toplinks is wacky
+Calculation of command links needs work
 Write sub to add libraries for test code
 Finish UserData as subtype of TextData
-Finish ConfigurationData
 Remove traits and replace with type registry
 Break out commands into separate objects
 Rewrite PostData
 Finish pod documentation
 Finish directory rename code
 Support atom publishing protocol
-remove rendundant id in id, request calls
 Modify cronHandler and FileHandler to support Editor interface
 Rewrite clean subs in Verify classes
