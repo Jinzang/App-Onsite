@@ -585,6 +585,8 @@ sub write_primary {
     my $subtemplate = $self->get_trait('create_template');
     $subtemplate = "$self->{template_dir}/$subtemplate";
    
+    $record->{base_url} = $self->{base_url};
+    
     $self->write_file('primary.any',
                       $filename,
                       $subtemplate,

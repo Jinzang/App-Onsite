@@ -437,6 +437,7 @@ $d->{cmd} = 'edit';
 $data->write_data('new-title', $d);
 $s = $data->read_data('strange-title');
 $d->{id} = 'strange-title';
+delete $d->{base_url};
 delete $d->{oldid};
 delete $d->{cmd};
 
