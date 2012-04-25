@@ -697,8 +697,11 @@ sub single_command_link {
 
     my $link = {};
 	$link->{url} = $self->{script_url} . $parameters;
-	$link->{title}  = $self->command_title($query);
 
+	$link->{title}  = ucfirst($query->{cmd});
+    $link->{title} .= ' '  . ucfirst($query->{subtype})
+        if exists $query->{subtype};
+    
     return $link;
 }
 

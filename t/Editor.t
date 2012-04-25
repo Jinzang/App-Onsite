@@ -87,7 +87,7 @@ my $required_command = {
 is_deeply($form, $required_command, "form command"); # test 5
 
 $form->{title} = $con->form_title($request);
-is($form->{title}, 'Edit Dir', "Form title"); # test 6
+is($form->{title}, 'Edit', "Form title"); # test 6
 
 $form->{visible} = $con->form_visible_fields($request, $field_info);
 my $visible = [{title => 'Title',
@@ -880,7 +880,7 @@ my $rendered_form = $con->render($request, $response,
                                  "$data_dir/index.html", 'edit.htm');
 my $rendered_data = $con->{nt}->data($rendered_form);
 
-is($rendered_data->{meta}{title}, 'Edit Dir', "render form title"); # test 34
+is($rendered_data->{meta}{title}, 'Edit', "render form title"); # test 34
 my @rendered_form_fields = sort keys %{$rendered_data->{primary}{form}};
 is_deeply(\@rendered_form_fields, [qw(buttons hidden visible)],
           "render form fields"); #test 35

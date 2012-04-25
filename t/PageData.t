@@ -268,11 +268,11 @@ $data->{wf}->writer($templatename, $update_template);
 # command links
 
 my $elink = [{
-             title => 'Edit Page',
+             title => 'Edit',
              url => "test.cgi?cmd=edit&id=a-title&type=page",
             },
             {
-             title => 'Add List Item',
+             title => 'Add List',
              url => "test.cgi?cmd=add&id=a-title&subtype=list&type=page",
             }];
 
@@ -378,7 +378,7 @@ $data->edit_data('a-title', $d);
 $d = $data->read_data('a-title');
 $s->{summary} = $d->{summary};
 
-is_deeply($d, $s, "Edit page"); # Test 15
+is_deeply($d, $s, "Edit"); # Test 15
 
 my $pagedata = $data->{nt}->data("$data_dir/a-title.html");
 

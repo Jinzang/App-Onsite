@@ -672,7 +672,7 @@ sub pagination_links {
 
 	foreach my $link (@$links) {
         $link->{url} .= "&start=$start";
-		$link->{title} =~ s/^(\S+)/$new_title/;
+		$link->{title} = $new_title;
 	}
 
 	return @$links;
