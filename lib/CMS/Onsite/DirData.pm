@@ -283,11 +283,14 @@ sub next_id {
 # Remove a directory
 
 sub remove_data {
-    my ($self, $id) = @_;
+    my ($self, $id, $request) = @_;
 
     if ($id) {
-        my ($filename, $extra) = $self->id_to_filename($id);
-        $self->{wf}->remove_directory($filename);
+        my $directory = $self->get_repository($id);
+        $self->{wf}->remove_directory($directory);
+
+        $request->{oldid} = $id;
+        $self->update_data($id, $request);
 
     } else {
     	die "Can't remove $self->{data_dir}\n";

@@ -449,11 +449,10 @@ sub single_navigation_link {
     my ($self, $data) = @_;
 
     my $id = $data->{id};
-    $id = '' unless defined $id;
     my ($parentid, $seq) = $self->split_id($id);
     
     my $link = {};
-    $link->{id} = $seq;
+    $link->{id} = $seq ;
     $link->{title} = $data->{title};
     $link->{summary} = $data->{summary};
     $link->{url} = $self->id_to_url($id);
@@ -537,14 +536,17 @@ sub update_data {
 
 sub update_links {
     my ($self, $current_links, $data) = @_;
-
-    my $link = $self->single_navigation_link($data);
-    my $new_links = $self->{lo}->list_add($current_links, $link);
-
+    my $new_links;
+    
+    if (exists $data->{id}) {
+        my $link = $self->single_navigation_link($data);
+        $new_links = $self->{lo}->list_add($current_links, $link);
+    }
+    
     if (exists $data->{oldid}) {
         my ($parentid, $seq) = $self->split_id($data->{oldid});
         $new_links = $self->{lo}->list_delete($current_links, $seq);
-   }
+    }
 
     return $new_links;
 }
