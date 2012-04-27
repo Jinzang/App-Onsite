@@ -1,6 +1,4 @@
 No title for browse command
-Calculation of toplinks is wacky
-Calculation of command links needs work
 Write sub to add libraries for test code
 Finish UserData as subtype of TextData
 Remove traits and replace with type registry
