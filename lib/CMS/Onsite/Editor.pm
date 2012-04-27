@@ -183,6 +183,8 @@ sub browse {
     $results = $self->browse_links($results);
     $results = $self->missing_text($results);
     $results = $self->paginate($request, $results);
+    $results->{title} = $self->form_title($request);
+    $results->{base_url} = $self->{base_url};
 
     my $response = $self->set_response($id, 200);
     $response->{results} = $results;
@@ -830,6 +832,8 @@ sub search {
     my $results = $self->{data}->search_data($query, $id, $limit);
     $results = $self->missing_text($results);
     $results = $self->paginate($request, $results);
+    $results->{title} = $self->form_title($request);
+    $results->{base_url} = $self->{base_url};
 
     my $response = $self->set_response($id, 200);
     $response->{results} = $results;
