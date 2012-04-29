@@ -1,12 +1,13 @@
-#!/usr/bin/env perl
+#!/usr/bin/env perl -T
 use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 8;
+use Test::More tests => 10;
 
 use IO::File;
 use Cwd qw(abs_path getcwd);
+use CMS::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Create objext
@@ -21,6 +22,9 @@ my $data_dir = 'test';
 system("/bin/rm -rf $data_dir");
 mkdir $data_dir;
 $data_dir = abs_path($data_dir);
+
+my $wf = CMS::Onsite::Support::WebFile->new(valid_write => [$data_dir]);
+$data_dir = $wf->validate_filename($data_dir, 'w');
 
 #----------------------------------------------------------------------
 # Create registry file
@@ -100,3 +104,13 @@ is_deeply(\@types, ['type_a'], "List search one field one match"); # test 7
 
 @types = $reg->search('types', one => 10, two => 2);
 is_deeply(\@types, ['type_b'], "Scalar search two fields one match"); # test 8
+
+#----------------------------------------------------------------------
+# Test project
+
+my $hash = $reg->project('types', 'one');
+is_deeply($hash, {type_a => 1, type_b => 10}, "Test project"); # test 9
+
+$hash = $reg->project('types', 'three');
+is_deeply($hash, {type_a => "first line\nsecond line"},
+          "Test project with missing field"); # test 10

@@ -21,6 +21,23 @@ sub parameters {
 }
 
 #----------------------------------------------------------------------
+# Select one field out of the registry
+
+sub project {
+    my ($self, $name, $field) = @_;
+    
+    my %hash;
+    my $registry = $self->read_file($name);
+    
+    foreach my $id (keys %$registry) {
+        next unless exists $registry->{$id}{$field};
+        $hash{$id} = $registry->{$id}{$field};
+    }
+    
+    return \%hash;
+}
+
+#----------------------------------------------------------------------
 # Read the registry data for the specified type
 
 sub read_data {
