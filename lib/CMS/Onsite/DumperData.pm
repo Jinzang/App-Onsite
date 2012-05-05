@@ -19,19 +19,6 @@ sub parameters {
     return $pkg->SUPER::parameters();
 }
 
-#---------------------------------------------------------------------------
-# Set the traits of this data class
-
-sub get_trait {
-    my ($self, $name) = @_;
-
-	my %trait = (
-                 extension => 'dump',
-                );
-
-    return $trait{$name} || $self->SUPER::get_trait($name);
-}
-
 #----------------------------------------------------------------------
 # Read data from a disk file
 

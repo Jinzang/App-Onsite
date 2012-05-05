@@ -1,4 +1,4 @@
-#!/usr/bin/env perl -T
+#!/usr/bin/env perl
 use strict;
 
 use lib 't';
@@ -7,6 +7,7 @@ use Test::More tests => 12;
 
 use IO::File;
 use Cwd qw(abs_path getcwd);
+use CMS::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -17,27 +18,21 @@ system("/bin/rm -rf $data_dir");
 
 mkdir $data_dir;
 $data_dir = abs_path($data_dir);
-
-#----------------------------------------------------------------------
-# Create object
-
-BEGIN {use_ok("CMS::Onsite::DumperData");} # test 1
+my $template_dir = "$data_dir/templates";
+my $data_registry = 'data.reg',
 
 my $params = {
               script_url => 'test.cgi',
               data_dir => $data_dir,
+              template_dir => $template_dir,
               base_url => 'http://www.stsci.edu/~bsimon/nova',
               valid_write => "$data_dir",
              };
 
-my $data = CMS::Onsite::DumperData->new(%$params);
-
-isa_ok($data, "CMS::Onsite::DumperData"); # test 2
-can_ok($data, qw(browse_data search_data read_data write_data
-                 add_data edit_data remove_data check_id next_id)); # test 3
-
 #----------------------------------------------------------------------
-# Create test file
+# Create test files
+
+my $wf = CMS::Onsite::Support::WebFile->new(%$params);
 
 my $hash = {
     'title' => 'A title',
@@ -46,13 +41,48 @@ my $hash = {
 };
 
 my $filename = "$data_dir/a-title.dump";
-$filename = $data->{wf}->validate_filename($filename, 'w');
+$filename = $wf->validate_filename($filename, 'w');
 
 my $dumper = Data::Dumper->new([$hash], ['hash']);
 my $output = $dumper->Dump();
 
-$data->{wf}->relocate($data_dir);
-$data->{wf}->writer($filename, $output);
+$wf->writer($filename, $output);
+
+my $registry = <<'EOQ';
+        [file]
+SEPARATOR = :
+INDEX_NAME = index
+ID_FIELD = title
+SORT_FIELD = id
+SUMMARY_FIELD = body
+ID_LENGTH = 63
+INDEX_LENGTH = 4
+HAS_SUBFOLDERS = 0
+PARENT_COMMANDS = browse
+PARENT_COMMANDS = search
+COMMANDS = browse
+COMMANDS = add
+COMMANDS = edit
+COMMANDS = remove
+COMMANDS = search
+        [dumper]
+EXTENSION = dump
+CLASS = CMS::Onsite::DumperData
+EOQ
+
+$wf->writer("$template_dir/$data_registry", $registry);
+
+#----------------------------------------------------------------------
+# Create object
+
+BEGIN {use_ok("CMS::Onsite::DumperData");} # test 1
+
+my $data = CMS::Onsite::DumperData->new(%$params);
+isa_ok($data, "CMS::Onsite::DumperData"); # test 2
+can_ok($data, qw(browse_data search_data read_data write_data
+                 add_data edit_data remove_data check_id next_id)); # test 3
+
+$wf->relocate($data_dir);
 
 #----------------------------------------------------------------------
 # Test id to filename

@@ -10,16 +10,6 @@ package CMS::Onsite::DirData;
 use base qw(CMS::Onsite::PageData);
 
 #----------------------------------------------------------------------
-# Configuration
-
-use constant TYPE_REGISTRY => {
-								dump => 'CMS::Onsite::DumperData',
-								html => 'CMS::Onsite::PageData',
-								data => 'CMS::Onsite::TextdbData',
-                                cfg => 'CMS::Onsite::ConfigurationData',
-							};
-
-#----------------------------------------------------------------------
 # Set default values
 
 sub parameters {
@@ -63,8 +53,9 @@ sub browse_data {
 
     my @list;
     my $subfolders = 0;
-    my $type_registry = TYPE_REGISTRY;
-    my @extensions = keys %$type_registry;
+
+    my %extensions = $self->extensions();
+    my @extensions = values %extensions;
     my $get_next = $self->get_next($parentid, $subfolders, @extensions);
 
     while (defined(my $data = &$get_next)) {
@@ -133,6 +124,16 @@ sub check_command {
     }
 
     return $test;
+}
+
+#----------------------------------------------------------------------
+# Get hash of extensions and types
+
+sub get_extensions {
+    my ($self) = @_;
+    
+    my $types = $self->{reg}->project($self->{type_registry}, 'extension');
+    return reverse %$types;
 }
 
 #----------------------------------------------------------------------
@@ -214,12 +215,14 @@ sub id_to_type {
 	my ($self, $id) = @_;
 
     my $pkg;
-    my $registry = TYPE_REGISTRY;
-    foreach my $ext (reverse sort keys %$registry) {
+    my %extensions = $self->extensions();
+
+    foreach my $ext (keys %extensions) {
         my ($filename, $extra) = $self->id_to_filename_with_ext($id, $ext);
 
-        if (-e $filename) {        
-            $pkg = $registry->{$ext};
+        if (-e $filename) {
+            my $registry = $self->type_registry($extensions{$ext});
+            $pkg = $registry->{class};
             last;
         }
     }
@@ -227,28 +230,9 @@ sub id_to_type {
     die "Invalid id: $id\n" unless $pkg;
 
     eval "require $pkg" or die "$@\n";
-    my %parameters = (%$self, type => '');
-	my $obj = $pkg->new(%parameters);
+	my $obj = $pkg->new(%$self);
 
 	return $obj->id_to_type($id);
-}
-
-#----------------------------------------------------------------------
-# Return boolean result indicating if this is a directory subobject
-
-sub isa_subobject {
-    my ($self, $filename) = @_;
-
-    my ($ext) = $filename =~ /\.([^\.]+)$/;
-
-    if ($ext) {
-        my $registry = TYPE_REGISTRY;
-        foreach my $extension (keys %$registry) {
-            return 1 if $ext eq $extension;
-        }
-    }
-
-    return;
 }
 
 #----------------------------------------------------------------------

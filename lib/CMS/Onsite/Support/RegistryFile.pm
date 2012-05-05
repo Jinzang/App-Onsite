@@ -14,20 +14,52 @@ sub parameters {
 	my ($self) = @_;
 
 	return (
-			registry_ext => 'reg',
             template_dir => '',
+            registry_ext => 'reg',
 			cache => {DEFAULT => 'CMS::Onsite::Support::CachedFile'},
 		   );
+}
+
+#----------------------------------------------------------------------
+# Add traits from registry file to object
+
+sub add_traits {
+    my ($self, $obj) = @_;
+    
+    my $package = ref $obj;
+    my @pkg = split(/::/, $package);
+    my ($id, $family) = $pkg[-1] =~ /^([A-Z][a-z]*)([A-Z][a-z]*)$/;
+    die "Can't parse package name: $package\n" unless $id && $family;
+    
+    my @ids = (lc($id));
+    do {
+        no strict;
+        foreach my $pkg (@{"${package}::ISA"}) {
+            my @pkg = split(/::/, $pkg);
+            my ($id) = $pkg[-1] =~ /^([A-Z][a-z]*)$family$/;
+            push(@ids, lc($id));
+        }
+    };
+
+    my $filename .= lc($family) . '.' . $self->{registry_ext};    
+    
+    my %traits;
+    foreach my $id (reverse @ids) {
+        my $traits = $self->read_data($filename, $id);
+        %traits = (%traits, %$traits);
+    }
+    
+    return %traits;
 }
 
 #----------------------------------------------------------------------
 # Select one field out of the registry
 
 sub project {
-    my ($self, $name, $field) = @_;
+    my ($self, $filename, $field) = @_;
     
     my %hash;
-    my $registry = $self->read_file($name);
+    my $registry = $self->read_file($filename);
     
     foreach my $id (keys %$registry) {
         next unless exists $registry->{$id}{$field};
@@ -41,10 +73,10 @@ sub project {
 # Read the registry data for the specified type
 
 sub read_data {
-    my ($self, $name, $id) = @_;
+    my ($self, $filename, $id) = @_;
     
-    my $registry = $self->read_file($name);
-    die "Did not find $name in registry: $id\n"
+    my $registry = $self->read_file($filename);
+    die "Did not find $filename in registry: $id\n"
         unless exists $registry->{$id};
     
     return $registry->{$id};
@@ -54,16 +86,17 @@ sub read_data {
 # Read a registry file into a hash of parameters
 
 sub read_file {
-    my ($self, $name) = @_;
+    my ($self, $filename) = @_;
 
-    my $filename = join('/', $self->{template_dir},
-                        "$name.$self->{registry_ext}");
-
-	my $cache = $self->{cache}->fetch($filename);
+    my $pathname = $self->{template_dir};
+    $pathname .= '/' unless $pathname =~ m(/$);
+    $pathname .= $filename;
+    
+ 	my $cache = $self->{cache}->fetch($pathname);
 
 	unless ($cache) {
-		my $in = IO::File->new($filename, 'r');
-		die "Can't open $filename: $!\n" unless $in;
+		my $in = IO::File->new($pathname, 'r');
+		die "Can't open $pathname: $!\n" unless $in;
 
         my $id;
         my $field;
@@ -76,7 +109,7 @@ sub read_file {
             } elsif (/^\s*\[([^\]]*)\]/) {
                 # new id
                 $id = lc($1);
-                die "Duplicate $name: $id\n" if exists $registry{$id};
+                die "Duplicate ids: $id\n" if exists $registry{$id};
                 
             } elsif (/^[A-Z_]+\s*=/) {
                 # new field definition
@@ -108,7 +141,7 @@ sub read_file {
 
 		close($in);
 		$cache = \%registry;
-		$self->{cache}->save($filename, $cache);
+		$self->{cache}->save($pathname, $cache);
 	}
 
     return $cache;
@@ -118,10 +151,10 @@ sub read_file {
 # Search the registry for parameters with a specified value of a field
 
 sub search {
-    my ($self, $name, %query) = @_;
+    my ($self, $filename, %query) = @_;
     
     my @ids;
-    my $registry = $self->read_file($name);
+    my $registry = $self->read_file($filename);
     
     foreach my $id (sort keys %$registry) {
         my $match;

@@ -1,0 +1,28 @@
+        [file]
+SEPARATOR = :
+INDEX_NAME = index
+ID_FIELD = title
+SORT_FIELD = id
+SUMMARY_FIELD = body
+ID_LENGTH = 63
+INDEX_LENGTH = 4
+HAS_SUBFOLDERS = 0
+PARENT_COMMANDS = browse
+PARENT_COMMANDS = search
+COMMANDS = browse
+COMMANDS = add
+COMMANDS = edit
+COMMANDS = remove
+COMMANDS = search
+        [dumper]
+EXTENSION = dump
+CLASS = CMS::Onsite::DumperData
+		[page]
+EXTENSION = html
+CLASS = CMS::Onsite::PageData
+		[text]
+EXTENSION = data
+CLASS = CMS::Onsite::TextdbData
+        [configuration]
+EXTENSION = cfg
+CLASS = CMS::Onsite::ConfigurationData

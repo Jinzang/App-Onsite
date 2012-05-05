@@ -16,13 +16,14 @@ sub parameters {
     my ($pkg) = @_;
 
     my %parameters = (
-                    type => '',
                     data_dir => '',
                     base_url => '',
                     script_url => '',
+                    type_registry => '',
                     summary_length => 300,
                     lo => {DEFAULT => 'CMS::Onsite::Listops'},
                     wf => {DEFAULT => 'CMS::Onsite::Support::WebFile'},
+                    reg => {DEFAULT => 'CMS::Onsite::Support::RegistryFile'},
 	);
 
     return %parameters;
@@ -159,12 +160,12 @@ sub check_id {
 sub command_links {
 	my ($self, $id, $commands) = @_;
     
-    $commands ||= $self->get_trait('commands');
+    $commands ||= $self->{commands};
     
     my @links;
     my $type = $self->get_type();
     my $subtypes = $self->get_subtypes($id);
-    my %parent_commands = map {$_ => 1} @{$self->get_trait('parent_commands')};
+    my %parent_commands = map {$_ => 1} @{$self->{parent_commands}};
 
     foreach my $cmd (@$commands) {
         next unless $self->check_command($id, $cmd);
@@ -205,7 +206,7 @@ sub command_title {
     } elsif (exists $args->{type}) {
         my $type = ucfirst ($args->{type});
     
-        my %parentcmd = map {$_ => 1} @{$self->get_trait('parent_commands')};
+        my %parentcmd = map {$_ => 1} @{$self->{parent_commands}};
         if ($parentcmd{$args->{cmd}} && $type !~ /s$/) {
             $type .= 's';
         }
@@ -223,19 +224,17 @@ sub create_subobject {
     my ($self, $type) = @_;
 
 	my $subobject;
-	if ($self->get_type() eq $type) {
+	if ($self->{type} eq $type) {
 		$subobject = $self;
 
 	} else {
-        # TODO: get the pkg from a type registry
-        my ($utype) = $type =~ /^(\w+)$/; # untaint
-		$utype = ucfirst($utype);
+        my $trait = $self->registry('types', $type);
 
-		my $pkg = "CMS::Onsite::${utype}Data";
+        my $pkg = $trait->{class};
         eval "require $pkg" or die "$@\n";
 
-        my %parameters = (%$self, type => $type);        
-		$subobject = $pkg->new(%parameters);
+		$subobject = $pkg->new(%$self);
+        $subobject = $subobject->add_traits($type);
 	}
 
     return $subobject;
@@ -257,7 +256,7 @@ sub edit_data {
 sub extra_data {
     my ($self, $data) = @_;
 
-    my $summary_field = $self->get_trait('summary_field');
+    my $summary_field = $self->{summary_field};
     if (exists $data->{$summary_field} && ! exists $data->{summary}) {
     	$data->{summary} = $self->summarize($data->{$summary_field});
     }
@@ -304,12 +303,12 @@ sub filename_to_id {
     my @path;
     if (length $filename) {
         @path = split(/\//, $filename);
-        pop(@path) if $path[-1] eq $self->get_trait('index_name');
+        pop(@path) if $path[-1] eq $self->{index_name};
     }
 
     my $id;
     if (@path) {
-        my $separator = $self->get_trait('separator');
+        my $separator = $self->{separator};
         $id = join($separator, @path);
     } else {
         $id = '';
@@ -330,8 +329,8 @@ sub generate_id {
     $field =~ s/\s+$//;
     $field =~ s/\s+/-/g;
 
-    my $seq = substr($field, 0, $self->get_trait('id_length'));
-    my $id = $parentid ? join($self->get_trait('separator'), $parentid, $seq) : $seq;
+    my $seq = substr($field, 0, $self->{id_length});
+    my $id = $parentid ? join($self->{separator}, $parentid, $seq) : $seq;
     
     return $id;
 }
@@ -342,7 +341,7 @@ sub generate_id {
 sub get_commands {
     my ($self) = @_;
        
-    return $self->get_trait('commands');
+    return $self->{commands};
 }
 
 #----------------------------------------------------------------------
@@ -353,7 +352,7 @@ sub get_next {
 
     my ($filename, $extra) = $self->id_to_filename($parentid);
 
-    my $separator = $self->get_trait('separator');
+    my $separator = $self->{separator};
     my $records = $self->read_secondary($filename);
 
     return sub {
@@ -397,40 +396,17 @@ sub get_repository {
 sub get_subtypes {
     my ($self, $parentid) = @_;
 
-    my $subtypes;
+    my @subtypes;
     my ($filename, $extra) = $self->id_to_filename($parentid);
-
+    
     if ($extra) {
-        $subtypes = [];
+        @subtypes = ();
     } else {
-        $subtypes = $self->get_trait('subtypes');
+        @subtypes = $self->{reg}->search($self->{type_registry},
+                                         super => $self->{type});
     }
-
-    return $subtypes;
-}
-
-#---------------------------------------------------------------------------
-# Get the value of a trait
-
-sub get_trait {
-    my ($self, $name) = @_;
-
-    my %trait = (
-                 separator => ':',
-                 index_name => 'index',
-                 id_field => 'title',
-                 sort_field => 'id',
-                 summary_field => 'body',
-                 id_length => 63,
-                 index_length => 4,
-                 has_subfolders => 0,
-                 subtypes => [],
-                 parent_commands => [qw(browse search)],
-                 commands => [qw(browse add edit remove search)]
-                );
-
-    die "Unknown trait: $name\n" unless exists $trait{$name};
-    return $trait{$name};
+    
+    return \@subtypes;
 }
 
 #----------------------------------------------------------------------
@@ -453,7 +429,7 @@ sub get_type {
 sub id_to_filename {
     my ($self, $id) = @_;
 
-    my $ext = $self->get_trait('extension');
+    my $ext = $self->{extension};
     return $self->id_to_filename_with_ext($id, $ext);
 }
 
@@ -464,7 +440,7 @@ sub id_to_filename_with_ext {
 	my($self, $id, $ext) = @_;
 
 	$id = '' unless defined $id;
-	my $separator = $self->get_trait('separator');
+	my $separator = $self->{separator};
 	my @path = split(/$separator/, $id);
 
 	# Numeric fields are the subfile id
@@ -486,7 +462,7 @@ sub id_to_filename_with_ext {
    
 	my $filename;
     if (-d $basename) {
-        my $index_name = $self->get_trait('index_name');
+        my $index_name = $self->{index_name};
         $filename = "$basename/$index_name.$ext";
     } else {
         $filename = "$basename.$ext";
@@ -520,11 +496,11 @@ sub next_id {
     my $records = $self->read_secondary($filename);
     my $record = $self->{lo}->list_max($records);
 
-	my $index_length = $self->get_trait('index_length');
+	my $index_length = $self->{index_length};
     my $seq = $record ?  $record->{id} : '0' x $index_length;
     $seq ++;
 
-	my $separator = $self->get_trait('separator');
+	my $separator = $self->{separator};
     my $id = $parentid ? join($separator, $parentid, $seq) : $seq;
     return $id;
 }
@@ -534,17 +510,15 @@ sub next_id {
 
 sub populate_object {
 	my ($self, $configuration) = @_;
+   
+    $self = $self->SUPER::populate_object($configuration);
+    my %traits = $self->{reg}->add_traits($self);
 
-    unless (exists $configuration->{type}) {
-        my $type;
-        my $pkg = ref $self;
-        ($type) = $pkg =~ /^CMS::Onsite::([\w-]+)Data$/;
-
-        die "Cannot get type: $pkg\n" unless defined $type;
-        $configuration->{type} = lc($type);
+    while (my ($field, $value) = each %traits) {
+        $self->{$field} = $value;
     }
     
-    return $self->SUPER::populate_object($configuration);
+    return $self;
 }
 
 #---------------------------------------------------------------------------
@@ -712,7 +686,7 @@ sub split_id {
     my ($self, $id) = @_;
     $id ||= '';
 
-    my $separator = $self->get_trait('separator');
+    my $separator = $self->{separator};
     my @ids = split(/$separator/, $id);
     my $seq = pop(@ids);
     my $parentid = join($separator, @ids);
@@ -752,6 +726,15 @@ sub summarize {
 }
 
 #----------------------------------------------------------------------
+# Return registry for a specific type
+
+sub type_registry {
+    my ($self, $type) = @_;
+    
+    return $self->{reg}->read_data($self->{type_registry}, $type);
+}
+
+#----------------------------------------------------------------------
 # Update navigation links after a file is changed (stub)
 
 sub update_data {
@@ -769,7 +752,7 @@ sub valid_filename {
     my ($ext) = $filename =~ /\.([^\.]*)$/;
     $ext ||= '';
 
-    return $ext eq $self->get_trait('extension');
+    return $ext eq $self->{extension};
 }
 
 #---------------------------------------------------------------------------
