@@ -19,7 +19,7 @@ sub parameters {
                     data_dir => '',
                     base_url => '',
                     script_url => '',
-                    type_registry => '',
+                    data_registry => '',
                     summary_length => 300,
                     lo => {DEFAULT => 'CMS::Onsite::Listops'},
                     wf => {DEFAULT => 'CMS::Onsite::Support::WebFile'},
@@ -224,17 +224,21 @@ sub create_subobject {
     my ($self, $type) = @_;
 
 	my $subobject;
-	if ($self->{type} eq $type) {
+	if ($self->get_type() eq $type) {
 		$subobject = $self;
 
 	} else {
-        my $trait = $self->registry('types', $type);
+        my $traits = $self->{reg}->read_data($self->{data_registry}, $type);
 
-        my $pkg = $trait->{class};
+        my ($pkg) = $traits->{class} =~ /^([A-Z][\w:]+Data)$/;
         eval "require $pkg" or die "$@\n";
 
 		$subobject = $pkg->new(%$self);
-        $subobject = $subobject->add_traits($type);
+        my %traits = $subobject->{reg}->add_traits($type);
+        
+        while (my ($field, $value) = each %traits) {
+            $subobject->{$field} = $value;
+        }
 	}
 
     return $subobject;
@@ -402,8 +406,8 @@ sub get_subtypes {
     if ($extra) {
         @subtypes = ();
     } else {
-        @subtypes = $self->{reg}->search($self->{type_registry},
-                                         super => $self->{type});
+        @subtypes = $self->{reg}->search($self->{data_registry},
+                                         super => $self->get_type());
     }
     
     return \@subtypes;
@@ -416,7 +420,8 @@ sub get_type {
     my ($self) = @_;
     
     unless ($self->{type}) {
-        my ($type) = $self =~ /CMS::Onsite::(\w+)Data/;
+        my @pkg = split(/::/, ref $self);
+        my ($type) = $pkg[-1] =~ /(\w+)Data/;
         $self->{type} = lc($type);
     }
     
@@ -512,7 +517,9 @@ sub populate_object {
 	my ($self, $configuration) = @_;
    
     $self = $self->SUPER::populate_object($configuration);
-    my %traits = $self->{reg}->add_traits($self);
+
+    my $package = ref $self;
+    my %traits = $self->{reg}->add_traits($package);
 
     while (my ($field, $value) = each %traits) {
         $self->{$field} = $value;
@@ -723,15 +730,6 @@ sub summarize {
     }
 
     return $summary;
-}
-
-#----------------------------------------------------------------------
-# Return registry for a specific type
-
-sub type_registry {
-    my ($self, $type) = @_;
-    
-    return $self->{reg}->read_data($self->{type_registry}, $type);
 }
 
 #----------------------------------------------------------------------

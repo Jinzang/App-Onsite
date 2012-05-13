@@ -1,4 +1,4 @@
-#!/usr/bin/env perl
+#!/usr/bin/env perl -T
 use strict;
 
 use lib 't';
@@ -19,14 +19,15 @@ system("/bin/rm -rf $data_dir");
 mkdir $data_dir;
 $data_dir = abs_path($data_dir);
 my $template_dir = "$data_dir/templates";
-my $data_registry = 'data.reg',
+my $data_registry = 'data.reg';
 
 my $params = {
               script_url => 'test.cgi',
               data_dir => $data_dir,
               template_dir => $template_dir,
               base_url => 'http://www.stsci.edu/~bsimon/nova',
-              valid_write => "$data_dir",
+              valid_write => $data_dir,
+              data_registry => $data_registry,
              };
 
 #----------------------------------------------------------------------

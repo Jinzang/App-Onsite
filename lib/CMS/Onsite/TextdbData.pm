@@ -36,18 +36,6 @@ sub field_info {
     return \@field_info;
 }
 
-#---------------------------------------------------------------------------
-# Set the traits of this data class
-
-sub get_trait {
-    my ($self, $name) = @_;
-
-	my %trait = (
-                 extension => 'data',
-              );
-
-    return $trait{$name} || $self->SUPER::get_trait($name);
-}
 #----------------------------------------------------------------------
 # Get the type of a file given its id
 

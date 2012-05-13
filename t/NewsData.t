@@ -6,6 +6,7 @@ use lib 'lib';
 use Test::More tests => 13;
 
 use Cwd qw(abs_path getcwd);
+use CMS::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -17,6 +18,7 @@ system("/bin/rm -rf $data_dir");
 mkdir $data_dir;
 $data_dir = abs_path($data_dir);
 my $template_dir = "$data_dir/templates";
+my $data_registry = 'data.reg';
 
 #----------------------------------------------------------------------
 # Create object
@@ -30,16 +32,58 @@ my $params = {
               script_url => 'test.cgi',
               base_url => 'http://www.stsci.edu',
               valid_write => [$data_dir, $template_dir],
+              data_registry => $data_registry,
              };
-
-my $data = CMS::Onsite::NewsData->new(%$params);
-
-isa_ok($data, "CMS::Onsite::NewsData"); # test 2
-can_ok($data, qw(add_data browse_data edit_data read_data remove_data
-                 search_data check_id)); # test 3
 
 #----------------------------------------------------------------------
 # Create test files
+
+my $wf = CMS::Onsite::Support::WebFile->new(%$params);
+
+my $registry = <<'EOQ';
+        [file]
+SEPARATOR = :
+INDEX_NAME = index
+ID_FIELD = title
+SORT_FIELD = id
+SUMMARY_FIELD = body
+ID_LENGTH = 63
+INDEX_LENGTH = 4
+HAS_SUBFOLDERS = 0
+PARENT_COMMANDS = browse
+PARENT_COMMANDS = search
+COMMANDS = browse
+COMMANDS = add
+COMMANDS = edit
+COMMANDS = remove
+COMMANDS = search
+		[page]
+EXTENSION = html
+CLASS = CMS::Onsite::PageData
+SUPER = dir
+SORT_FIELD = id
+CREATE_TEMPLATE =create_page.htm
+UPDATE_TEMPLATE =update_page.htm
+COMMANDS = browse
+COMMANDS = add
+COMMANDS = edit
+COMMANDS = remove
+COMMANDS = search
+COMMANDS = view
+        [list]
+CLASS = CMS::Onsite::ListData
+CREATE_TEMPLATE = create_subpage.htm
+UPDATE_TEMPLATE = 
+COMMANDS = edit
+COMMANDS = remove
+COMMANDS = view
+        [news]
+CLASS = CMS::Onsite::NewsData
+SUPER = page
+INDEX_LENGTH = 6
+EOQ
+
+$wf->writer("$template_dir/$data_registry", $registry);
 
 my $page = <<'EOQ';
 <html>
@@ -174,30 +218,39 @@ EOQ
 
 # Write page as templates and pages
 
-$data->{wf}->relocate($data_dir);
-
 my $indexname = "$data_dir/index.html";
-$indexname = $data->{wf}->validate_filename($indexname, 'w');
-$data->{wf}->writer($indexname, $page);
+$indexname = $wf->validate_filename($indexname, 'w');
+$wf->writer($indexname, $page);
 
 my $pagename = "$data_dir/a-title.html";
-$pagename = $data->{wf}->validate_filename($pagename, 'w');
-$data->{wf}->writer($pagename, $page);
+$pagename = $wf->validate_filename($pagename, 'w');
+$wf->writer($pagename, $page);
 
 my $templatename = "$template_dir/newsdata.htm";
-$templatename = $data->{wf}->validate_filename($templatename, 'w');
-$data->{wf}->writer($templatename, $news_template);
+$templatename = $wf->validate_filename($templatename, 'w');
+$wf->writer($templatename, $news_template);
 
 $templatename = "$template_dir/create_subpage.htm";
-$templatename = $data->{wf}->validate_filename($templatename, 'w');
-$data->{wf}->writer($templatename, $create_template);
+$templatename = $wf->validate_filename($templatename, 'w');
+$wf->writer($templatename, $create_template);
 
 $templatename = "$template_dir/rss.htm";
-$templatename = $data->{wf}->validate_filename($templatename, 'w');
-$data->{wf}->writer($templatename, $rsstemplate);
+$templatename = $wf->validate_filename($templatename, 'w');
+$wf->writer($templatename, $rsstemplate);
+
+#----------------------------------------------------------------------
+# Create object
+
+my $data = CMS::Onsite::NewsData->new(%$params);
+
+isa_ok($data, "CMS::Onsite::NewsData"); # test 2
+can_ok($data, qw(add_data browse_data edit_data read_data remove_data
+                 search_data check_id)); # test 3
 
 #----------------------------------------------------------------------
 # Read data
+
+$data->{wf}->relocate($data_dir);
 
 my $r = {
          id => 'a-title:0001',

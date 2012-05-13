@@ -1,14 +1,12 @@
-#!/usr/local/bin/perl
+#!/usr/local/bin/perl -T
 use strict;
 
-use FindBin qw($Bin);
-FindBin::again();
-
-use lib $Bin;
-use lib "$Bin/../lib";
+use lib 't';
+use lib 'lib';
 use Test::More tests => 21;
 
 use Cwd qw(abs_path getcwd);
+use CMS::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -21,6 +19,7 @@ mkdir $data_dir;
 $data_dir = abs_path($data_dir);
 my $template_dir = "$data_dir/templates";
 my $config_file = "$data_dir/editor.cfg";
+my $data_registry = 'data.reg';
 
 #----------------------------------------------------------------------
 # Create object
@@ -34,16 +33,51 @@ my $params = {
               script_url => 'test.cgi',
               base_url => 'http://www.stsci.edu',
               valid_write => [$data_dir, $template_dir],
+              data_registry => $data_registry,
              };
-
-my $data = CMS::Onsite::DirData->new(%$params);
-
-isa_ok($data, "CMS::Onsite::DirData"); # test 2
-can_ok($data, qw(add_data browse_data edit_data read_data remove_data
-                 search_data check_id)); # test 3
 
 #----------------------------------------------------------------------
 # Create test files
+
+my $wf = CMS::Onsite::Support::WebFile->new(%$params);
+
+my $registry = <<'EOQ';
+        [file]
+SEPARATOR = :
+INDEX_NAME = index
+ID_FIELD = title
+SORT_FIELD = id
+SUMMARY_FIELD = body
+ID_LENGTH = 63
+INDEX_LENGTH = 4
+HAS_SUBFOLDERS = 0
+PARENT_COMMANDS = browse
+PARENT_COMMANDS = search
+COMMANDS = browse
+COMMANDS = add
+COMMANDS = edit
+COMMANDS = remove
+COMMANDS = search
+		[page]
+EXTENSION = html
+CLASS = CMS::Onsite::PageData
+SUPER = dir
+SORT_FIELD = id
+CREATE_TEMPLATE =create_page.htm
+UPDATE_TEMPLATE =update_page.htm
+COMMANDS = browse
+COMMANDS = add
+COMMANDS = edit
+COMMANDS = remove
+COMMANDS = search
+COMMANDS = view
+        [dir]
+CLASS = CMS::Onsite::DirData
+SUPER = dir
+HAS_SUBFOLDERS = 1
+CREATE_TEMPLATE = create_page.htm
+UPDATE_TEMPLATE = update_dir.htm
+EOQ
 
 my $dir = <<'EOQ';
 <html>
@@ -211,26 +245,37 @@ EOQ
 
 # Write dir as templates and pages
 
-$data->{wf}->relocate($data_dir);
+$wf->writer("$template_dir/$data_registry", $registry);
 
 my $indexname = "$data_dir/index.html";
-$indexname = $data->{wf}->validate_filename($indexname, 'w');
-$data->{wf}->writer($indexname, $dir);
+$indexname = $wf->validate_filename($indexname, 'w');
+$wf->writer($indexname, $dir);
 
 my $templatename = "$template_dir/create_page.htm";
-$templatename = $data->{wf}->validate_filename($templatename, 'w');
-$data->{wf}->writer($templatename, $create_dir);
+$templatename = $wf->validate_filename($templatename, 'w');
+$wf->writer($templatename, $create_dir);
 
 $templatename = "$template_dir/dirdata.htm";
-$templatename = $data->{wf}->validate_filename($templatename, 'w');
-$data->{wf}->writer($templatename, $dir_template);
+$templatename = $wf->validate_filename($templatename, 'w');
+$wf->writer($templatename, $dir_template);
 
 $templatename = "$template_dir/update_dir.htm";
-$templatename = $data->{wf}->validate_filename($templatename, 'w');
-$data->{wf}->writer($templatename, $update_template);
+$templatename = $wf->validate_filename($templatename, 'w');
+$wf->writer($templatename, $update_template);
 
-$config_file = $data->{wf}->validate_filename($config_file, 'w');
-$data->{wf}->writer($config_file, $config);
+$config_file = $wf->validate_filename($config_file, 'w');
+$wf->writer($config_file, $config);
+
+my $data = CMS::Onsite::DirData->new(%$params);
+
+#----------------------------------------------------------------------
+# Create object
+
+isa_ok($data, "CMS::Onsite::DirData"); # test 2
+can_ok($data, qw(add_data browse_data edit_data read_data remove_data
+                 search_data check_id)); # test 3
+
+$wf->relocate($data_dir);
 
 #----------------------------------------------------------------------
 # Test id to filename
@@ -349,7 +394,7 @@ my $c = {
         };
 
 my $results = $data->browse_data();
-is_deeply($results, [$i, $c], "Browse data"); # test 15
+is_deeply($results, [$i], "Browse data"); # test 15
 
 #----------------------------------------------------------------------
 # Search data

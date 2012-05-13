@@ -6,7 +6,7 @@ use lib 'lib';
 use Test::More tests => 15;
 
 use Cwd qw(abs_path);
-$ENV{PATH} = '';
+use CMS::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -17,29 +17,25 @@ system("/bin/rm -rf $data_dir");
 
 mkdir $data_dir;
 $data_dir = abs_path($data_dir);
+my $template_dir = "$data_dir/templates";
+my $data_registry = 'data.reg';
 
 #----------------------------------------------------------------------
-# Create object
-
-BEGIN {use_ok("CMS::Onsite::TextdbData");} # test 1
-
 my $params = {
               script_url => 'test.cgi',
               data_dir => $data_dir,
               base_url => 'http://www.stsci.edu/~bsimon/nova',
+              template_dir => $template_dir,
               valid_write => "$data_dir",
+              data_registry => $data_registry,
              };
 
-my $data = CMS::Onsite::TextdbData->new(%$params);
-
-isa_ok($data, "CMS::Onsite::TextdbData"); # test 2
-can_ok($data, qw(browse_data search_data read_data write_data
-                 add_data edit_data remove_data check_id next_id)); # test 3
+BEGIN {use_ok("CMS::Onsite::TextdbData");} # test 1
 
 #----------------------------------------------------------------------
 # Create test file
 
-$data->{wf}->relocate($data_dir);
+my $wf = CMS::Onsite::Support::WebFile->new(%$params);
 my $filename = "$data_dir/test.data";
 
 my $db = <<'EOQ';
@@ -54,7 +50,41 @@ author|An author
 ||
 EOQ
 
-$data->{wf}->writer($filename, $db);
+$wf->writer($filename, $db);
+
+my $registry = <<'EOQ';
+        [file]
+SEPARATOR = :
+INDEX_NAME = index
+ID_FIELD = title
+SORT_FIELD = id
+SUMMARY_FIELD = body
+ID_LENGTH = 63
+INDEX_LENGTH = 4
+HAS_SUBFOLDERS = 0
+PARENT_COMMANDS = browse
+PARENT_COMMANDS = search
+COMMANDS = browse
+COMMANDS = add
+COMMANDS = edit
+COMMANDS = remove
+COMMANDS = search
+		[textdb]
+EXTENSION = data
+CLASS = CMS::Onsite::TextdbData
+EOQ
+
+$wf->writer("$template_dir/$data_registry", $registry);
+
+#----------------------------------------------------------------------
+# Create object
+
+my $data = CMS::Onsite::TextdbData->new(%$params);
+$data->{wf}->relocate($data_dir);
+
+isa_ok($data, "CMS::Onsite::TextdbData"); # test 2
+can_ok($data, qw(browse_data search_data read_data write_data
+                 add_data edit_data remove_data check_id next_id)); # test 3
 
 #----------------------------------------------------------------------
 # Check id

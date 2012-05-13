@@ -1,10 +1,8 @@
-Write sub to add libraries for test code
-Finish UserData as subtype of TextData
-Remove traits and replace with type registry
+Extract create_subobject and id_to_type from objects
 Break out commands into separate objects
-Rewrite PostData
+Finish UserData as subtype of TextData
+Modify cronHandler and FileHandler to support Editor interface
+Rewrite clean subs in Verify classesRewrite PostData
 Finish pod documentation
 Finish directory rename code
 Support atom publishing protocol
-Modify cronHandler and FileHandler to support Editor interface
-Rewrite clean subs in Verify classes

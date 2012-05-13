@@ -30,11 +30,11 @@ sub parameters {
 sub add_data {
     my ($self, $parentid, $request) = @_;
     
-    my $id_field = $self->get_trait('id_field');
+    my $id_field = $self->{id_field};
     my $id = $self->generate_id($parentid, $request->{$id_field});
     $request->{id} = $id;
 
-    my $separator = $self->get_trait('separator');
+    my $separator = $self->{separator};
     my @dirs = split($separator, $id);
     $self->{wf}->create_dirs(@dirs);
 
@@ -54,8 +54,9 @@ sub browse_data {
     my @list;
     my $subfolders = 0;
 
-    my %extensions = $self->extensions();
-    my @extensions = values %extensions;
+    my $types = $self->{reg}->project($self->{data_registry}, 'extension');
+    my @extensions = values %$types;
+
     my $get_next = $self->get_next($parentid, $subfolders, @extensions);
 
     while (defined(my $data = &$get_next)) {
@@ -94,7 +95,8 @@ sub change_filename {
     return $id unless $id;
         
     my ($parentid, $seq) = $self->split_id($id);
-    my $id_field = $self->get_trait('id_field');
+    my $id_field = $self->{id_field};
+    
     $id = $self->generate_id($parentid, $request->{$id_field});
     my ($newname, $extra) = $self->id_to_filename($id);
     
@@ -127,26 +129,17 @@ sub check_command {
 }
 
 #----------------------------------------------------------------------
-# Get hash of extensions and types
-
-sub get_extensions {
-    my ($self) = @_;
-    
-    my $types = $self->{reg}->project($self->{type_registry}, 'extension');
-    return reverse %$types;
-}
-
-#----------------------------------------------------------------------
 # Return a closure that returns a page with each call
 
 sub get_next {
     my ($self, $parentid, $subfolders, @extensions) = @_;
 
-    my $sort_field = $self->get_trait('sort_field');
-    my $extension = $self->get_trait('extension');
-    
+    $subfolders = $self->{has_subfolders} unless defined $subfolders;
+
+    my $extension = $self->{extension};    
     push(@extensions, $extension) unless @extensions;
-    $subfolders = $self->get_trait('has_subfolders') unless defined $subfolders;
+
+    my $sort_field = $self->{sort_field};
 
     my $dir = $self->get_repository($parentid);
     my %extensions = map {$_ => 1} @extensions;
@@ -189,23 +182,15 @@ sub get_next {
 sub get_subtypes {
     my ($self, $parentid) = @_;
     
-    return $self->get_trait('subtypes');
-}
-
-#---------------------------------------------------------------------------
-# Set the traits of this data class
-
-sub get_trait {
-    my ($self, $name) = @_;
+    my @subtypes = $self->{reg}->search($self->{data_registry},
+                                        super => $self->get_type());
+    my %subtypes = map {$_ => 1} @subtypes;
     
-	my %trait = (
-                 has_subfolders => 1,
-                 subtypes => [qw(dir page)],
-                 create_template => 'create_page.htm',
-                 update_template => 'update_dir.htm',
-                );
-    
-    return $trait{$name} || $self->SUPER::get_trait($name);
+    my $subtypes = $self->SUPER::get_subtypes($parentid);
+    %subtypes = (%subtypes, (map {$_ => 1} @$subtypes));
+
+    @subtypes = sort keys %subtypes;
+    return \@subtypes;
 }
 
 #----------------------------------------------------------------------
@@ -214,15 +199,16 @@ sub get_trait {
 sub id_to_type {
 	my ($self, $id) = @_;
 
-    my $pkg;
-    my %extensions = $self->extensions();
 
-    foreach my $ext (keys %extensions) {
+    my $pkg;
+    my $types = $self->{reg}->project($self->{data_registry}, 'extension');
+
+    while (my ($type, $ext) = each %$types) {
         my ($filename, $extra) = $self->id_to_filename_with_ext($id, $ext);
 
         if (-e $filename) {
-            my $registry = $self->type_registry($extensions{$ext});
-            $pkg = $registry->{class};
+            my $traits = $self->{reg}->read_data($self->{data_registry}, $type);
+            ($pkg) = $traits->{class} =~ /^([A-Z][\w:]+Data)$/;
             last;
         }
     }
@@ -244,8 +230,8 @@ sub next_id {
     my $seq = '0' x $self->{index_length};
     my $pattern = "[0-9]" x $self->{index_length};
 
-    my $sort_field = $self->get_trait('sort_field');
-    my $subfolders = $self->get_trait('has_subfolders');
+    my $sort_field = $self->{sort_field};
+    my $subfolders = $self->{has_subfolders};
 
     my $dir = $self->{wf}->get_repository($parentid);
     my $visitor = $self->{wf}->visitor($dir, $subfolders, $sort_field);
@@ -258,7 +244,7 @@ sub next_id {
     }
 
     $seq ++;
-    my $separator = $self->get_trait('separator');
+    my $separator = $self->{separator};
     my $id = $parentid ? join($separator, $parentid, $seq) : $seq;
     return $id;
 }

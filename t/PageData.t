@@ -6,6 +6,7 @@ use lib 'lib';
 use Test::More tests => 27;
 
 use Cwd qw(abs_path getcwd);
+use CMS::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -17,11 +18,8 @@ system("/bin/rm -rf $data_dir");
 mkdir $data_dir;
 $data_dir = abs_path($data_dir);
 my $template_dir = "$data_dir/templates";
-
-#----------------------------------------------------------------------
-# Create object
-
-BEGIN {use_ok("CMS::Onsite::PageData");} # test 1
+my $template_dir = "$data_dir/templates";
+my $data_registry = 'data.reg';
 
 my $params = {
               data_dir => $data_dir,
@@ -29,16 +27,47 @@ my $params = {
               script_url => 'test.cgi',
               base_url => 'http://www.stsci.edu',
               valid_write => [$data_dir, $template_dir],
+              data_registry => $data_registry,
              };
-
-my $data = CMS::Onsite::PageData->new(%$params);
-
-isa_ok($data, "CMS::Onsite::PageData"); # test 2
-can_ok($data, qw(add_data browse_data edit_data read_data remove_data
-                 search_data check_id)); # test 3
 
 #----------------------------------------------------------------------
 # Create test files
+
+my $wf = CMS::Onsite::Support::WebFile->new(%$params);
+
+my $registry = <<'EOQ';
+        [file]
+SEPARATOR = :
+INDEX_NAME = index
+ID_FIELD = title
+SORT_FIELD = id
+SUMMARY_FIELD = body
+ID_LENGTH = 63
+INDEX_LENGTH = 4
+HAS_SUBFOLDERS = 0
+PARENT_COMMANDS = browse
+PARENT_COMMANDS = search
+COMMANDS = browse
+COMMANDS = add
+COMMANDS = edit
+COMMANDS = remove
+COMMANDS = search
+		[page]
+EXTENSION = html
+CLASS = CMS::Onsite::PageData
+SUPER = dir
+SORT_FIELD = id
+CREATE_TEMPLATE =create_page.htm
+UPDATE_TEMPLATE =update_page.htm
+COMMANDS = browse
+COMMANDS = add
+COMMANDS = edit
+COMMANDS = remove
+COMMANDS = search
+COMMANDS = view
+EOQ
+
+$wf->writer("$template_dir/$data_registry", $registry);
 
 my $page = <<'EOQ';
 <html>
@@ -234,35 +263,47 @@ EOQ
 
 # Write page as templates and pages
 
-$data->{wf}->relocate($data_dir);
-
 my $indexname = "$data_dir/index.html";
-$indexname = $data->{wf}->validate_filename($indexname, 'w');
-$data->{wf}->writer($indexname, $page);
+$indexname = $wf->validate_filename($indexname, 'w');
+$wf->writer($indexname, $page);
 
 my $pagename = "$data_dir/a-title.html";
-$pagename = $data->{wf}->validate_filename($pagename, 'w');
-$data->{wf}->writer($pagename, $page);
+$pagename = $wf->validate_filename($pagename, 'w');
+$wf->writer($pagename, $page);
 
 my $templatename = "$template_dir/create_page.htm";
-$templatename = $data->{wf}->validate_filename($templatename, 'w');
-$data->{wf}->writer($templatename, $create_page);
+$templatename = $wf->validate_filename($templatename, 'w');
+$wf->writer($templatename, $create_page);
 
 $templatename = "$template_dir/create_subpage.htm";
-$templatename = $data->{wf}->validate_filename($templatename, 'w');
-$data->{wf}->writer($templatename, $create_subpage);
+$templatename = $wf->validate_filename($templatename, 'w');
+$wf->writer($templatename, $create_subpage);
 
 $templatename = "$template_dir/pagedata.htm";
-$templatename = $data->{wf}->validate_filename($templatename, 'w');
-$data->{wf}->writer($templatename, $page_template);
+$templatename = $wf->validate_filename($templatename, 'w');
+$wf->writer($templatename, $page_template);
 
 $templatename = "$template_dir/subpagedata.htm";
-$templatename = $data->{wf}->validate_filename($templatename, 'w');
-$data->{wf}->writer($templatename, $subpage_template);
+$templatename = $wf->validate_filename($templatename, 'w');
+$wf->writer($templatename, $subpage_template);
 
 $templatename = "$template_dir/update_page.htm";
-$templatename = $data->{wf}->validate_filename($templatename, 'w');
-$data->{wf}->writer($templatename, $update_template);
+$templatename = $wf->validate_filename($templatename, 'w');
+$wf->writer($templatename, $update_template);
+
+#----------------------------------------------------------------------
+# Create object
+
+BEGIN {use_ok("CMS::Onsite::PageData");} # test 1
+
+
+my $data = CMS::Onsite::PageData->new(%$params);
+
+isa_ok($data, "CMS::Onsite::PageData"); # test 2
+can_ok($data, qw(add_data browse_data edit_data read_data remove_data
+                 search_data check_id)); # test 3
+
+$data->{wf}->relocate($data_dir);
 
 #----------------------------------------------------------------------
 # command links

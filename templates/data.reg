@@ -17,12 +17,41 @@ COMMANDS = search
         [dumper]
 EXTENSION = dump
 CLASS = CMS::Onsite::DumperData
-		[page]
-EXTENSION = html
-CLASS = CMS::Onsite::PageData
-		[text]
+		[textdb]
 EXTENSION = data
 CLASS = CMS::Onsite::TextdbData
         [configuration]
 EXTENSION = cfg
+SUMMARY_FIELD = data
+COMMANDS = edit
 CLASS = CMS::Onsite::ConfigurationData
+		[page]
+EXTENSION = html
+CLASS = CMS::Onsite::PageData
+SUPER = dir
+SORT_FIELD = id
+CREATE_TEMPLATE =create_page.htm
+UPDATE_TEMPLATE =update_page.htm
+COMMANDS = browse
+COMMANDS = add
+COMMANDS = edit
+COMMANDS = remove
+COMMANDS = search
+COMMANDS = view
+        [dir]
+CLASS = CMS::Onsite::DirData
+SUPER = dir
+HAS_SUBFOLDERS = 1
+CREATE_TEMPLATE = create_page.htm
+UPDATE_TEMPLATE = update_dir.htm
+        [list]
+CLASS = CMS::Onsite::ListData
+CREATE_TEMPLATE = create_subpage.htm
+UPDATE_TEMPLATE = 
+COMMANDS = edit
+COMMANDS = remove
+COMMANDS = view
+        [news]
+CLASS = CMS::Onsite::NewsData
+SUPER = page
+INDEX_LENGTH = 6

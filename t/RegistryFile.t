@@ -55,7 +55,8 @@ LIST = e
 LIST = f
 EOQ
 
-my $filename = "$data_dir/types.reg";
+my $registry_name = 'types.reg';
+my $filename = "$data_dir/$registry_name";
 
 my $io = IO::File->new($filename, 'w');
 print $io $registry_file;
@@ -67,7 +68,7 @@ close($io);
 my $reg = CMS::Onsite::Support::RegistryFile->new(template_dir => $data_dir,
                          cache => 'Mock::CachedFile');
 
-my $registry = $reg->read_file('types');
+my $registry = $reg->read_file($registry_name);
 
 my $registry_data = {
                     type_a => {one => 1,
@@ -84,33 +85,33 @@ is_deeply($registry, $registry_data, "Read file"); # test 2
 #----------------------------------------------------------------------
 # Test read data
 
-$registry = $reg->read_data('types', 'type_a');
+$registry = $reg->read_data($registry_name, 'type_a');
 is_deeply($registry, $registry_data->{type_a}, "Read type_a data"); # test 3
 
-$registry = $reg->read_data('types', 'type_b');
+$registry = $reg->read_data($registry_name, 'type_b');
 is_deeply($registry, $registry_data->{type_b}, "Read type_b data"); # test 4
 
 #----------------------------------------------------------------------
 # Test search
 
-my @types = $reg->search('types', one => 10);
+my @types = $reg->search($registry_name, one => 10);
 is_deeply(\@types, ['type_b'], "Scalar search one field one match"); # test 5
 
-@types = $reg->search('types', two => 2);
+@types = $reg->search($registry_name, two => 2);
 is_deeply(\@types, ['type_a', 'type_b'], "Scalar search one field two matches"); # test 6
 
-@types = $reg->search('types', list => 'b');
+@types = $reg->search($registry_name, list => 'b');
 is_deeply(\@types, ['type_a'], "List search one field one match"); # test 7
 
-@types = $reg->search('types', one => 10, two => 2);
+@types = $reg->search($registry_name, one => 10, two => 2);
 is_deeply(\@types, ['type_b'], "Scalar search two fields one match"); # test 8
 
 #----------------------------------------------------------------------
 # Test project
 
-my $hash = $reg->project('types', 'one');
+my $hash = $reg->project($registry_name, 'one');
 is_deeply($hash, {type_a => 1, type_b => 10}, "Test project"); # test 9
 
-$hash = $reg->project('types', 'three');
+$hash = $reg->project($registry_name, 'three');
 is_deeply($hash, {type_a => "first line\nsecond line"},
           "Test project with missing field"); # test 10

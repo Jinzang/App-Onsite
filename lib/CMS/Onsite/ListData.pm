@@ -41,6 +41,14 @@ sub add_data {
 }
 
 #----------------------------------------------------------------------
+# Remove obsolete records from list (stub)
+
+sub cull_data {
+    my ($self, $records) = @_;
+    return $records;
+}
+
+#----------------------------------------------------------------------
 # Get field information by reading template file
 
 sub field_info {
@@ -71,25 +79,6 @@ sub get_subtypes {
     return [];
 }
 
-#---------------------------------------------------------------------------
-# Set the traits of this data class
-
-sub get_trait {
-    my ($self, $name) = @_;
-    
-	my %trait = (
-                 extension => 'html',
-                 sort_field => 'id',
-                 create_template => 'create_subpage.htm',
-                 update_template => '',
-                 commands => [qw(edit remove view)],
-                 subtypes => [],
-                );
-
-    
-    return $trait{$name} || $self->SUPER::get_trait($name);
-}
-
 #----------------------------------------------------------------------
 # Update navigation links after a file is changed
 
@@ -98,5 +87,18 @@ sub update_data {
 
     return;
 }
+
+#----------------------------------------------------------------------
+# Filter obsolete records before writing
+
+sub write_secondary {
+    my ($self, $filename, $records) = @_;
+
+    my $new_records = $self->cull_data($records);
+    $self->SUPER::write_secondary($filename, $new_records);
+
+    return;
+}
+
 
 1;

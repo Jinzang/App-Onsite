@@ -37,43 +37,10 @@ sub add_data {
 }
 
 #----------------------------------------------------------------------
-# Add extra data to the data read from file
+# Remove old records
 
-sub extra_data {
-    my ($self, $hash, $filename) = @_;
-
-    return $self->CMS::Onsite::FileData::extra_data($hash, $filename);
-}
-
-#---------------------------------------------------------------------------
-# Get the value of a trait
-
-sub get_trait {
-    my ($self, $name) = @_;
-
-    my %trait = (
-                 index_length => 6,
-                );
-
-    return $trait{$name} || $self->SUPER::get_trait($name);
-}
-#----------------------------------------------------------------------
-# Create rss file
-
-sub update_data {
-    my ($self, $id, $record) = @_;
-
-    my ($parentid, $seq) = $self->split_id($id);
-    $self->write_rss($parentid);
-
-    return;
-}
-
-#----------------------------------------------------------------------
-# Filter records before writing
-
-sub write_secondary {
-    my ($self, $filename, $records) = @_;
+sub cull_data {
+    my ($self, $records) = @_;
 
     my $cutoff = time() - 86400 * $self->{max_news_age};
 
@@ -86,9 +53,28 @@ sub write_secondary {
         push (@new_records, $record);
     }
 
-    $self->SUPER::write_secondary($filename, \@new_records);
-    return;
+    return \@new_records;
 }
 
+#----------------------------------------------------------------------
+# Add extra data to the data read from file
+
+sub extra_data {
+    my ($self, $hash, $filename) = @_;
+
+    return $self->CMS::Onsite::FileData::extra_data($hash, $filename);
+}
+
+#----------------------------------------------------------------------
+# Create rss file
+
+sub update_data {
+    my ($self, $id, $record) = @_;
+
+    my ($parentid, $seq) = $self->split_id($id);
+    $self->write_rss($parentid);
+
+    return;
+}
 
 1;

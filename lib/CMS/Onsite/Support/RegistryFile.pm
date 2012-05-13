@@ -15,7 +15,8 @@ sub parameters {
 
 	return (
             template_dir => '',
-            registry_ext => 'reg',
+            data_registry => '',
+            command_registry => '',
 			cache => {DEFAULT => 'CMS::Onsite::Support::CachedFile'},
 		   );
 }
@@ -24,32 +25,27 @@ sub parameters {
 # Add traits from registry file to object
 
 sub add_traits {
-    my ($self, $obj) = @_;
-    
-    my $package = ref $obj;
+    my ($self, $package) = @_;
+
+    no strict;
+    my %traits;
+
+    foreach my $pkg (@{"${package}::ISA"}) {
+        %traits = (%traits, $self->add_traits($pkg));
+    }
+
     my @pkg = split(/::/, $package);
     my ($id, $family) = $pkg[-1] =~ /^([A-Z][a-z]*)([A-Z][a-z]*)$/;
-    die "Can't parse package name: $package\n" unless $id && $family;
-    
-    my @ids = (lc($id));
-    do {
-        no strict;
-        foreach my $pkg (@{"${package}::ISA"}) {
-            my @pkg = split(/::/, $pkg);
-            my ($id) = $pkg[-1] =~ /^([A-Z][a-z]*)$family$/;
-            push(@ids, lc($id));
-        }
-    };
+    return %traits unless defined $id;
 
-    my $filename .= lc($family) . '.' . $self->{registry_ext};    
+    my $param = lc("${family}_registry");   
+    my $filename = $self->{$param};
+    return %traits unless defined $filename;
+
+    my $traits = $self->read_data($filename, lc($id));
+    return %traits unless defined $traits;
     
-    my %traits;
-    foreach my $id (reverse @ids) {
-        my $traits = $self->read_data($filename, $id);
-        %traits = (%traits, %$traits);
-    }
-    
-    return %traits;
+    return (%traits, %$traits);
 }
 
 #----------------------------------------------------------------------
@@ -76,7 +72,7 @@ sub read_data {
     my ($self, $filename, $id) = @_;
     
     my $registry = $self->read_file($filename);
-    die "Did not find $filename in registry: $id\n"
+    die "Did not find $id in registry: $filename\n"
         unless exists $registry->{$id};
     
     return $registry->{$id};

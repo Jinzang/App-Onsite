@@ -7,6 +7,7 @@ use Test::More tests => 11;
 
 use IO::File;
 use Cwd qw(abs_path);
+use CMS::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -17,26 +18,25 @@ system("/bin/rm -rf $data_dir");
 
 mkdir $data_dir;
 $data_dir = abs_path($data_dir);
+my $template_dir = "$data_dir/templates";
+my $data_registry = 'data.reg';
 
 #----------------------------------------------------------------------
-# Create object
-
+#
 BEGIN {use_ok("CMS::Onsite::ConfigurationData");} # test 1
 
 my $params = {
               data_dir => $data_dir,
               config_file => 'editor.cfg',
-              valid_write => "$data_dir",
+              valid_write => $data_dir,
+              template_dir => $template_dir,
+              data_registry => $data_registry,
              };
-
-my $data = CMS::Onsite::ConfigurationData->new(%$params);
-
-isa_ok($data, "CMS::Onsite::ConfigurationData"); # test 2
-can_ok($data, qw(browse_data search_data read_data write_data
-                 add_data edit_data remove_data check_id next_id)); # test 3
 
 #----------------------------------------------------------------------
 # Create test file
+
+my $wf = CMS::Onsite::Support::WebFile->new(%$params);
 
 my $config = <<'EOQ';
 # Length of time until cache expires
@@ -46,14 +46,49 @@ SUMMARY_LENGTH = 300
 EOQ
 
 my $filename = "$data_dir/editor.cfg";
-$filename = $data->{wf}->validate_filename($filename, 'w');
+$filename = $wf->validate_filename($filename, 'w');
+$wf->writer($filename, $config);
 
-$data->{wf}->relocate($data_dir);
-$data->{wf}->writer($filename, $config);
+my $registry = <<'EOQ';
+        [file]
+SEPARATOR = :
+INDEX_NAME = index
+ID_FIELD = title
+SORT_FIELD = id
+SUMMARY_FIELD = body
+ID_LENGTH = 63
+INDEX_LENGTH = 4
+HAS_SUBFOLDERS = 0
+PARENT_COMMANDS = browse
+PARENT_COMMANDS = search
+COMMANDS = browse
+COMMANDS = add
+COMMANDS = edit
+COMMANDS = remove
+COMMANDS = search
+        [configuration]
+EXTENSION = cfg
+SUMMARY_FIELD = data
+COMMANDS = edit
+CLASS = CMS::Onsite::ConfigurationData
+EOQ
+
+$wf->writer("$template_dir/$data_registry", $registry);
+
+#----------------------------------------------------------------------
+# Create object
+
+
+my $data = CMS::Onsite::ConfigurationData->new(%$params);
+
+isa_ok($data, "CMS::Onsite::ConfigurationData"); # test 2
+can_ok($data, qw(browse_data search_data read_data write_data
+                 add_data edit_data remove_data check_id next_id)); # test 3
 
 #----------------------------------------------------------------------
 # Test id to filename
 
+$data->{wf}->relocate($data_dir);
 my $id = $data->filename_to_id($filename);
 is($id, 'editor', "Filename to id"); # test 4
 

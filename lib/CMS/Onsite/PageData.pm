@@ -34,7 +34,7 @@ sub parameters {
 sub add_data {
     my ($self, $parentid, $request) = @_;
 
-    my $id_field = $self->get_trait('id_field');
+    my $id_field = $self->{id_field};
     my $id = $self->generate_id($parentid, $request->{$id_field});
     $request->{id} = $id;
     
@@ -85,7 +85,7 @@ sub change_filename {
     my ($self, $id, $filename, $request) = @_;
  
     my ($parentid, $seq) = $self->split_id($id);
-    my $id_field = $self->get_trait('id_field');
+    my $id_field = $self->{id_field};
     $id = $self->generate_id($parentid, $request->{$id_field});
 
     my ($newname, $extra) = $self->id_to_filename($id);
@@ -124,7 +124,7 @@ sub escape_data {
 	
     } elsif ($ref eq 'HASH') {
         $new_data = {};
-        my $summary_field = $self->get_trait('summary_field');
+        my $summary_field = $self->{summary_field};
 	
         while (my ($name, $value) = each %$data) {
             $strip = $name ne $summary_field;
@@ -209,7 +209,7 @@ sub get_subtypes {
             $subtypes = [$type];
     
         } else {
-            $subtypes = $self->get_trait('subtypes');   
+            $subtypes = $self->SUPER::get_subtypes($id);   
         }
 
     } else {
@@ -239,7 +239,7 @@ sub get_templates {
     }
 
     my $subsubtemplate;
-    my $type = $self->{type};
+    my $type = $self->get_type();
 
     if ($blockname) {
         if ($template eq $filename) {
@@ -257,25 +257,6 @@ sub get_templates {
     $subtemplate = $self->{nt}->parse($subtemplate, $subsubtemplate);
     
     return ($template, $subtemplate);
-}
-
-#---------------------------------------------------------------------------
-# Set the traits of this data class
-
-sub get_trait {
-    my ($self, $name) = @_;
-    
-	my %trait = (
-                 extension => 'html',
-                 sort_field => 'id',
-                 create_template => 'create_page.htm',
-                 update_template => 'update_page.htm',
-                 commands => [qw(browse add edit remove search view)],
-                 subtypes => [qw(news)],
-                );
-
-    
-    return $trait{$name} || $self->SUPER::get_trait($name);
 }
 
 #----------------------------------------------------------------------
@@ -297,7 +278,7 @@ sub id_to_type {
         $type =~ s/data$//;
 
     } else {
-        $type = $self->{type};
+        $type = $self->get_type();
     }
 
     return $type;
@@ -358,7 +339,7 @@ sub navigation_links {
 
     foreach my $block (@$blocks) {
         my $blockname = $block->{NAME};	
-        my $sort_field = $block->{sort} || $self->get_trait('sort_field');
+        my $sort_field = $block->{sort} || $self->{sort_field};
         my $current_links = $self->read_block($filename, $blockname);    
 
         my $new_links = $self->update_links($current_links, $record);
@@ -505,7 +486,7 @@ sub update_data {
     my ($parentid, $seq) = $self->split_id($id);
     my ($indexfile, $extra) = $self->id_to_filename($parentid);
 
-    my $subtemplate = $self->get_trait('update_template');
+    my $subtemplate = $self->{update_template};
     $subtemplate = "$self->{template_dir}/$subtemplate";
 
     my $data = $self->navigation_links($subtemplate, $indexfile, $record);
@@ -516,7 +497,7 @@ sub update_data {
     $self->write_file('', $indexfile, $subtemplate, $data);
 
     my $dir = $self->get_repository($parentid);
-    my $subfolders = $self->get_trait('has_subfolders');
+    my $subfolders = $self->{has_subfolders};
     my $visitor = $self->{wf}->visitor($dir, $subfolders, 'any');
 
     while (my $filename = &$visitor()) {
@@ -584,7 +565,7 @@ sub write_file {
 sub write_primary {
     my ($self, $filename, $record) = @_;
 
-    my $subtemplate = $self->get_trait('create_template');
+    my $subtemplate = $self->{create_template};
     $subtemplate = "$self->{template_dir}/$subtemplate";
    
     $record->{base_url} = $self->{base_url};
@@ -627,7 +608,7 @@ sub write_rss {
 sub write_secondary {
     my ($self, $filename, $records) = @_;
 
-    my $subtemplate = $self->get_trait('create_template');
+    my $subtemplate = $self->{create_template};
     $subtemplate = "$self->{template_dir}/$subtemplate";
 
     $self->write_file('secondary.any',

@@ -42,6 +42,8 @@ sub parameters {
                     base_url => '',
                     script_url => '',
                     template_dir => '',
+                    data_registry => '',
+                    command_registry => '',
                     nonce => 0,
                     items => 20,
                     maxstart => 200,
