@@ -33,6 +33,8 @@ my %defaults = (
                 data_dir => rel2abs($target),
                 config_file => "$target/editor.cfg",
                 template_dir => rel2abs('../templates'),
+                data_registry => 'data.reg',
+                command_registry => 'command.reg',
                );
 
 %parameters = (%defaults, %parameters);
