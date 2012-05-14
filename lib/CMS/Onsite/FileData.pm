@@ -340,12 +340,15 @@ sub generate_id {
 }
 
 #----------------------------------------------------------------------
-# Return list of commands, minus any passed in list
+# Return list of commands
 
 sub get_commands {
     my ($self) = @_;
-       
-    return $self->{commands};
+    
+    my $commands = $self->{commands};;
+    $commands = [$commands] unless ref $commands;
+    
+    return $commands;
 }
 
 #----------------------------------------------------------------------
