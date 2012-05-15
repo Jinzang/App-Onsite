@@ -57,8 +57,9 @@ EXTENSION = html
 CLASS = CMS::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
-CREATE_TEMPLATE =create_page.htm
-UPDATE_TEMPLATE =update_page.htm
+ADD_TEMPLATE = add_page.htm
+EDIT_TEMPLATE = edit_page.htm
+UPDATE_TEMPLATE = update_page.htm
 COMMANDS = browse
 COMMANDS = add
 COMMANDS = edit
@@ -138,7 +139,7 @@ A Title
 </html>
 EOQ
 
-my $create_page = <<'EOQ';
+my $edit_page = <<'EOQ';
 <html>
 <head>
 <!-- begin meta -->
@@ -158,7 +159,7 @@ my $create_page = <<'EOQ';
 </html>
 EOQ
 
-my $create_subpage = <<'EOQ';
+my $edit_subpage = <<'EOQ';
 <html>
 <head>
 </head>
@@ -271,19 +272,19 @@ my $pagename = "$data_dir/a-title.html";
 $pagename = $wf->validate_filename($pagename, 'w');
 $wf->writer($pagename, $page);
 
-my $templatename = "$template_dir/create_page.htm";
+my $templatename = "$template_dir/edit_page.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $create_page);
+$wf->writer($templatename, $edit_page);
 
-$templatename = "$template_dir/create_subpage.htm";
+$templatename = "$template_dir/edit_subpage.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $create_subpage);
+$wf->writer($templatename, $edit_subpage);
 
-$templatename = "$template_dir/pagedata.htm";
+$templatename = "$template_dir/add_page.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $page_template);
 
-$templatename = "$template_dir/subpagedata.htm";
+$templatename = "$template_dir/add_subpage.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $subpage_template);
 

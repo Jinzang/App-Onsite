@@ -62,8 +62,9 @@ EXTENSION = html
 CLASS = CMS::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
-CREATE_TEMPLATE =create_page.htm
-UPDATE_TEMPLATE =update_page.htm
+ADD_TEMPLATE = add_page.htm
+EDIT_TEMPLATE = edit_page.htm
+UPDATE_TEMPLATE = update_page.htm
 COMMANDS = browse
 COMMANDS = add
 COMMANDS = edit
@@ -72,7 +73,8 @@ COMMANDS = search
 COMMANDS = view
         [list]
 CLASS = CMS::Onsite::ListData
-CREATE_TEMPLATE = create_subpage.htm
+ADD_TEMPLATE = add_subpage.htm
+EDIT_TEMPLATE = edit_subpage.htm
 UPDATE_TEMPLATE = 
 COMMANDS = edit
 COMMANDS = remove
@@ -148,7 +150,7 @@ http://www.website.com/
 </html>
 EOQ
 
-my $create_template = <<'EOQ';
+my $edit_template = <<'EOQ';
 <html>
 <head>
 </head>
@@ -226,13 +228,13 @@ my $pagename = "$data_dir/a-title.html";
 $pagename = $wf->validate_filename($pagename, 'w');
 $wf->writer($pagename, $page);
 
-my $templatename = "$template_dir/newsdata.htm";
+my $templatename = "$template_dir/add_news.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $news_template);
 
-$templatename = "$template_dir/create_subpage.htm";
+$templatename = "$template_dir/edit_subpage.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $create_template);
+$wf->writer($templatename, $edit_template);
 
 $templatename = "$template_dir/rss.htm";
 $templatename = $wf->validate_filename($templatename, 'w');

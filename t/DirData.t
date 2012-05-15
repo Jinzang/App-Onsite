@@ -63,8 +63,9 @@ EXTENSION = html
 CLASS = CMS::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
-CREATE_TEMPLATE =create_page.htm
-UPDATE_TEMPLATE =update_page.htm
+ADD_TEMPLATE = add_page.htm
+EDIT_TEMPLATE = edit_page.htm
+UPDATE_TEMPLATE = update_page.htm
 COMMANDS = browse
 COMMANDS = add
 COMMANDS = edit
@@ -75,7 +76,8 @@ COMMANDS = view
 CLASS = CMS::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
-CREATE_TEMPLATE = create_page.htm
+ADD_TEMPLATE = add_dir.htm
+EDIT_TEMPLATE = edit_page.htm
 UPDATE_TEMPLATE = update_dir.htm
 EOQ
 
@@ -148,7 +150,7 @@ A Title
 </html>
 EOQ
 
-my $create_dir = <<'EOQ';
+my $edit_dir = <<'EOQ';
 <html>
 <head>
 <!-- begin meta -->
@@ -251,11 +253,11 @@ my $indexname = "$data_dir/index.html";
 $indexname = $wf->validate_filename($indexname, 'w');
 $wf->writer($indexname, $dir);
 
-my $templatename = "$template_dir/create_page.htm";
+my $templatename = "$template_dir/edit_page.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $create_dir);
+$wf->writer($templatename, $edit_dir);
 
-$templatename = "$template_dir/dirdata.htm";
+$templatename = "$template_dir/add_dir.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $dir_template);
 

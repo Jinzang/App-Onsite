@@ -162,7 +162,7 @@ sub field_info {
 
     if (! defined $filename || ! -e $filename) {
         my $type = $self->get_type($id);
-        $filename = "$self->{template_dir}/${type}data.htm";
+        $filename = "$self->{template_dir}/$self->{add_template}";
     }
 
     my $block = $self->{nt}->match("primary.any", $filename);
@@ -250,7 +250,7 @@ sub get_templates {
         }
     }
     
-    $subsubtemplate = "$self->{template_dir}/${type}data.htm"
+    $subsubtemplate = "$self->{template_dir}/$self->{add_template}"
         unless $subsubtemplate;
         
     $template = $self->{nt}->parse($template, $subtemplate);
@@ -565,7 +565,7 @@ sub write_file {
 sub write_primary {
     my ($self, $filename, $record) = @_;
 
-    my $subtemplate = $self->{create_template};
+    my $subtemplate = $self->{edit_template};
     $subtemplate = "$self->{template_dir}/$subtemplate";
    
     $record->{base_url} = $self->{base_url};
@@ -608,7 +608,7 @@ sub write_rss {
 sub write_secondary {
     my ($self, $filename, $records) = @_;
 
-    my $subtemplate = $self->{create_template};
+    my $subtemplate = $self->{edit_template};
     $subtemplate = "$self->{template_dir}/$subtemplate";
 
     $self->write_file('secondary.any',
