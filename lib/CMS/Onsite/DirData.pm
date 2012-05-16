@@ -74,7 +74,7 @@ sub build_parentlinks {
     my ($self, $data, $sort) = @_;
 
     my ($parentid, $seq) = $self->split_id($data->{id});
-    my $filename = $self->id_to_filename($parentid);
+    my ($filename, $extra) = $self->id_to_filename($parentid);
     
     my $links = $self->read_block($filename, 'parentlinks');
     my $link = $self->single_navigation_link($data);
