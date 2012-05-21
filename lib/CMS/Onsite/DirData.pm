@@ -16,6 +16,7 @@ sub parameters {
     my ($pkg) = @_;
 
     my %parameters = (
+        sort_field => 'ext',
 	);
 
     my %base_params = $pkg->SUPER::parameters();
@@ -34,8 +35,7 @@ sub add_data {
     my $id = $self->generate_id($parentid, $request->{$id_field});
     $request->{id} = $id;
 
-    my $separator = $self->{separator};
-    my @dirs = split($separator, $id);
+    my @dirs = $self->{wf}->id_to_path($id);
     $self->{wf}->create_dirs(@dirs);
 
     $self->write_data($id, $request);
@@ -54,10 +54,8 @@ sub browse_data {
     my @list;
     my $subfolders = 0;
 
-    my $types = $self->{reg}->project($self->{data_registry}, 'extension');
-    my @extensions = values %$types;
 
-    my $get_next = $self->get_next($parentid, $subfolders, @extensions);
+    my $get_next = $self->get_browsable($parentid);
 
     while (defined(my $data = &$get_next)) {
         push(@list, $data);
@@ -73,7 +71,7 @@ sub browse_data {
 sub build_parentlinks {
     my ($self, $data, $sort) = @_;
 
-    my ($parentid, $seq) = $self->split_id($data->{id});
+    my ($parentid, $seq) = $self->{wf}->split_id($data->{id});
     my ($filename, $extra) = $self->id_to_filename($parentid);
     
     my $links = $self->read_block($filename, 'parentlinks');
@@ -94,7 +92,7 @@ sub change_filename {
     # Don't rename topmost index
     return $id unless $id;
         
-    my ($parentid, $seq) = $self->split_id($id);
+    my ($parentid, $seq) = $self->{wf}->split_id($id);
     my $id_field = $self->{id_field};
     
     $id = $self->generate_id($parentid, $request->{$id_field});
@@ -119,6 +117,7 @@ sub check_command {
     my ($self, $id, $cmd) = @_;
 
     my $test;
+    
     if ($cmd eq 'browse' || $cmd eq 'search') {
         $test = 1;
     } else {
@@ -127,22 +126,18 @@ sub check_command {
 
     return $test;
 }
-
 #----------------------------------------------------------------------
-# Return a closure that returns a page with each call
+# Return a closure that returns a browsable file with each call
 
-sub get_next {
-    my ($self, $parentid, $subfolders, @extensions) = @_;
+sub get_browsable {
+    my ($self, $parentid) = @_;
 
-    $subfolders = $self->{has_subfolders} unless defined $subfolders;
-
-    my $extension = $self->{extension};    
-    push(@extensions, $extension) unless @extensions;
-
-    my $sort_field = $self->{sort_field};
-
+    my $subfolders = 0;
+    my $sort_field = 'ext';
     my $dir = $self->get_repository($parentid);
-    my %extensions = map {$_ => 1} @extensions;
+    my $types = $self->{reg}->project($self->{data_registry}, 'extension');
+
+    my %extensions = reverse %$types;
     my $visitor = $self->{wf}->visitor($dir, $subfolders, $sort_field);
 
     return sub {
@@ -158,19 +153,57 @@ sub get_next {
         }
 
         my $obj;
-        my $id = $self->filename_to_id($filename);
+        my $type = $extensions{$ext};
 
-        if ($ext eq $extension) {
-            $obj = $self;
-
+        if (ref $type) {
+            $obj = $type;
         } else {
-            my $type = $self->id_to_type($id);
-            $obj = $self->create_subobject($type);
+            $obj = $self->{reg}->create_subobject($self,
+                                                 $self->{data_registry},
+                                                 $type);
+            $extensions{$ext} = $obj;
         }
         
+        # NB this is not quite correct, we are assuming that
+        # the methods here are not overloaded from the base type
+        # at least as far as browse_data is concerned
+
         my $data = $obj->read_primary($filename);
-        $data->{id} = $id;
+        $data->{id} = $self->filename_to_id($filename);
         $data = $obj->extra_data($data);        
+
+        return $data;
+   };
+}
+
+#----------------------------------------------------------------------
+# Return a closure that returns a filename with each call
+
+sub get_next {
+    my ($self, $parentid, $subfolders) = @_;
+
+    my $dir = $self->get_repository($parentid);
+    my $extension = $self->{extension};    
+
+    my $visitor = $self->{wf}->visitor($dir,
+                                       $self->{has_subfolders},
+                                       $self->{sort_field});
+
+    return sub {
+        my $ext;
+    	my $filename;
+
+    	for (;;) {
+    	    $filename = &$visitor();
+            return unless defined $filename;
+
+            ($ext) = $filename =~ /\.([^\.]*)$/;
+    	    last if defined $ext && $extension eq $ext;
+        }
+
+        my $data = $self->read_primary($filename);
+        $data->{id} = $self->filename_to_id($filename);
+        $data = $self->extra_data($data);        
 
         return $data;
    };
@@ -191,34 +224,6 @@ sub get_subtypes {
 
     @subtypes = sort keys %subtypes;
     return \@subtypes;
-}
-
-#----------------------------------------------------------------------
-# Get the type of an existing file from its id
-
-sub id_to_type {
-	my ($self, $id) = @_;
-
-
-    my $pkg;
-    my $types = $self->{reg}->project($self->{data_registry}, 'extension');
-
-    while (my ($type, $ext) = each %$types) {
-        my ($filename, $extra) = $self->id_to_filename_with_ext($id, $ext);
-
-        if (-e $filename) {
-            my $traits = $self->{reg}->read_data($self->{data_registry}, $type);
-            ($pkg) = $traits->{class} =~ /^([A-Z][\w:]+Data)$/;
-            last;
-        }
-    }
-    
-    die "Invalid id: $id\n" unless $pkg;
-
-    eval "require $pkg" or die "$@\n";
-	my $obj = $pkg->new(%$self);
-
-	return $obj->id_to_type($id);
 }
 
 #----------------------------------------------------------------------
@@ -244,9 +249,7 @@ sub next_id {
     }
 
     $seq ++;
-    my $separator = $self->{separator};
-    my $id = $parentid ? join($separator, $parentid, $seq) : $seq;
-    return $id;
+    return $self->{wf}->path_to_id($parentid, $seq);
 }
 
 #----------------------------------------------------------------------
@@ -263,7 +266,8 @@ sub remove_data {
         $self->update_data($id, $request);
 
     } else {
-    	die "Can't remove $self->{data_dir}\n";
+        my $filename = $self->id_to_filename('');
+    	die "Can't remove $filename\n";
     }
 
     return;
@@ -278,7 +282,7 @@ sub update_links {
     # Only update links if parent is top level
 
     my $new_links;
-    my ($parentid, $seq) = $self->split_id($data->{id});
+    my ($parentid, $seq) = $self->{wf}->split_id($data->{id});
 
     if ($parentid) {
         $new_links = $current_links;

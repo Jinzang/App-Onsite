@@ -23,7 +23,7 @@ $data_dir = abs_path($data_dir);
 $script_dir = abs_path($script_dir);
 
 #----------------------------------------------------------------------
-# Create objext
+# Create object
 
 BEGIN {use_ok("CMS::Onsite::Support::WebFile");} # test 1
 

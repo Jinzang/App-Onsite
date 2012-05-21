@@ -32,6 +32,7 @@ my $params = {
               script_url => 'http://www.stsci.edu/test.cgi',
               base_url => 'http://www.stsci.edu/',
               valid_write => [$data_dir, $template_dir],
+              data => 'CMS::Onsite::DirData',
              };
 
 #----------------------------------------------------------------------

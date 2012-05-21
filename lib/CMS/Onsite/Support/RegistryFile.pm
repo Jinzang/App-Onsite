@@ -49,6 +49,27 @@ sub add_traits {
 }
 
 #----------------------------------------------------------------------
+# Create a new data object of the specified type
+
+sub create_subobject {
+    my ($self, $configuration, $filename, $type) = @_;
+
+    my $traits = $self->read_data($filename, $type);
+
+    my ($pkg) = $traits->{class} =~ /^([A-Z][\w:]+)$/;
+    eval "require $pkg" or die "$@\n";
+
+    my $subobject = $pkg->new(%$configuration);
+    my %traits = $self->add_traits($type);
+    
+    while (my ($field, $value) = each %traits) {
+        $subobject->{$field} = $value;
+    }
+
+    return $subobject;
+}
+
+#----------------------------------------------------------------------
 # Select one field out of the registry
 
 sub project {

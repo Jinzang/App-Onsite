@@ -47,8 +47,10 @@ sub parameters {
                     nonce => 0,
                     items => 20,
                     maxstart => 200,
-                    data => {DEFAULT => 'CMS::Onsite::DirData'},
+                    data => {},
+                    wf => {DEFAULT => 'CMS::Onsite::Support::WebFile'},
 					nt => {DEFAULT => 'CMS::Onsite::Support::NestedTemplate'},
+					reg => {DEFAULT => 'CMS::Onsite::Support::RegistryFile'},
 	);
 
     return %parameters;
@@ -61,7 +63,9 @@ sub add {
     my ($self, $request) = @_;
 
     my $parentid = $request->{id};
-    my $subobject = $self->{data}->create_subobject($request->{subtype});
+    my $subobject = $self->{reg}->create_subobject($self->{data},
+                                                   $self->{data_registry},
+                                                   $request->{subtype});
     $subobject->add_data($parentid, $request);
 
 	return $self->set_response($request->{id}, 302);
@@ -102,7 +106,9 @@ sub add_check {
     }
 
     # Create child object to get its field information
-    my $child = $self->{data}->create_subobject($request->{subtype});
+    my $child = $self->{reg}->create_subobject($self->{data},
+                                               $self->{data_registry},
+                                               $request->{subtype});
     $request->{field_info} = $child->field_info();
 
     # Clean the request data
@@ -150,10 +156,13 @@ sub batch {
     my $response;
 
     eval {
-        # Overwrite proxy data object with real object
+        # Construct data object
+        # TODO: no $request->{type}
         $request->{id} = '' unless exists $request->{id};
-        $request->{type} ||= $self->{data}->id_to_type($request->{id});
-        $self->{data} = $self->{data}->create_subobject($request->{type});
+        $request->{type} = $self->id_to_type($request->{id});
+        $self->{data} = $self->{reg}->create_subobject($self->{configuration},
+                                                       $self->{data_registry},
+                                                       $request->{type});
     
         # Set command if not found or not valid
         my $cmd = $self->pick_command($request);
@@ -615,6 +624,33 @@ sub missing_text {
     return $results;
 }
 
+#----------------------------------------------------------------------
+# Get the type of an existing file from its id
+
+sub id_to_type {
+	my ($self, $id) = @_;
+
+    my $pkg;
+    my $types = $self->{reg}->project($self->{data_registry}, 'extension');
+
+    while (my ($type, $ext) = each %$types) {
+        my ($filename, $extra) = $self->{wf}->id_to_filename_with_ext($id, $ext);
+
+        if (-e $filename) {
+            my $traits = $self->{reg}->read_data($self->{data_registry}, $type);
+            ($pkg) = $traits->{class} =~ /^([A-Z][\w:]+Data)$/;
+            last;
+        }
+    }
+    
+    die "Invalid id: $id\n" unless $pkg;
+
+    eval "require $pkg" or die "$@\n";
+	my $obj = $pkg->new(%$self);
+
+	return $obj->id_to_type($id);
+}
+
 #---------------------------------------------------------------------------
 # Compute the number of items to return from a browse or search
 
@@ -710,6 +746,18 @@ sub pick_command {
 }
 
 #----------------------------------------------------------------------
+# Set the field values in a new object
+
+sub populate_object {
+	my ($self, $configuration) = @_;
+   
+    $self = $self->SUPER::populate_object($configuration);
+    $self->{configuration} = $configuration;
+    
+    return $self;
+}
+
+#----------------------------------------------------------------------
 # Check request to see if we can perform it
 
 sub query {
@@ -738,7 +786,7 @@ sub remove {
     my ($self, $request) = @_;
 
     $self->{data}->remove_data($request->{id}, $request);
-    my ($parentid, $seq) = $self->{data}->split_id($request->{id});
+    my ($parentid, $seq) = $self->{wf}->split_id($request->{id});
 
 	return $self->set_response($parentid, 302);
 }

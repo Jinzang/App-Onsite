@@ -16,7 +16,6 @@ sub parameters {
     my ($pkg) = @_;
 
     my %parameters = (
-                    data_dir => '',
                     base_url => '',
                     script_url => '',
                     data_registry => '',
@@ -134,7 +133,7 @@ sub check_id {
 
     if ($extra) {
         if ($mode eq 'w') {
-            my ($parentid, $seq) = $self->split_id($id);
+            my ($parentid, $seq) = $self->{wf}->split_id($id);
             $test = $self->can('write_secondary') &&
                     $self->check_id($parentid, 'r');
         } else {
@@ -218,33 +217,6 @@ sub command_title {
 }
 
 #----------------------------------------------------------------------
-# Create a new data object of the specified type
-
-sub create_subobject {
-    my ($self, $type) = @_;
-
-	my $subobject;
-	if ($self->get_type() eq $type) {
-		$subobject = $self;
-
-	} else {
-        my $traits = $self->{reg}->read_data($self->{data_registry}, $type);
-
-        my ($pkg) = $traits->{class} =~ /^([A-Z][\w:]+Data)$/;
-        eval "require $pkg" or die "$@\n";
-
-		$subobject = $pkg->new(%$self);
-        my %traits = $subobject->{reg}->add_traits($type);
-        
-        while (my ($field, $value) = each %traits) {
-            $subobject->{$field} = $value;
-        }
-	}
-
-    return $subobject;
-}
-
-#----------------------------------------------------------------------
 # Edit a file
 
 sub edit_data {
@@ -302,23 +274,7 @@ sub filename_to_id {
 	my ($self, $filename) = @_;
 
     $filename =~ s/\.[^\.]*$//;
-	$filename = $self->{wf}->abs2rel($filename, $self->{data_dir});
-
-    my @path;
-    if (length $filename) {
-        @path = split(/\//, $filename);
-        pop(@path) if $path[-1] eq $self->{index_name};
-    }
-
-    my $id;
-    if (@path) {
-        my $separator = $self->{separator};
-        $id = join($separator, @path);
-    } else {
-        $id = '';
-    }
-
-	return $id;
+    return $self->{wf}->basename_to_id($filename);
 }
 
 #----------------------------------------------------------------------
@@ -334,9 +290,7 @@ sub generate_id {
     $field =~ s/\s+/-/g;
 
     my $seq = substr($field, 0, $self->{id_length});
-    my $id = $parentid ? join($self->{separator}, $parentid, $seq) : $seq;
-    
-    return $id;
+    return $self->{wf}->path_to_id($parentid, $seq);
 }
 
 #----------------------------------------------------------------------
@@ -358,8 +312,6 @@ sub get_next {
     my ($self, $parentid) = @_;
 
     my ($filename, $extra) = $self->id_to_filename($parentid);
-
-    my $separator = $self->{separator};
     my $records = $self->read_secondary($filename);
 
     return sub {
@@ -367,7 +319,7 @@ sub get_next {
         return unless $record;
 
         my $seq = $record->{id};       
-        my $id = $parentid ? join($separator, $parentid, $seq) : $seq;
+        my $id = $self->{wf}->path_to_id($parentid, $seq);
         $record->{id} = $id;
         
         $record = $self->extra_data($record);
@@ -438,50 +390,7 @@ sub id_to_filename {
     my ($self, $id) = @_;
 
     my $ext = $self->{extension};
-    return $self->id_to_filename_with_ext($id, $ext);
-}
-
-#----------------------------------------------------------------------
-# Convert id to filename
-
-sub id_to_filename_with_ext {
-	my($self, $id, $ext) = @_;
-
-	$id = '' unless defined $id;
-	my $separator = $self->{separator};
-	my @path = split(/$separator/, $id);
-
-	# Numeric fields are the subfile id
-
-	my @extra;
-	while (@path) {
-		my $seq = pop(@path);
-		if ($seq =~ /^\d+$/) {
-			unshift(@extra, $seq);
-		} else {
-			push(@path, $seq);
-			last;
-		}
-	}
-
-	# The non-numeric part gives the file basname
-
-	my $basename = join('/', $self->{data_dir}, @path);
-   
-	my $filename;
-    if (-d $basename) {
-        my $index_name = $self->{index_name};
-        $filename = "$basename/$index_name.$ext";
-    } else {
-        $filename = "$basename.$ext";
-    }
-    
-	$filename = $self->{wf}->validate_filename($filename, 'w')
-	    if defined $filename;
-	    
-	my $extra = join($separator, @extra);
-
-	return ($filename, $extra);
+    return $self->{wf}->id_to_filename_with_ext($id, $ext);
 }
 
 #----------------------------------------------------------------------
@@ -508,9 +417,7 @@ sub next_id {
     my $seq = $record ?  $record->{id} : '0' x $index_length;
     $seq ++;
 
-	my $separator = $self->{separator};
-    my $id = $parentid ? join($separator, $parentid, $seq) : $seq;
-    return $id;
+    return $self->{wf}->path_to_id($parentid, $seq);
 }
 
 #----------------------------------------------------------------------
@@ -687,21 +594,6 @@ sub single_command_link {
         if exists $query->{subtype};
     
     return $link;
-}
-
-#---------------------------------------------------------------------------
-# Split id string into parent and child
-
-sub split_id {
-    my ($self, $id) = @_;
-    $id ||= '';
-
-    my $separator = $self->{separator};
-    my @ids = split(/$separator/, $id);
-    my $seq = pop(@ids);
-    my $parentid = join($separator, @ids);
-
-    return ($parentid, $seq);
 }
 
 #----------------------------------------------------------------------

@@ -71,7 +71,7 @@ sub extra_data {
 sub update_data {
     my ($self, $id, $record) = @_;
 
-    my ($parentid, $seq) = $self->split_id($id);
+    my ($parentid, $seq) = $self->{wf}->split_id($id);
     $self->write_rss($parentid);
 
     return;

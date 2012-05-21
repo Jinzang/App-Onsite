@@ -13,6 +13,8 @@ use IO::File;
 
 use base qw(CMS::Onsite::Support::ConfiguredObject);
 
+use constant ;
+use constant ;
 use constant VALID_NAME => qr(^([a-z][\-\w]*\.?\w*)$);
 
 #----------------------------------------------------------------------
@@ -23,9 +25,12 @@ sub parameters {
 
     my %parameters = (
                     group => '',
-					permissions => 0664,
+                    data_dir => '',
                     valid_read => [],
                     valid_write => [],
+					separator => ':',
+					index_name => 'index',
+					permissions => 0664,
 		    cache => {DEFAULT => 'CMS::Onsite::Support::CachedFile'},
 	);
 
@@ -62,6 +67,23 @@ sub abs2rel {
 	$filename = join('/', @new_path);
 
     return $filename;
+}
+
+#----------------------------------------------------------------------
+# Convert basename to id
+
+sub basename_to_id {
+	my ($self, $basename) = @_;
+
+    my @path;
+	$basename = $self->abs2rel($basename, $self->{data_dir});
+
+    if (length $basename) {
+        @path = split(/\//, $basename);
+        pop(@path) if $path[-1] eq $self->{index_name};
+    }
+
+    return $self->path_to_id(@path);
 }
 
 #----------------------------------------------------------------------
@@ -129,6 +151,57 @@ sub get_modtime {
 }
 
 #----------------------------------------------------------------------
+# Convert id to filename
+
+sub id_to_filename_with_ext {
+	my($self, $id, $ext) = @_;
+
+	# Numeric fields are the subfile id
+
+	my @extra;
+	my @path = $self->id_to_path($id);
+
+	while (@path) {
+		my $seq = pop(@path);
+		if ($seq =~ /^\d+$/) {
+			unshift(@extra, $seq);
+		} else {
+			push(@path, $seq);
+			last;
+		}
+	}
+
+	# The non-numeric part gives the file basname
+
+	
+	my $basename = join('/', $self->{data_dir}, @path);
+   
+	my $filename;
+    if (-d $basename) {
+        my $index_name = $self->{index_name};
+        $filename = "$basename/$index_name.$ext";
+    } else {
+        $filename = "$basename.$ext";
+    }
+    
+	$filename = $self->validate_filename($filename, 'w')
+	    if defined $filename;
+	    
+	my $extra = $self->path_to_id(@extra);
+	return ($filename, $extra);
+}
+
+#----------------------------------------------------------------------
+# Split id into path components
+
+sub id_to_path {
+	my ($self, $id) = @_;
+
+	$id = '' unless defined $id;
+	return split($self->{separator}, $id);
+}
+
+#----------------------------------------------------------------------
 # Check if filename is absolute
 
 sub is_absolute {
@@ -136,6 +209,16 @@ sub is_absolute {
 
     my @path = split(/\//, $filename);
     return @path && $path[0] eq '';
+}
+
+#----------------------------------------------------------------------
+# Convert path components into id
+
+sub path_to_id {
+	my ($self, @path) = @_;
+
+	@path = grep {length $_} @path;
+	return @path ? join($self->{separator}, @path) : '';
 }
 
 #----------------------------------------------------------------------
@@ -338,6 +421,19 @@ sub sorted_files {
 
     @sorted = reverse @sorted if $order eq '-';
     return @sorted;
+}
+
+#---------------------------------------------------------------------------
+# Split id string into parent and child
+
+sub split_id {
+    my ($self, $id) = @_;
+
+    my @path = $self->id_to_path($id);
+    my $seq = pop(@path);
+    my $parentid = $self->path_to_id(@path);
+
+    return ($parentid, $seq);
 }
 
 #----------------------------------------------------------------------

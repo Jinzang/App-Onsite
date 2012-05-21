@@ -84,7 +84,7 @@ sub build_secondary {
 sub change_filename {
     my ($self, $id, $filename, $request) = @_;
  
-    my ($parentid, $seq) = $self->split_id($id);
+    my ($parentid, $seq) = $self->{wf}->split_id($id);
     my $id_field = $self->{id_field};
     $id = $self->generate_id($parentid, $request->{$id_field});
 
@@ -232,7 +232,7 @@ sub get_templates {
 
     } else {
         my $id = $self->filename_to_id($filename);
-        my ($parentid, $seq) = $self->split_id($id);
+        my ($parentid, $seq) = $self->{wf}->split_id($id);
 
         my $extra;
         ($template, $extra) = $self->id_to_filename($parentid);        
@@ -417,7 +417,7 @@ sub redirect_url {
         ($filename, $extra) =  $self->id_to_filename($id);
         return $self->id_to_url($id) if -e $filename;
         
-        ($id, $seq) = $self->split_id($id);
+        ($id, $seq) = $self->{wf}->split_id($id);
     }
 
     return $self->{base_url};
@@ -430,7 +430,7 @@ sub single_navigation_link {
     my ($self, $data) = @_;
 
     my $id = $data->{id};
-    my ($parentid, $seq) = $self->split_id($id);
+    my ($parentid, $seq) = $self->{wf}->split_id($id);
     
     my $link = {};
     $link->{id} = $seq ;
@@ -483,7 +483,7 @@ sub sort_records {
 sub update_data {
     my ($self, $id, $record) = @_;
 
-    my ($parentid, $seq) = $self->split_id($id);
+    my ($parentid, $seq) = $self->{wf}->split_id($id);
     my ($indexfile, $extra) = $self->id_to_filename($parentid);
 
     my $subtemplate = $self->{update_template};
@@ -525,7 +525,7 @@ sub update_links {
     }
     
     if (exists $data->{oldid}) {
-        my ($parentid, $seq) = $self->split_id($data->{oldid});
+        my ($parentid, $seq) = $self->{wf}->split_id($data->{oldid});
         $new_links = $self->{lo}->list_delete($current_links, $seq);
     }
 
