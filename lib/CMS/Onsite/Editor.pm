@@ -157,12 +157,11 @@ sub batch {
 
     eval {
         # Construct data object
-        # TODO: no $request->{type}
         $request->{id} = '' unless exists $request->{id};
-        $request->{type} = $self->id_to_type($request->{id});
+        my $type = $self->id_to_type($request->{id});
         $self->{data} = $self->{reg}->create_subobject($self->{configuration},
                                                        $self->{data_registry},
-                                                       $request->{type});
+                                                       $type);
     
         # Set command if not found or not valid
         my $cmd = $self->pick_command($request);
@@ -534,7 +533,7 @@ sub form_hidden_fields {
 
     my @fields;
     my $field_info = $request->{field_info};
-    my @hidden_fields = ('type', 'subtype', 'id');
+    my @hidden_fields = ('subtype', 'id');
 
  
     foreach my $info (@$field_info) {
