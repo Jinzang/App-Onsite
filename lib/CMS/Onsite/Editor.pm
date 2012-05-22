@@ -604,25 +604,6 @@ sub get_nonce {
     return md5_hex($(, $nonce, $>);
 }
 
-#---------------------------------------------------------------------------
-# Supply text for missing fields in hash
-
-sub missing_text {
-    my($self, $results) = @_;
-
-    foreach my $hash (@$results) {
-        foreach my $key (keys %$hash) {
-           next if defined($hash->{$key}) && length($hash->{$key});
-            next if $key eq 'id';
-            
-           $hash->{$key} = MISSING_TEXT;
-           $hash->{$key} =~ s/\*/$key/;
-       }
-    }
-
-    return $results;
-}
-
 #----------------------------------------------------------------------
 # Get the type of an existing file from its id
 
@@ -648,6 +629,25 @@ sub id_to_type {
 	my $obj = $pkg->new(%$self);
 
 	return $obj->id_to_type($id);
+}
+
+#---------------------------------------------------------------------------
+# Supply text for missing fields in hash
+
+sub missing_text {
+    my($self, $results) = @_;
+
+    foreach my $hash (@$results) {
+        foreach my $key (keys %$hash) {
+           next if defined($hash->{$key}) && length($hash->{$key});
+            next if $key eq 'id';
+            
+           $hash->{$key} = MISSING_TEXT;
+           $hash->{$key} =~ s/\*/$key/;
+       }
+    }
+
+    return $results;
 }
 
 #---------------------------------------------------------------------------
@@ -840,7 +840,7 @@ sub render {
 sub run {
     my ($self, $request) = @_;
 
-    my ($template, $extra) = $self->{data}->id_to_filename('');
+    my $template = $self->top_page();
     my $response = $self->batch($request);
 
     $response = $self->query($request, $response)
@@ -888,6 +888,22 @@ sub search {
     $response->{results} = $results;
     
     return $response;
+}
+
+#----------------------------------------------------------------------
+# Return the filename of the top page
+
+sub top_page {
+	my ($self) = @_;
+	
+    my $types = $self->{reg}->project($self->{data_registry}, 'extension');
+
+    foreach my $ext (values %$types) {
+		my ($filename, $extra) = $self->{wf}->id_to_filename_with_ext('', $ext);
+		return $filename if -e $filename;
+	}
+	
+	die "No top page found\n";
 }
 
 #----------------------------------------------------------------------
