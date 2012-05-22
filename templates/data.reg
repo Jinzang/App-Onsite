@@ -1,6 +1,4 @@
         [file]
-SEPARATOR = :
-INDEX_NAME = index
 ID_FIELD = title
 SORT_FIELD = id
 SUMMARY_FIELD = body
