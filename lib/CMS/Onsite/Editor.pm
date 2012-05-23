@@ -7,15 +7,12 @@ use integer;
 
 package CMS::Onsite::Editor;
 
-use Digest::MD5 qw(md5_hex);
 use CMS::Onsite::FieldValidator;
-
 use base qw(CMS::Onsite::Support::ConfiguredObject);
 
 #----------------------------------------------------------------------
 # Configuration
 
-use constant DEFAULT_TITLE => 'Onsite Editor';
 use constant MISSING_TEXT => '[No *]';
 use constant BEFORE_TITLE => 'Previous';
 use constant AFTER_TITLE => 'Next';
@@ -47,7 +44,9 @@ sub parameters {
                     nonce => 0,
                     items => 20,
                     maxstart => 200,
+                    form_title => 'Onsite Editor',
                     data => {},
+                    fm => {DEFAULT => 'CMS::Onsite::Form'},
                     wf => {DEFAULT => 'CMS::Onsite::Support::WebFile'},
 					nt => {DEFAULT => 'CMS::Onsite::Support::NestedTemplate'},
 					reg => {DEFAULT => 'CMS::Onsite::Support::RegistryFile'},
@@ -324,7 +323,7 @@ sub check_nonce {
     my $response;
     if (! defined $nonce) {
         $response = $self->set_response($id, 400, '');
-    } elsif ($nonce ne $self->get_nonce()) {
+    } elsif ($nonce ne $self->{fm}->get_nonce()) {
         my $msg = 'Bad form submission, try again';
         $response = $self->set_response($id, 400, $msg);
     } else {
@@ -470,93 +469,6 @@ sub error {
     return $response;
 }
 
-#---------------------------------------------------------------------------
-# Build the hidden fields on the form
-
-sub form_buttons {
-    my ($self, $request) = @_;
-
-    my @fields;
-    for my $button (('cancel', $request->{cmd})) {
-        my $field = $self->form_field('cmd', ucfirst($button), 'submit');
-        push(@fields, {field => $field});
-    }
-
-   return \@fields;
-}
-
-#----------------------------------------------------------------------
-# Create form to send request
-
-sub form_command {
-    my ($self, $request) = @_;
-
-    my %command;
-    my $field_info = $request->{field_info};
-
-    $command{url} = $request->{script_url};
-    $command{encoding} = 'application/x-www-form-urlencoded';
-
-    foreach my $info (@{$field_info}) {
-        my $validator = CMS::Onsite::FieldValidator->new(%$info);
-        $command{encoding} = 'multipart/form-data'
-            if $validator->field_type($info->{style}) eq 'file';
-    }
-
-    return \%command;
-}
-
-#---------------------------------------------------------------------------
-# Build a form field
-
-sub form_field {
-    my ($self, $name, $value, $info) = @_;
-
-    my ($style, $valid);
-    if (ref $info) {
-        $style = exists $info->{style} ? $info->{style} : '';
-        $valid = exists $info->{valid} ? $info->{valid} : '';
-    } else {
-        $valid = '';
-        $style = "type=$info";
-    }
-
-    my $validator = CMS::Onsite::FieldValidator->new(valid => $valid);
-    return $validator->build_field($name, $value, $style);
-}
-
-#---------------------------------------------------------------------------
-# Build the hidden fields on the form
-
-sub form_hidden_fields {
-    my ($self, $request) = @_;
-
-    my @fields;
-    my $field_info = $request->{field_info};
-    my @hidden_fields = ('subtype', 'id');
-
- 
-    foreach my $info (@$field_info) {
-        my $validator = CMS::Onsite::FieldValidator->new(%$info);
-
-        push(@hidden_fields, $info->{NAME})
-            if $validator->field_type($info->{style}) eq 'hidden';
-    }
-
-    foreach my $name (@hidden_fields) {
-        next unless exists $request->{$name};
-        my $value = $request->{$name};
-
-        my $field = $self->form_field($name, $value, 'hidden');
-        push(@fields, {field => $field});
-    }
-
-    my $field = $self->form_field('nonce', $self->get_nonce(), 'hidden');
-    push(@fields, {field => $field});
-
-    return \@fields;
-}
-
 #----------------------------------------------------------------------
 # Build the command title for a form
 
@@ -564,44 +476,7 @@ sub form_title {
 	my ($self, $request) = @_;
 
     my $links = $self->{data}->command_links($request->{id}, [$request->{cmd}]);
-    return @$links ? $links->[0]{title} : DEFAULT_TITLE;
-}
-
-#---------------------------------------------------------------------------
-# Build the visible fields on the form
-
-sub form_visible_fields {
-    my ($self, $request) = @_;
-
-    my @fields;
-    my $field_info = $request->{field_info};
-
-    foreach my $info (@$field_info) {
-        my $validator = CMS::Onsite::FieldValidator->new(%$info);
-        next if $validator->field_type($info->{style}) eq 'hidden';
-
-    	my %field;
-    	my $name = $info->{NAME};
-        my $value = exists $request->{$name} ? $request->{$name} : '';
-
-        $field{title} = $info->{title} || ucfirst($name);
-        $field{class} = $validator->{required} ? 'required' : 'optional';
-        $field{field} = $self->form_field($name, $value, $info);
-        push(@fields, \%field);
-    }
-
-    return \@fields;
-}
-
-#----------------------------------------------------------------------
-# Create the nonce for validated form input
-
-sub get_nonce {
-    my ($self) = @_;
-    return $self->{nonce} if $self->{nonce};
-
-    my $nonce = time() / 24000;
-    return md5_hex($(, $nonce, $>);
+    return @$links ? $links->[0]{title} : $self->{form_title};
 }
 
 #----------------------------------------------------------------------
@@ -757,28 +632,6 @@ sub populate_object {
 }
 
 #----------------------------------------------------------------------
-# Check request to see if we can perform it
-
-sub query {
-    my ($self, $request, $response) = @_;
-
-    my $results = {};
-    $results->{error} = $response->{msg};
-    $results->{title} = $self->form_title($request);
-
-    my $form = $self->form_command($request);
-    $form->{hidden} = $self->form_hidden_fields($request);
-    $form->{visible} = $self->form_visible_fields($request);
-    $form->{buttons} = $self->form_buttons($request);
-    $results->{form} = $form;
-   
-    $response = $self->set_response($request->{id}, 200);
-    $response->{results} = $results;
-    
-    return $response;
-}
-
-#----------------------------------------------------------------------
 # Remove a file
 
 sub remove {
@@ -843,8 +696,11 @@ sub run {
     my $template = $self->top_page();
     my $response = $self->batch($request);
 
-    $response = $self->query($request, $response)
-        if $response->{code} == 400;
+    if ($response->{code} == 400) {
+        $response = $self->set_response($request->{id}, 200);
+        $response->{results} = $self->{fm}->create_form($request,
+                                                        $response->{msg});
+    }
 
     my $subtemplate;
     if ($response->{code} == 500 || $request->{debug}) {
