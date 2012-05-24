@@ -165,7 +165,7 @@ CMS::Onsite::Support::CronHandler runs an object as a cron job
 
 =head1 DESCRIPTION
 
-This class calls the batch method of the object passed as the value of handler.
+This class calls the execute method of the object passed as the value of handler.
 It sends a mail message at the conclusion of the job.
 
 =head1 AUTHOR

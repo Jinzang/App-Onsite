@@ -148,35 +148,23 @@ sub any_data {
 }
 
 #----------------------------------------------------------------------
-# Check the request and run the command if it passes
+# Execute the application, return a message if it fails
 
 sub batch {
     my ($self, $request) = @_;
-    my $response;
 
-    eval {
-        # Construct data object
-        $request->{id} = '' unless exists $request->{id};
-        my $type = $self->id_to_type($request->{id});
-        $self->{data} = $self->{reg}->create_subobject($self->{configuration},
-                                                       $self->{data_registry},
-                                                       $type);
+    my $response = $self->execute($request);
+    my $msg = $response->{msg};
     
-        # Set command if not found or not valid
-        my $cmd = $self->pick_command($request);
-        $request->{cmd} = $cmd;
-    
-        # Check request
-        $response = $self->check($request);
-        
-        # Run command if no problem
-        if ($response->{code} == 200) {
-            $response = $self->$cmd($request);
-        }
-    };
+    if ($response->{code} < 400) {
+        undef $msg;
 
-    $response = $self->set_response($request->{id}, 500, $@) if $@;  
-    return $response;
+    } elsif (! $msg) {
+        my $code = $response->{code};
+        $msg = RESPONSE_MSG->{$code};
+    }
+    
+    return $msg;
 }
 
 #----------------------------------------------------------------------
@@ -470,6 +458,38 @@ sub error {
 }
 
 #----------------------------------------------------------------------
+# Check the request and execute the command if it passes
+
+sub execute {
+    my ($self, $request) = @_;
+    my $response;
+
+    eval {
+        # Construct data object
+        $request->{id} = '' unless exists $request->{id};
+        my $type = $self->id_to_type($request->{id});
+        $self->{data} = $self->{reg}->create_subobject($self->{configuration},
+                                                       $self->{data_registry},
+                                                       $type);
+    
+        # Set command if not found or not valid
+        my $cmd = $self->pick_command($request);
+        $request->{cmd} = $cmd;
+    
+        # Check request
+        $response = $self->check($request);
+        
+        # Run command if no problem
+        if ($response->{code} == 200) {
+            $response = $self->$cmd($request);
+        }
+    };
+
+    $response = $self->set_response($request->{id}, 500, $@) if $@;  
+    return $response;
+}
+
+#----------------------------------------------------------------------
 # Build the command title for a form
 
 sub form_title {
@@ -688,13 +708,13 @@ sub render {
 }
 
 #----------------------------------------------------------------------
-# Run the application after request passes test
+# Execute the application build inout form if insufficient inputtest
 
 sub run {
     my ($self, $request) = @_;
 
     my $template = $self->top_page();
-    my $response = $self->batch($request);
+    my $response = $self->execute($request);
 
     if ($response->{code} == 400) {
         $response = $self->set_response($request->{id}, 200);
@@ -832,7 +852,7 @@ CMS::Onsite::Editor - Simple website creation and maintainance
 
 This is the top level class of CMS:: Onsite, though normally it is invoked
 through CMS::Onsite::Support::CgiHandler. There are three public methods: new,
-batch, and run. Batch and run take a hash reference as an argument. This hash
+execute, and run. Batch and run take a hash reference as an argument. This hash
 contains the parameters passed by an http request. Batch and run return a hash
 with several fields corresponding to an http response
 

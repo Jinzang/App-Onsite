@@ -470,7 +470,7 @@ $wf->writer($templatename, $error_template);
 my $con = CMS::Onsite::Editor->new(%$params);
 
 isa_ok($con, "CMS::Onsite::Editor"); # test 2
-can_ok($con, qw(check batch run render error)); # test 3
+can_ok($con, qw(check execute run render error)); # test 3
 
 $wf->relocate($data_dir);
 
@@ -591,7 +591,7 @@ $data = {
     script_url => $params->{script_url},
 };
 
-$con->batch($data);
+$con->execute($data);
 
 my $extra;
 my $id = 'test-title';
@@ -627,7 +627,7 @@ $data = {
     id => $id,
 };
 
-$con->batch($data);
+$con->execute($data);
 $d = $con->{data}->read_data('new-title');
 
 $r = {
@@ -650,7 +650,7 @@ $response = {code => 200, msg => 'OK', protocol => 'text/html',
              url => $r->{url}};
 is_deeply($d, $response, "View check"); # Test 18
 
-$d = $con->batch($request);
+$d = $con->execute($request);
 $response = {code => 302, msg => 'Found', protocol => 'text/html',
              url => $r->{url}};
 is_deeply($d, $response, "View"); # Test 19
@@ -659,7 +659,7 @@ is_deeply($d, $response, "View"); # Test 19
 # Remove
 
 foreach $id (('new-title', 'test-title')) {
-    $con->batch({cmd => 'remove', id => $id, nonce => $params->{nonce}});
+    $con->execute({cmd => 'remove', id => $id, nonce => $params->{nonce}});
     my $found = -e "$data_dir/$id.html" ? 1 : 0;
     is($found, 0, "Remove $id"); # Test 20-21
 }
@@ -680,7 +680,7 @@ for my $count (qw(First Second Third)) {
     my %request = (%data, id => '', nonce => $params->{nonce},
                    subtype => 'page', cmd => 'add');
 
-    $con->batch(\%request);
+    $con->execute(\%request);
 
     $data = $con->{data}->read_data($id);
     $data->{browselink} = {title => 'Edit', 
@@ -690,7 +690,7 @@ for my $count (qw(First Second Third)) {
 }
 
 $request = {nonce => $params->{nonce}, cmd => 'browse'};
-$response = $con->batch($request);
+$response = $con->execute($request);
 my $results = $response->{results}{data};
 shift(@$results);
 
