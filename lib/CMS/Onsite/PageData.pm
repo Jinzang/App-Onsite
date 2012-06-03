@@ -156,12 +156,9 @@ sub extra_data {
 sub field_info {
     my ($self, $id) = @_;
 
-
-    my ($filename, $extra);
-    ($filename, $extra) = $self->id_to_filename($id) if defined $id;
+    my ($filename, $extra) = $self->id_to_filename($id);
 
     if (! defined $filename || ! -e $filename) {
-        my $type = $self->get_type($id);
         $filename = "$self->{template_dir}/$self->{add_template}";
     }
 
