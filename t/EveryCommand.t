@@ -43,6 +43,7 @@ my $wf = CMS::Onsite::Support::WebFile->new(%$params);
 my $command_registry_file = <<'EOQ';
         [every]
 CLASS = CMS::Onsite:EveryCommand
+TEMPLATE = show_form.htm
 EOQ
 
 $wf->writer("$template_dir/$command_registry", $command_registry_file);

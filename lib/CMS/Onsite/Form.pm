@@ -7,7 +7,6 @@ use integer;
 
 package CMS::Onsite::Form;
 
-use Digest::MD5 qw(md5_hex);
 use CMS::Onsite::FieldValidator;
 
 use base qw(CMS::Onsite::Support::ConfiguredObject);
@@ -19,9 +18,9 @@ sub parameters {
     my ($pkg) = @_;
 
     my %parameters = (
-                        nonce => 0,
-                        form_title => 'Onsite Editor',
-                     );
+                      form_title => 'Onsite Editor',
+                      wf => {DEFAULT => 'CMS::Onsite::Support::WebFile'},
+                    );
 
     return %parameters;
 }
@@ -126,21 +125,10 @@ sub get_hidden_fields {
         push(@fields, {field => $field});
     }
 
-    my $field = $self->get_field('nonce', $self->get_nonce(), 'hidden');
+    my $field = $self->get_field('nonce', $self->{wf}->get_nonce(), 'hidden');
     push(@fields, {field => $field});
 
     return \@fields;
-}
-
-#----------------------------------------------------------------------
-# Create the nonce for validated form input
-
-sub get_nonce {
-    my ($self) = @_;
-    return $self->{nonce} if $self->{nonce};
-
-    my $nonce = time() / 24000;
-    return md5_hex($(, $nonce, $>);
 }
 
 #---------------------------------------------------------------------------

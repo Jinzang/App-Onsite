@@ -182,7 +182,9 @@ sub filename_to_url {
     if ($path eq '.') {
         $url = $self->{base_url};
     } else {
-        $url = "$self->{base_url}/$path";
+        $url = $self->{base_url};
+        $url .= '/' unless $url =~ /\/$/;
+        $url .= $path;
     }
 
     return $url;
@@ -412,7 +414,7 @@ sub redirect_url {
     my ($filename, $extra, $seq);
     while ($id) {
         ($filename, $extra) =  $self->id_to_filename($id);
-        return $self->id_to_url($id) if -e $filename;
+        return $self->filename_to_url($filename) if -e $filename;
         
         ($id, $seq) = $self->{wf}->split_id($id);
     }

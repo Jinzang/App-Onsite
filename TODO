@@ -1,7 +1,6 @@
-Extract create_subobject and id_to_type from objects
-Break out commands into separate objects
+Add PostData class
 Finish UserData as subtype of TextData
-Modify cronHandler and FileHandler to support Editor interface
+Modify FileHandler to support Editor interface
 Rewrite clean subs in Verify classesRewrite PostData
 Finish pod documentation
 Finish directory rename code

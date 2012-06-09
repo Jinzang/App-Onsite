@@ -1,9 +1,9 @@
-#!/usr/local/bin/perl
+#!/usr/local/bin/perl -T
 use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 26;
+use Test::More tests => 15;
 
 use Cwd qw(abs_path getcwd);
 use CMS::Onsite::Support::WebFile;
@@ -19,6 +19,7 @@ mkdir $data_dir;
 $data_dir = abs_path($data_dir);
 my $template_dir = "$data_dir/templates";
 my $data_registry = 'data.reg';
+my $cmd_registry = 'command.reg';
 
 BEGIN {use_ok("CMS::Onsite::Editor");} # test 1
 
@@ -29,10 +30,12 @@ my $params = {
               data_dir => $data_dir,
               template_dir => "$template_dir",
               data_registry => $data_registry,
+              command_registry => $cmd_registry,
               script_url => 'http://www.stsci.edu/test.cgi',
               base_url => 'http://www.stsci.edu/',
               valid_write => [$data_dir, $template_dir],
               data => 'CMS::Onsite::DirData',
+              cmd => 'CMS::Onsite::ViewCommand',
              };
 
 #----------------------------------------------------------------------
@@ -40,7 +43,7 @@ my $params = {
 
 my $wf = CMS::Onsite::Support::WebFile->new(%$params);
 
-my $registry = <<'EOQ';
+my $type_registry = <<'EOQ';
         [file]
 ID_FIELD = title
 SORT_FIELD = id
@@ -48,6 +51,7 @@ SUMMARY_FIELD = body
 ID_LENGTH = 63
 INDEX_LENGTH = 4
 HAS_SUBFOLDERS = 0
+DEFAULT_COMMAND = edit
 PARENT_COMMANDS = browse
 PARENT_COMMANDS = search
 COMMANDS = browse
@@ -78,7 +82,31 @@ EDIT_TEMPLATE = edit_dir.htm
 UPDATE_TEMPLATE = update_dir.htm
 EOQ
 
-$wf->writer("$template_dir/$data_registry", $registry);
+my $command_registry = <<'EOQ';
+        [every]
+CLASS = CMS::Onsite::EveryCommand
+TEMPLATE = show_form.htm
+        [add]
+CLASS = CMS::Onsite::AddCommand
+SUBTEMPLATE = add.htm
+        [browse]
+CLASS = CMS::Onsite::BrowseCommand
+SUBTEMPLATE = browse.htm
+        [edit]
+CLASS = CMS::Onsite::EditCommand
+SUBTEMPLATE = edit.htm
+        [remove]
+CLASS = CMS::Onsite::RemoveCommand
+SUBTEMPLATE = remove.htm
+        [search]
+CLASS = CMS::Onsite::SearchCommand
+SUBTEMPLATE = search.htm
+        [view]
+CLASS = CMS::Onsite::ViewCommand
+EOQ
+
+$wf->writer("$template_dir/$data_registry", $type_registry);
+$wf->writer("$template_dir/$cmd_registry", $command_registry);
 
 my $dir = <<'EOQ';
 <html>
@@ -426,6 +454,91 @@ my $error_template = <<'EOS';
 </body></html>
 EOS
 
+my $show_form = <<'EOQ';
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+<!-- begin meta -->
+<!-- end meta -->
+<link rel="stylesheet" type="text/css" href="style.css" title="style" />
+<link rel="stylesheet" type="text/css" href="mobile.css" title="mobile" />
+</head>
+<body>
+<div id="container">
+<div id="primary">
+<!-- begin primary -->
+<!-- end primary -->
+</div>
+<div id="secondary">
+<!-- begin secondary -->
+<!-- end secondary -->
+</div>
+<div id="navigation">
+<ul>
+<!-- begin commandlinks -->
+<!-- end commandlinks -->
+</ul>
+</div>
+</div>
+</body>
+</html>
+EOQ
+
+my $edit_form = <<'EOQ';
+<!DOCTYPE html> 
+<html lang="en">
+<head>
+<!-- begin meta -->
+<base href="{{base_url}}" />
+<title>{{title}}</title>
+<!-- end meta -->
+<link rel="stylesheet" type="text/css" href="style.css" title="style" />
+<link rel="stylesheet" type="text/css" href="mobile.css" title="mobile" />
+</head>
+<body>
+<div id="container">
+<div id="primary">
+<!-- begin primary -->
+<h1>{{title}}</h1>
+
+<p class="error">{{error}}</p>
+
+<!-- with form -->
+<form id="edit_form" method="post" action="{{url}}" enctype="{{encoding}}">
+<!-- with hidden -->
+<!-- with field --><!-- end field -->
+<!-- end hidden -->
+<!-- with visible -->
+<div class="title {{class}}">
+<!-- with title --><!-- end title -->
+</div>
+<div class="formfield">
+<!-- with field --><!-- end field -->
+</div>
+<!-- end visible -->
+<div class="formfield"><!-- with buttons -->
+<!-- with field --><!-- end field -->
+<!-- end buttons --></div>
+</form>
+<!--end form -->
+<!-- end primary -->
+</div>
+<div id="navigation">
+<ul>
+<!-- begin commandlinks -->
+<!-- with data -->
+<li><a href="{{url}}">
+<!-- with title --><!-- end title -->
+</a></li>
+<!-- end data -->
+<!-- end commandlinks -->
+</ul>
+</div>
+</div>
+</body>
+</html>
+EOQ
+
 # Write templates and pages
 
 my $indexname = "$data_dir/index.html";
@@ -464,271 +577,100 @@ $templatename = "$template_dir/error.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $error_template);
 
+$templatename = "$template_dir/show_form.htm";
+$templatename = $wf->validate_filename($templatename, 'w');
+$wf->writer($templatename, $show_form);
+
+$templatename = "$template_dir/edit.htm";
+$templatename = $wf->validate_filename($templatename, 'w');
+$wf->writer($templatename, $edit_form);
+
 #----------------------------------------------------------------------
 # Create object
 
 my $con = CMS::Onsite::Editor->new(%$params);
 
 isa_ok($con, "CMS::Onsite::Editor"); # test 2
-can_ok($con, qw(check execute run render error)); # test 3
-
-$wf->relocate($data_dir);
-
-#----------------------------------------------------------------------
-# Clean data
-
-my $request = {title => "Test Title",
-               body => "<p>Test body</p>\n",
-               author => "Test Author",
-              };
-
-my $field_info = [{NAME => 'title', valid => '&'},
-                  {NAME => 'body', valid => '&html'},
-                  {NAME => 'author'},
-                 ];
-$request->{field_info} = $field_info;
-
-my $cleaned = {};
-%$cleaned = %$request;
-$cleaned->{title} = "Test Title";
-$cleaned->{body} = "<p>Test body</p>";
-$cleaned->{author} = "Test Author",
-
-$request = $con->clean_data($request);
-is_deeply($request, $cleaned, "clean_data"); # test 4
-
-#----------------------------------------------------------------------
-# Response and error response
-
-my $error = 'Division by zero';
-my $response = $con->set_response('a-page', 500, $error);
-my $d = {code => 500, msg => $error, protocol => 'text/html',
-         url => $params->{base_url}}; 
-
-is_deeply($response, $d, "set response"); # test 5
-
-$response = $con->error($request, $response);
-$d ={code => 200, msg => 'OK',
-     protocol => 'text/html',
-     url => $params->{base_url},
-     results => {request => $request, results => undef, env => \%ENV,
-                 title => 'Script Error', error => $error}};
-
-is_deeply($response, $d, "error"); # test 6
-
-#----------------------------------------------------------------------
-# check_fields
-
-$d = $con->check_fields($request);
-$response = {code => 200, msg => 'OK', protocol => 'text/html',
-             url => $params->{base_url}};
-
-is_deeply($d, $response, "check_fields with all data"); # test 7
-
-$request->{title} = '';
-$d = $con->check_fields($request);
-
-$response->{code} = 400;
-$response->{msg} = "Invalid or missing fields: title";
-is_deeply($d, $response, "check_fields with missing data"); # test 8
-
-#----------------------------------------------------------------------
-# page_limit
-
-my $limit = $con->page_limit();
-is($limit, $con->{items}+1, "page_limit no args"); #test 9
-
-$limit = $con->page_limit({start => 100});
-is($limit, $con->{items} + 101, "page limit with start"); # test 10
+can_ok($con, qw(batch execute run)); # test 3
 
 #----------------------------------------------------------------------
 # pick_command
 
 my $cmd = $con->pick_command({id => '', cmd => "add"});
-is($cmd, "add", "pick with command"); # test 11
+is($cmd, "add", "pick with command"); # test 4
 
 $cmd = $con->pick_command({id => '', cmd => ""});
-is($cmd, "browse", "pick with no command"); # test 12
+is($cmd, "edit", "pick with no command"); # test 5
 
 $cmd = $con->pick_command({id => '', cmd => "cancel"});
-is($cmd, "cancel", "pick with cancel"); # test 13
+is($cmd, "cancel", "pick with cancel"); # test 6
 
 #----------------------------------------------------------------------
-# add_check
+# Error response
 
-my $data = {
-    id => '',
-    cmd => 'add',
-    subtype => 'page',
-    title => 'Test Title',
-    body => 'Test text.',
-    nonce => $params->{nonce},
-    script_url => $params->{script_url},
-};
+my $error = 'Division by zero';
+my $request = {cmd => 'edit', id => 'a-page'};
+my $response = {code => 500, msg => $error,
+                url => "$params->{base_url}a-page.html",
+                protocol => 'text/html'};
 
-my $test = $con->add_check($data);
-$response = {code => 200, msg => 'OK', protocol => 'text/html',
-             url => $params->{base_url}};
+$response = $con->error($request, $response);
 
-is_deeply($test, $response, "add_check"); # test 14
+my $d = {code => 200, msg => 'OK',
+         protocol => 'text/html',
+         url => $params->{base_url},
+         results => {request => $request, results => undef,
+                     title => 'Script Error', error => $error}};
 
-delete $data->{title};
-$test = $con->add_check($data);
-$response->{code} = 400;
-$response->{msg} = "Invalid or missing fields: title";
-is_deeply($test, $response, "add_check with missing data"); # test 15
+is_deeply($response, $d, "error"); # test 7
 
 #----------------------------------------------------------------------
-# Add
+# Top Page
 
-$data = {
-    id => '',
-    cmd => 'add',
-    subtype => 'page',
-    title => 'Test Title',
-    body => 'Test text.',
-    nonce => $params->{nonce},
-    script_url => $params->{script_url},
-};
-
-$con->execute($data);
-
-my $extra;
-my $id = 'test-title';
-($pagename, $extra) = $con->{data}->id_to_filename($id);
-$pagename = $wf->abs2rel($pagename);
-$d = $con->{data}->read_data($id);
-
-my $r = {
-        author => '',
-        body => $data->{body},
-        summary => $data->{body},
-        title => $data->{title},
-        url => "$params->{base_url}/$pagename",
-        id => $id,
-};
-
-is_deeply($d, $r, "add"); # Test 16
+my $filename = $con->top_page();
+is($filename, "$params->{data_dir}/index.html", "top page"); # test 8
 
 #----------------------------------------------------------------------
-# Edit
+# Execute view command
 
-my $filename;
-$id = 'a-title';
-($filename, $extra) = $con->{data}->id_to_filename($id);
-$filename = $wf->abs2rel($filename);
+##$wf->relocate($data_dir);
 
-$data = {
-    cmd => 'edit',
-    title => 'New Title',
-    body => 'New text.',
-    author => '',
-    nonce => $params->{nonce},
-    id => $id,
-};
-
-$con->execute($data);
-$d = $con->{data}->read_data('new-title');
-
-$r = {
-      author => 'An author',
-      body => $data->{body},
-      summary => $data->{body},
-      title => $data->{title},
-      url => "$params->{base_url}/new-title.html",
-      id => 'new-title',
-};
-
-is_deeply($d, $r, "Edit"); # Test 17
-
-#----------------------------------------------------------------------
-# View
-
-$request = {cmd => 'view', id => 'new-title', };
-$d = $con->view_check($request);
-$response = {code => 200, msg => 'OK', protocol => 'text/html',
-             url => $r->{url}};
-is_deeply($d, $response, "View check"); # Test 18
-
-$d = $con->execute($request);
-$response = {code => 302, msg => 'Found', protocol => 'text/html',
-             url => $r->{url}};
-is_deeply($d, $response, "View"); # Test 19
-
-#----------------------------------------------------------------------
-# Remove
-
-foreach $id (('new-title', 'test-title')) {
-    $con->execute({cmd => 'remove', id => $id, nonce => $params->{nonce}});
-    my $found = -e "$data_dir/$id.html" ? 1 : 0;
-    is($found, 0, "Remove $id"); # Test 20-21
-}
-
-#----------------------------------------------------------------------
-# Browse
-
-my @data;
-my %template = (title => "%% file", body => "%% text.", author => "%% author");
-
-for my $count (qw(First Second Third)) {
-    my %data = %template;
-    foreach my $key (keys %data) {
-        $data{$key} =~ s/%%/$count/g;
-    }
-
-    $id = $con->{data}->generate_id('', $data{title});
-    my %request = (%data, id => '', nonce => $params->{nonce},
-                   subtype => 'page', cmd => 'add');
-
-    $con->execute(\%request);
-
-    $data = $con->{data}->read_data($id);
-    $data->{browselink} = {title => 'Edit', 
-    url => "$params->{script_url}?cmd=edit&id=$data->{id}"};
-
-    push (@data, $data);
-}
-
-$request = {nonce => $params->{nonce}, cmd => 'browse'};
+$request = {cmd => 'view', nonce => $params->{nonce}};
 $response = $con->execute($request);
-my $results = $response->{results}{data};
-shift(@$results);
 
-is_deeply($results, \@data, "Browse all"); # Test 22
+$d = {code => 302, msg => 'Found', url => $params->{base_url},
+      protocol => 'text/html'};
 
-my @subset = @data[0..1];
-my $max = $con->{items};
-$con->{items} = 3;
-
-$response = $con->browse($request);
-$results = $response->{results}{data};
-shift(@$results);
-
-is_deeply($results, \@subset, "Browse with limit"); # Test 23
-$con->{items} = $max;
+is_deeply($response, $d, "execute view command"); # test 9
 
 #----------------------------------------------------------------------
-# Search
+# Execute batch command
 
-delete $_->{browselink} foreach @data;
-@subset = @data[0..1];
+my $msg = $con->batch($request);
+is($msg, undef, "batch"); # test 10
 
-$request = {query => 'file', cmd => 'search'};
+$request->{id} = "new-title";
+$msg = $con->batch($request);
+is($msg, "Invalid id: new-title", "batch error"); # test 11
 
-$response = $con->search($request);
-$results = $response->{results}{data};
-is_deeply($results, \@data, "Search"); # Test 24
+#----------------------------------------------------------------------
+# Run edit command
 
-$max = $con->{items};
-$con->{items} = 3;
-$response = $con->search($request);
-$results = $response->{results}{data};
-pop(@$results);
+$request = {cmd => 'edit', id => 'a-title'};
+$response = $con->run($request);
 
-is_deeply($results, \@subset, "Search with limit"); # Test 25
-$con->{items} = $max;
+my $results = $response->{results};
+delete $response->{results};
 
-$request->{query} = 'First author';
-$response = $con->search($request);
-$results = $response->{results}{data};
-is_deeply($results, [$data[0]], "Search with multiple terms"); # Test 26
+$d = {code => 200, msg => 'OK', url => "$params->{base_url}a-title.html",
+      protocol => 'text/html'};
+
+is_deeply($response, $d, "Run edit command"); # test 12
+like($results, qr/x-www-form-urlencoded/, "Edit form"); # test 13
+
+$request = {cmd => 'edit', id => 'new-title'};
+$response = $con->run($request);
+$results = $response->{results};
+
+like($results, qr/Invalid id: new-title/, "Run with error msg"); # test 14
+like($results, qr/RESULTS/, "Run with error results"); # test 15

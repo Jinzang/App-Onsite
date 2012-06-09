@@ -10,6 +10,7 @@ package CMS::Onsite::Support::WebFile;
 use Cwd;
 use IO::Dir;
 use IO::File;
+use Digest::MD5 qw(md5_hex);
 
 use base qw(CMS::Onsite::Support::ConfiguredObject);
 
@@ -24,6 +25,7 @@ sub parameters {
     my ($pkg) = @_;
 
     my %parameters = (
+                    nonce => 0,
                     group => '',
                     data_dir => '',
                     valid_read => [],
@@ -95,7 +97,7 @@ sub base_dir {
     if (defined $base_dir) {
         $base_dir = $self->rel2abs($base_dir);
     } else {
-        $base_dir = getcwd();
+        $base_dir = $self->{data_dir};
     }
 
     return $base_dir;
@@ -107,7 +109,8 @@ sub base_dir {
 sub create_dirs {
     my ($self, @dirs) = @_;
 
-    my $path = '.';
+    my $path = $self->validate_filename($self->{data_dir}, 'r');
+	
     foreach my $dir (@dirs) {
         next if $dir eq '.';
 
@@ -148,6 +151,17 @@ sub get_modtime {
 
     my ($modtime) = $mtime =~/^(\d+)$/; # untaint
     return $modtime;
+}
+
+#----------------------------------------------------------------------
+# Create the nonce for validated form input
+
+sub get_nonce {
+    my ($self) = @_;
+    return $self->{nonce} if $self->{nonce};
+
+    my $nonce = time() / 24000;
+    return md5_hex($(, $nonce, $>);
 }
 
 #----------------------------------------------------------------------

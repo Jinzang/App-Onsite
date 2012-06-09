@@ -1,0 +1,21 @@
+        [every]
+CLASS = CMS::Onsite::EveryCommand
+TEMPLATE = show_form.htm
+        [add]
+CLASS = CMS::Onsite::AddCommand
+SUBTEMPLATE = add.htm
+        [browse]
+CLASS = CMS::Onsite::BrowseCommand
+SUBTEMPLATE = browse.htm
+        [edit]
+CLASS = CMS::Onsite::EditCommand
+SUBTEMPLATE = edit.htm
+        [remove]
+CLASS = CMS::Onsite::RemoveCommand
+SUBTEMPLATE = remove.htm
+        [search]
+CLASS = CMS::Onsite::SearchCommand
+SUBTEMPLATE = search.htm
+        [view]
+CLASS = CMS::Onsite::ViewCommand
+ 

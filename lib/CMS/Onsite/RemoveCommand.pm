@@ -18,7 +18,6 @@ sub parameters {
     my ($pkg) = @_;
 
     my %parameters = (
-                      wf => {DEFAULT => 'CMS::Onsite::Support::WebFile'},
                     );
 
     my %base_params = $pkg->SUPER::parameters();
@@ -57,9 +56,7 @@ sub run {
     my ($self, $request) = @_;
 
     $self->{data}->remove_data($request->{id}, $request);
-    my ($parentid, $seq) = $self->{wf}->split_id($request->{id});
-
-	return $self->set_response($parentid, 302);
+	return $self->set_response($request->{id}, 302);
 }
 
 1;

@@ -39,7 +39,8 @@ sub parameters {
                       form_title => 'Onsite Editor',
                       command_registry => 'command.reg',
                       data => {},
-                      fm => {DEFAULT => 'CMS::Onsite::Form'},
+                      fm => {DEFAULT => 'CMS::Onsite::Form'},                      
+                      wf => {DEFAULT => 'CMS::Onsite::Support::WebFile'},
 					  reg => {DEFAULT => 'CMS::Onsite::Support::RegistryFile'},
                    	);
 
@@ -73,6 +74,18 @@ sub check {
     my $code = $self->{data}->check_id($id, 'r') ? 200 : 404;
 
     return $self->set_response($id, $code);
+}
+
+#----------------------------------------------------------------------
+# Check user authorization to execute the command
+
+sub check_authorization {
+	my($self, $request) = @_;
+
+    my $code = $self->{data}->authorize($request->{cmd}, $request) ? 200 : 401;
+    my $response = $self->set_response($request->{id}, $code);
+
+    return $response;
 }
 
 #----------------------------------------------------------------------
@@ -115,7 +128,7 @@ sub check_nonce {
     my $response;
     if (! defined $nonce) {
         $response = $self->set_response($id, 400, '');
-    } elsif ($nonce ne $self->{fm}->get_nonce()) {
+    } elsif ($nonce ne $self->{wf}->get_nonce()) {
         my $msg = 'Bad form submission, try again';
         $response = $self->set_response($id, 400, $msg);
     } else {
@@ -153,6 +166,22 @@ sub form_title {
 
     my $links = $self->{data}->command_links($request->{id}, [$request->{cmd}]);
     return @$links ? $links->[0]{title} : $self->{form_title};
+}
+
+#---------------------------------------------------------------------------
+# Get the subtemplate for building the form
+
+sub get_subtemplate {
+    my ($self) = @_;
+    return $self->{subtemplate};
+}
+
+#---------------------------------------------------------------------------
+# Get the template for building the form
+
+sub get_template {
+    my ($self) = @_;
+    return $self->{template};
 }
 
 #---------------------------------------------------------------------------

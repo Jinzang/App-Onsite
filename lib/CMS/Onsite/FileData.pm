@@ -306,6 +306,14 @@ sub get_commands {
 }
 
 #----------------------------------------------------------------------
+# Return default command
+
+sub get_default_command {
+    my ($self) = @_;
+    return $self->{default_command};
+}
+
+#----------------------------------------------------------------------
 # Return a closure that returns each record in the file
 
 sub get_next {

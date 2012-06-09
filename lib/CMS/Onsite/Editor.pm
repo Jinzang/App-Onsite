@@ -11,25 +11,6 @@ use CMS::Onsite::FieldValidator;
 use base qw(CMS::Onsite::Support::ConfiguredObject);
 
 #----------------------------------------------------------------------
-# Configuration
-
-use constant MISSING_TEXT => '[No *]';
-use constant BEFORE_TITLE => 'Previous';
-use constant AFTER_TITLE => 'Next';
-
-use constant RESPONSE_PROTOCOL => 'text/html';
-use constant SUBTEMPLATE => 'show_form.htm';
-
-use constant RESPONSE_MSG => {
-    200 => 'OK',
-    302 => 'Found',
-    400 => 'Invalid Request',
-    401 => 'Unauthorized',
-    404 => 'File Not Found',
-    500 => 'Script Error',
-};
-
-#----------------------------------------------------------------------
 # Set default values
 
 sub parameters {
@@ -37,14 +18,10 @@ sub parameters {
 
     my %parameters = (
                     base_url => '',
-                    script_url => '',
                     template_dir => '',
                     data_registry => '',
                     command_registry => '',
-                    nonce => 0,
-                    items => 20,
-                    maxstart => 200,
-                    form_title => 'Onsite Editor',
+                    cmd => {},
                     data => {},
                     fm => {DEFAULT => 'CMS::Onsite::Form'},
                     wf => {DEFAULT => 'CMS::Onsite::Support::WebFile'},
@@ -53,98 +30,6 @@ sub parameters {
 	);
 
     return %parameters;
-}
-
-#----------------------------------------------------------------------
-# Add a file
-
-sub add {
-    my ($self, $request) = @_;
-
-    my $parentid = $request->{id};
-    my $subobject = $self->{reg}->create_subobject($self->{data},
-                                                   $self->{data_registry},
-                                                   $request->{subtype});
-    $subobject->add_data($parentid, $request);
-
-	return $self->set_response($request->{id}, 302);
-}
-
-#----------------------------------------------------------------------
-# Check add request for validity
-
-sub add_check {
-    my ($self, $request) = @_;
-
-    # Check type of child object to be added
-    if (! exists $request->{subtype}) {
-        my $subtypes = $self->{data}->get_subtypes($request->{id});
-    
-        if (@$subtypes == 0) {
-            $request->{subtype} = '';
-        } elsif (@$subtypes == 1) {
-            $request->{subtype} = $subtypes->[0];
-        }
-    }
-
-    my $response = $self->check_type($request->{id}, $request->{subtype});
-
-    if ($response->{code} == 400) {
-        delete $request->{subtype};
-
-        my $subtypes = $self->{data}->get_subtypes($request->{id});
-        my $valid = '&|' . join('|', @$subtypes) . '|';
-        
-        $request->{field_info} = [{NAME => 'subtype',
-                                   valid => $valid,
-                                   style => 'type=radio',
-                                   title => 'Choose type to add',
-                                  }];
-
-        return $response;
-    }
-
-    # Create child object to get its field information
-    my $child = $self->{reg}->create_subobject($self->{data},
-                                               $self->{data_registry},
-                                               $request->{subtype});
-    $request->{field_info} = $child->field_info();
-
-    # Clean the request data
-    $request = $self->clean_data($request);
-
-    # Validate the data fields
-    if ($self->any_data($request)) {
-        my $error = $child->check_data($request);
-        if ($error) {
-            $response = $self->set_response($request->{id}, 400, $error);
-
-        } else {
-            $response = $self->check_nonce($request->{id}, $request->{nonce});
-            $response = $self->check_fields($request)
-                if $response->{code} == 200;
-        }
-    } else {
-        $response = $self->set_response($request->{id}, 400, '');
-    }
-
-    return $response;
-}
-
-#----------------------------------------------------------------------
-# Return true if all data fields are missing or empty
-
-sub any_data {
-    my ($self, $request) = @_;
-
-    foreach my $info (@{$request->{field_info}}) {
-    	my $name = $info->{NAME};
-        if (exists $request->{$name}) {
-    	    return 1 if length($request->{$name});
-        }
-    }
-
-    return;
 }
 
 #----------------------------------------------------------------------
@@ -161,47 +46,11 @@ sub batch {
 
     } elsif (! $msg) {
         my $code = $response->{code};
-        $msg = RESPONSE_MSG->{$code};
+        $response = $self->{cmd}->set_response($request->{id}, $code);
+        $msg = $response->{msg};
     }
     
     return $msg;
-}
-
-#----------------------------------------------------------------------
-# Get data from all files
-
-sub browse {
-    my ($self, $request) = @_;
-
-    my $id = $request->{id};
-    my $limit = $self->page_limit($request);
-
-    my $results = $self->{data}->browse_data($id, $limit);    
-    $results = $self->browse_links($results);
-    $results = $self->missing_text($results);
-    $results = $self->paginate($request, $results);
-    $results->{title} = $self->form_title($request);
-    $results->{base_url} = $self->{base_url};
-
-    my $response = $self->set_response($id, 200);
-    $response->{results} = $results;
-    
-    return $response;
-}
-
-#---------------------------------------------------------------------------
-# Create edit link for browsed objects
-
-sub browse_links {
-    my($self, $results) = @_;
-
-    my $cmd = 'edit';
-    foreach my $result (@$results) {
-        my $query = {cmd => $cmd, id => $result->{id}};
-		$result->{browselink} = $self->{data}->single_command_link($query);
-    }
-
-    return $results;
 }
 
 #----------------------------------------------------------------------
@@ -229,182 +78,6 @@ sub build_commandlinks {
 sub build_secondary {
 	my ($self, $request) = @_;
     return '';
-}
-
-#----------------------------------------------------------------------
-# Redirect to previous page
-
-sub cancel {
-    my ($self, $request) = @_;
-    return $self->view($request);
-}
-
-#----------------------------------------------------------------------
-# Check request to see if we can perform it
-
-sub check {
-    my ($self, $request) = @_;
-
-    my $cmd = $request->{cmd};
-    my $check = "${cmd}_check";
-    my $response = $self->check_authorization($request);
-    return $response unless $response->{code} == 200;
-
-    if ($self->can($check)) {
-        $response = $self->$check($request);
-    } else {
-        $response = $self->set_response($request->{id}, 200);
-    }
-
-    return $response;
-}
-
-#----------------------------------------------------------------------
-# Check user authorization to execute the command
-
-sub check_authorization {
-	my($self, $request) = @_;
-
-    my $code = $self->{data}->authorize($request->{cmd}, $request) ? 200 : 401;
-    my $response = $self->set_response($request->{id}, $code);
-
-    return $response;
-}
-
-#----------------------------------------------------------------------
-# Fill fields from request
-
-sub check_fields {
-    my ($self, $request) = @_;
-
-    my @bad;
-    foreach my $field (@{$request->{field_info}}) {
-        next unless exists $field->{valid};
-
-        my $valid = $field->{valid};
-        my $validator = CMS::Onsite::FieldValidator->new(valid => $valid);
-
-        my $name = $field->{NAME};
-        my $value = $request->{$name} || '';
-        push (@bad, $name) unless $validator->validate($value);
-    }
-
-    my $bad;
-    $bad = "Invalid or missing fields: " . join(',', @bad) if @bad;
-
-    my $response;
-    if ($bad) {
-        $response = $self->set_response($request->{id}, 400, $bad);
-    } else {
-        $response = $self->set_response($request->{id}, 200);
-    }
-
-    return $response;
-}
-
-#----------------------------------------------------------------------
-# Check the value of the nonce, push it on the bad list if no match
-
-sub check_nonce {
-    my ($self, $id, $nonce) = @_;
-
-    my $response;
-    if (! defined $nonce) {
-        $response = $self->set_response($id, 400, '');
-    } elsif ($nonce ne $self->{fm}->get_nonce()) {
-        my $msg = 'Bad form submission, try again';
-        $response = $self->set_response($id, 400, $msg);
-    } else {
-        $response = $self->set_response($id, 200);
-    }
-
-    return $response;
-}
-
-#----------------------------------------------------------------------
-# Check for a valid type
-
-sub check_type {
-    my ($self, $parentid, $type) = @_;
-
-    $type ||= '';
-    my $msg = '';
-    my $code = 400;
-    my $subtypes = $self->{data}->get_subtypes($parentid);
-    foreach my $subtype (@$subtypes) {
-        if ($type eq $subtype) {
-            $code = 200;
-            $msg = 'OK';
-            last;
-        }
-    }
-
-    return $self->set_response($parentid, $code, $msg);
-}
-
-#----------------------------------------------------------------------
-# Put input in canonical form and delete empty fields
-
-sub clean_data {
-    my ($self, $request) = @_;
-
-    foreach my $info (@{$request->{field_info}}) {
-	my $name = $info->{NAME};
-
-        if (exists $request->{$name}) {
-            my $validator = CMS::Onsite::FieldValidator->new(%$info);
-            $request->{$name} = $validator->canonize($request->{$name});
-
-            delete $request->{$name} unless length($request->{$name});
-        }
-    }
-
-    return $request;
-}
-
-#----------------------------------------------------------------------
-# Edit a file
-
-sub edit {
-    my ($self, $request) = @_;
-
-    $self->{data}->edit_data($request->{id}, $request);
-	return $self->set_response($request->{id}, 302);
-}
-
-#----------------------------------------------------------------------
-# Check edit data
-
-sub edit_check {
-    my ($self, $request) = @_;
-
-    # Check if id exists
-    my $id = $request->{id};
-    return $self->set_response($id, 404) unless $self->{data}->check_id($id, 'w');
-
-    # Check for data and read if no data in request
-
-    $request->{field_info} = $self->{data}->field_info($id);
-    $request = $self->clean_data($request);
-
-    if (! $self->any_data($request)) {
-        my $data = $self->{data}->read_data($id);
-        %$request = (%$request, %$data);
-    }
-
-    # Validate data
-
-    my $response;
-    my $error = $self->{data}->check_data($request);
-    if ($error) {
-        $response = $self->set_response($request->{id}, 400, $error);
-
-    } else {
-        $response = $self->check_nonce($id, $request->{nonce});
-        $response = $self->check_fields($request) if $response->{code} == 200;
-    }
-    
-    return $response;
 }
 
 #----------------------------------------------------------------------
@@ -447,11 +120,10 @@ sub error {
     $results->{title} = 'Script Error';
     $results->{error} = $response->{msg};
 
-    $results->{env} = \%ENV;
     $results->{request} = $request;
     $results->{results} = $self->encode_hash($response->{results});
 
-    $response = $self->set_response($request->{id}, 200);
+    $response = $self->{cmd}->set_response($request->{id}, 200);
     $response->{results} = $results;
      
     return $response;
@@ -471,32 +143,37 @@ sub execute {
         $self->{data} = $self->{reg}->create_subobject($self->{configuration},
                                                        $self->{data_registry},
                                                        $type);
-    
-        # Set command if not found or not valid
+
+        $self->{configuration}{data} = $self->{data};
+        
+        # Construct command object
         my $cmd = $self->pick_command($request);
         $request->{cmd} = $cmd;
     
+        $self->{cmd} = $self->{reg}->create_subobject($self->{configuration},
+                                                      $self->{command_registry},
+                                                      $cmd);
+
+        $self->{configuration}{cmd} = $self->{cmd};
+
         # Check request
-        $response = $self->check($request);
+        $response = $self->{cmd}->check($request);
         
         # Run command if no problem
         if ($response->{code} == 200) {
-            $response = $self->$cmd($request);
+            $response = $self->{cmd}->run($request);
         }
     };
 
-    $response = $self->set_response($request->{id}, 500, $@) if $@;  
+    if ($@) {
+        my $msg = $@;
+        $msg =~ s/\n$//;
+        $response = {code => 500, msg => $msg,
+                     protocol => 'text/html',
+                     url => $self->{base_url}};
+    }
+
     return $response;
-}
-
-#----------------------------------------------------------------------
-# Build the command title for a form
-
-sub form_title {
-	my ($self, $request) = @_;
-
-    my $links = $self->{data}->command_links($request->{id}, [$request->{cmd}]);
-    return @$links ? $links->[0]{title} : $self->{form_title};
 }
 
 #----------------------------------------------------------------------
@@ -526,114 +203,20 @@ sub id_to_type {
 	return $obj->id_to_type($id);
 }
 
-#---------------------------------------------------------------------------
-# Supply text for missing fields in hash
-
-sub missing_text {
-    my($self, $results) = @_;
-
-    foreach my $hash (@$results) {
-        foreach my $key (keys %$hash) {
-           next if defined($hash->{$key}) && length($hash->{$key});
-            next if $key eq 'id';
-            
-           $hash->{$key} = MISSING_TEXT;
-           $hash->{$key} =~ s/\*/$key/;
-       }
-    }
-
-    return $results;
-}
-
-#---------------------------------------------------------------------------
-# Compute the number of items to return from a browse or search
-
-sub page_limit {
-    my ($self, $request) = @_;
-
-    my $limit = $self->{items} + 1;
-    $limit += $request->{start} if $request->{start};
-
-    return $limit;
-}
-
-#---------------------------------------------------------------------------
-# Restrict enties to a subset of results and construct navigation links
-
-sub paginate {
-    my ($self, $request, $list) = @_;
-
-	my @paging_links;
-
-    my $start = $request->{start} || 0;
-    my $end = $start + $self->{items};
-    $end =  @$list if $end >=  @$list;
-
-    if ($start) {
-        my $start = $start - $self->{items};
-		$start = 0 if $start < 0;
-        my $links = $self->{data}->command_links($request->{id},
-                                                 [$request->{cmd}]);
-		push(@paging_links, pagination_links(BEFORE_TITLE, $start, $links));
-    }
-
-    if ($end < @$list && $end <= $self->{maxstart}) {
-        my $links = $self->{data}->command_links($request->{id},
-                                                 [$request->{cmd}]);
-		push(@paging_links, pagination_links(AFTER_TITLE, $end, $links));
-    }
-
-    my $results;
-    if (@paging_links) {
-        my @entries = @$list;
-        @entries = @entries[$start .. $end-1];
-
-        $results->{data} = \@entries;
-		$results->{paginglinks} = {data => \@paging_links};
-
-    } else {
-        $results->{data} = $list;
-    }
-
-    return $results;
-}
-
-#----------------------------------------------------------------------
-# Modify url and title for pagination links
-
-sub pagination_links {
-	my ($new_title, $start, $links) = @_;
-
-	foreach my $link (@$links) {
-        $link->{url} .= "&start=$start";
-		$link->{title} = $new_title;
-	}
-
-	return @$links;
-}
-
 #----------------------------------------------------------------------
 # Pick a command from a list and untaint at the same time
 
 sub pick_command {
     my ($self, $request) = @_;
 
-    my @candidates = qw (browse edit view);
-    unshift(@candidates, lc($request->{cmd})) if exists $request->{cmd};
-
-    my @commands = (@{$self->{data}->get_commands()}, 'cancel');
+    my $cmd = $request->{cmd} || $self->{data}->get_default_command();
+    my $commands = $self->{data}->get_commands();
     
-    foreach my $candidate (@candidates) {
-        my $cmd;
-        foreach my $command (@commands) {
-            if ($candidate eq $command) {
-                $cmd = $command;
-                last;
-            }
+    foreach my $command (@$commands) {
+        if ($cmd eq $command &&
+            $self->{data}->check_command($request->{id}, $cmd)) {
+            return $command;
         }
-        
-        return $cmd if $cmd &&
-            $self->{data}->check_command($request->{id}, $cmd);        
     }
     
     return 'cancel';
@@ -652,58 +235,30 @@ sub populate_object {
 }
 
 #----------------------------------------------------------------------
-# Remove a file
-
-sub remove {
-    my ($self, $request) = @_;
-
-    $self->{data}->remove_data($request->{id}, $request);
-    my ($parentid, $seq) = $self->{wf}->split_id($request->{id});
-
-	return $self->set_response($parentid, 302);
-}
-
-#----------------------------------------------------------------------
-# Check to see if file can be removed
-
-sub remove_check {
-    my ($self, $request) = @_;
-
-    # Check if id exists
-    my $id = $request->{id};
-    return $self->set_response($id, 404) unless $self->{data}->check_id($id, 'w');
-
-    $request->{field_info} = $self->{data}->field_info($id);
-
-    # Check for nonce
-
-    my $response = $self->check_nonce($id, $request->{nonce});
-    if ($response->{code} != 200) {
-        my $data = $self->{data}->read_data($id);
-        %$request = (%$request, %$data);
-    }
-
-    return $response;
-}
-
-#----------------------------------------------------------------------
 # Render page with templates stored in response
 
 sub render {
-    my ($self, $request, $response, $template, $subsubtemplate) = @_;
+    my ($self, $request, $response, $subtemplate, $subsubtemplate) = @_;
     
-    $subsubtemplate = "$self->{template_dir}/$subsubtemplate";
-    my $subtemplate = join('/', $self->{template_dir}, SUBTEMPLATE);
+    # Get and parse templates
+    
+    my $template = $self->top_page();
+    $subtemplate = join('/', $self->{template_dir}, $subtemplate);
+    $subsubtemplate = join('/', $self->{template_dir}, $subsubtemplate);
     
     $template = $self->{nt}->parse($template, $subtemplate);
     $subtemplate = $self->{nt}->parse($subtemplate, $subsubtemplate);
 
+    # Assemble data to be rendered in template
+    
     my $results = $response->{results};
     %$results = (%$request, %$results);
     $results->{base_url} = $self->{base_url};
     
     $results = $self->{nt}->distribute_data($self, $results, $subtemplate);
     
+    # Render data and return results
+
     return $self->{nt}->render($results, $template, $subtemplate);
 }
 
@@ -713,55 +268,31 @@ sub render {
 sub run {
     my ($self, $request) = @_;
 
-    my $template = $self->top_page();
     my $response = $self->execute($request);
 
     if ($response->{code} == 400) {
-        $response = $self->set_response($request->{id}, 200);
+        $response = $self->{cmd}->set_response($request->{id}, 200);
         $response->{results} = $self->{fm}->create_form($request,
                                                         $response->{msg});
     }
 
-    my $subtemplate;
+    my ($subtemplate, $subsubtemplate);
     if ($response->{code} == 500 || $request->{debug}) {
+        die $response->{msg} unless $self->{cmd};
+
         $response = $self->error($request, $response);
-        $subtemplate = 'error.htm';
+        $subtemplate = $self->{cmd}->get_template();       
+        $subsubtemplate = 'error.htm';
+
+    } else {
+        $subtemplate = $self->{cmd}->get_template();       
+        $subsubtemplate = $self->{cmd}->get_subtemplate();       
     }
    
     if ($response->{code} == 200) {
-        $subtemplate ||= "$request->{cmd}.htm";
         $response->{results} = $self->render($request, $response,
-                                             $template, $subtemplate);
+                                             $subtemplate, $subsubtemplate);
     }
-    
-    return $response;
-}
-
-#----------------------------------------------------------------------
-# Search data
-
-sub search {
-    my ($self, $request) = @_;
-
-    my $query = {};
-    my $q = $request->{query};
-    my $id = $request->{id};
-
-    my $field_info = $self->{data}->field_info($id);
-    foreach my $info (@$field_info) {
-        my $name = $info->{NAME};
-        $query->{$name} = $q;
-    }
-
-    my $limit = $self->page_limit($request);
-    my $results = $self->{data}->search_data($query, $id, $limit);
-    $results = $self->missing_text($results);
-    $results = $self->paginate($request, $results);
-    $results->{title} = $self->form_title($request);
-    $results->{base_url} = $self->{base_url};
-
-    my $response = $self->set_response($id, 200);
-    $response->{results} = $results;
     
     return $response;
 }
@@ -780,59 +311,6 @@ sub top_page {
 	}
 	
 	die "No top page found\n";
-}
-
-#----------------------------------------------------------------------
-# Check for search query
-
-sub search_check {
-    my ($self, $request) = @_;
-
-    $request->{field_info} = [{NAME => 'query', valid => '&'}];
-
-    $request = $self->clean_data($request);
-    my $response = $self->check_fields($request);
-    $response->{msg} = '';
-
-    return $response;
-}
-
-#----------------------------------------------------------------------
-# Create the response structure
-
-sub set_response {
-    my ($self, $id, $code, $msg) = @_;
-    
-    my %response;
-    $response{code} = $code;
-    $response{msg} = defined $msg ? $msg : RESPONSE_MSG->{$code};
-    $response{url} = $self->{data}->redirect_url($id);
-    $response{protocol} = RESPONSE_PROTOCOL;
-    
-    return \%response;
-}
-
-#----------------------------------------------------------------------
-# View a record
-
-sub view {
-    my ($self, $request) = @_;
-
-    my $response = $self->set_response($request->{id}, 302);
-    return $response;
-}
-
-#----------------------------------------------------------------------
-# Check for valid id to view
-
-sub view_check {
-    my ($self, $request) = @_;
-
-    # Check if id exists
-    my $id = $request->{id};
-    my $code = $self->{data}->check_id($id, 'r') ? 200 : 404;
-
-    return $self->set_response($id, $code);
 }
 
 1;

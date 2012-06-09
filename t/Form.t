@@ -19,7 +19,7 @@ my $params = {
 my $con = CMS::Onsite::Form->new(%$params);
 
 isa_ok($con, "CMS::Onsite::Form"); # test 2
-can_ok($con, qw(create_form get_nonce)); # test 3
+can_ok($con, qw(create_form)); # test 3
 
 #----------------------------------------------------------------------
 # Create test data
