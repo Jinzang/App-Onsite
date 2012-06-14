@@ -32,8 +32,6 @@ use constant ERROR_DETAIL_TEMPLATE => <<'EOS';
 <h1>Script Error</h1>
 <p>Please report this error to the developer.</p>
 <pre>{{error}}</pre>
-<h2>HANDLER</h2>
-{{handler}}
 <h2>REQUEST</h2>
 {{request}}
 <h2>RESPONSE</h2>
@@ -72,7 +70,6 @@ sub error {
     if ($self->{detail_errors}) {
         $data->{request} = $request;
         $data->{response} = $response;
-        $data->{handler} = $self;
         $template = ERROR_DETAIL_TEMPLATE;
 
     } else {
