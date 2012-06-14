@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -T
+#!/usr/local/bin/perl
 use strict;
 
 use lib 't';
@@ -86,6 +86,11 @@ my $command_registry = <<'EOQ';
         [every]
 CLASS = CMS::Onsite::EveryCommand
 TEMPLATE = show_form.htm
+        [error]
+CLASS = CMS::Onsite::EveryCommand
+SUBTEMPLATE = error.htm
+        [cancel]
+CLASS = CMS::Onsite::CancelCommand
         [add]
 CLASS = CMS::Onsite::AddCommand
 SUBTEMPLATE = add.htm
@@ -616,7 +621,7 @@ my $response = {code => 500, msg => $error,
 
 $response = $con->error($request, $response);
 
-my $d = {code => 200, msg => 'OK',
+my $d = {code => 200, msg => $error,
          protocol => 'text/html',
          url => $params->{base_url},
          results => {request => $request, results => undef,

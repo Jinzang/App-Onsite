@@ -21,6 +21,7 @@ sub parameters {
                     template_dir => '',
                     data_registry => '',
                     command_registry => '',
+                    default_type => 'page',
                     cmd => {},
                     data => {},
                     fm => {DEFAULT => 'CMS::Onsite::Form'},
@@ -45,9 +46,14 @@ sub batch {
         undef $msg;
 
     } elsif (! $msg) {
-        my $code = $response->{code};
-        $response = $self->{cmd}->set_response($request->{id}, $code);
-        $msg = $response->{msg};
+        if ($self->{cmd}) {
+            my $code = $response->{code};
+            $response = $self->{cmd}->set_response($request->{id}, $code);
+            $msg = $response->{msg};
+
+        } else {
+            $msg = "Invalid request\n";
+        }
     }
     
     return $msg;
@@ -123,8 +129,9 @@ sub error {
     $results->{request} = $request;
     $results->{results} = $self->encode_hash($response->{results});
 
-    $response = $self->{cmd}->set_response($request->{id}, 200);
+    $response->{code} = 200;
     $response->{results} = $results;
+    $response->{url} = $self->{base_url};
      
     return $response;
 }
@@ -166,11 +173,20 @@ sub execute {
     };
 
     if ($@) {
+        # Check if $self->{cmd} is a blessed object
+        # If not, define an error command to handle reporting
+
+        unless ($self->{cmd} && UNIVERSAL::can($self->{cmd},'isa')) {
+            $self->{cmd} =
+                $self->{reg}->create_subobject($self->{configuration},
+                                               $self->{command_registry},
+                                               'error');
+        }
+
         my $msg = $@;
-        $msg =~ s/\n$//;
-        $response = {code => 500, msg => $msg,
-                     protocol => 'text/html',
-                     url => $self->{base_url}};
+        chomp($msg);
+
+        $response = $self->{cmd}->set_response($request->{id}, 500, $msg);
     }
 
     return $response;
@@ -191,12 +207,10 @@ sub id_to_type {
         if (-e $filename) {
             my $traits = $self->{reg}->read_data($self->{data_registry}, $type);
             ($pkg) = $traits->{class} =~ /^([A-Z][\w:]+Data)$/;
-            last;
         }
     }
     
     die "Invalid id: $id\n" unless $pkg;
-
     eval "require $pkg" or die "$@\n";
 	my $obj = $pkg->new(%$self);
 
@@ -251,7 +265,7 @@ sub render {
 
     # Assemble data to be rendered in template
     
-    my $results = $response->{results};
+    my $results = $response->{results} || {};
     %$results = (%$request, %$results);
     $results->{base_url} = $self->{base_url};
     
@@ -279,7 +293,7 @@ sub run {
     my ($subtemplate, $subsubtemplate);
     if ($response->{code} == 500 || $request->{debug}) {
         die $response->{msg} unless $self->{cmd};
-
+        
         $response = $self->error($request, $response);
         $subtemplate = $self->{cmd}->get_template();       
         $subsubtemplate = 'error.htm';
