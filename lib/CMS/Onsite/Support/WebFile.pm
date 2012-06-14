@@ -186,7 +186,6 @@ sub id_to_filename_with_ext {
 	}
 
 	# The non-numeric part gives the file basname
-
 	
 	my $basename = join('/', $self->{data_dir}, @path);
    
