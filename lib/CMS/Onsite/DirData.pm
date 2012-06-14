@@ -227,32 +227,6 @@ sub get_subtypes {
 }
 
 #----------------------------------------------------------------------
-# Return the next available id
-# TODO: move to PostData or remove
-sub next_id {
-    my ($self, $parentid) = @_;
-
-    my $seq = '0' x $self->{index_length};
-    my $pattern = "[0-9]" x $self->{index_length};
-
-    my $sort_field = $self->{sort_field};
-    my $subfolders = $self->{has_subfolders};
-
-    my $dir = $self->{wf}->get_repository($parentid);
-    my $visitor = $self->{wf}->visitor($dir, $subfolders, $sort_field);
-
-    while (defined (my $file = &$visitor)) {
-    	next unless $self->valid_filename($file);
-
-        my $val = $self->filename_to_id($file);
-    	$seq = $val if $val gt $seq;
-    }
-
-    $seq ++;
-    return $self->{wf}->path_to_id($parentid, $seq);
-}
-
-#----------------------------------------------------------------------
 # Remove a directory
 
 sub remove_data {
