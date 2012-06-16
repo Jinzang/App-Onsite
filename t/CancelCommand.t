@@ -287,13 +287,13 @@ $data = {
 
 my $test = $con->run($data);
 
-my $response = {code => 200, msg => 'OK', protocol => 'text/html',
+my $response = {code => 302, msg => 'Found', protocol => 'text/html',
                 url => "$params->{base_url}/a-title.html"};
 
 is_deeply($test, $response, "Cancel"); # Test 6
 
 $data->{id} = 'foobar';
 
-$test = $con->check($data);
+$test = $con->run($data);
 $response->{url} = $params->{base_url};
 is_deeply($test, $response, "Cancel with no page"); # Test 7

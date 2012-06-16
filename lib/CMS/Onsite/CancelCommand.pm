@@ -44,7 +44,7 @@ sub run {
     my $id = $request->{id};
     $id = $self->{data}->check_id($id, 'r') ? $id : '';
 
-    return $self->set_response($id, 200);
+    return $self->set_response($id, 302);
 }
 
 1;
