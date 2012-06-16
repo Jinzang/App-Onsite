@@ -225,8 +225,10 @@ sub pick_command {
 
     my $cmd = $request->{cmd} || $self->{data}->get_default_command();
     my $commands = $self->{data}->get_commands();
+    $cmd = lc($cmd);
     
     foreach my $command (@$commands) {
+        $command = lc($command);
         if ($cmd eq $command &&
             $self->{data}->check_command($request->{id}, $cmd)) {
             return $command;
@@ -285,9 +287,9 @@ sub run {
     my $response = $self->execute($request);
 
     if ($response->{code} == 400) {
+        my $msg = $response->{msg} || '';
         $response = $self->{cmd}->set_response($request->{id}, 200);
-        $response->{results} = $self->{fm}->create_form($request,
-                                                        $response->{msg});
+        $response->{results} = $self->{fm}->create_form($request, $msg);
     }
 
     my ($subtemplate, $subsubtemplate);
@@ -364,7 +366,7 @@ The results, if any, of the call. Batch returns a hash, run a web page.
 
 =item url
 
-The url of the file invoked, used by redirects.
+The url of the id invoked, used by redirects.
 
 =back
 
