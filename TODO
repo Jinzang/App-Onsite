@@ -1,7 +1,8 @@
+Move encode_hash into TemplateBlock.pm
 Add PostData class
 Finish UserData as subtype of TextData
 Modify FileHandler to support Editor interface
-Rewrite clean subs in Verify classesRewrite PostData
+Rewrite clean subs in Verify classes
 Finish pod documentation
 Finish directory rename code
 Support atom publishing protocol
