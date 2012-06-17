@@ -60,7 +60,6 @@ sub check {
 
     # Validate the data fields
     if ($self->any_data($request)) {
-        delete $request->{subtype};
         my $error = $child->check_data($request);
         if ($error) {
             $response = $self->set_response($request->{id}, 400, $error);
