@@ -16,7 +16,7 @@ my %parameters = (
 
 # Get target directory from command line
 
-my $target = shift(@ARGV) || '../test';
+my $target = shift(@ARGV) || rel2abs('../test');
 $target =~ s/\/$//;
 
 # Set directory to one containing this script
