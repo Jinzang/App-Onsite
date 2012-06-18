@@ -117,15 +117,19 @@ sub check_command {
     my ($self, $id, $cmd) = @_;
 
     my $test;
-    
     if ($cmd eq 'browse' || $cmd eq 'search') {
         $test = 1;
+
+    } elsif ( $cmd eq 'remove') {
+        $test = $id && $self->SUPER::check_command($id, $cmd);
+
     } else {
         $test = $self->SUPER::check_command($id, $cmd);
     }
 
     return $test;
 }
+
 #----------------------------------------------------------------------
 # Return a closure that returns a browsable file with each call
 

@@ -95,6 +95,29 @@ sub change_filename {
 }
 
 #----------------------------------------------------------------------
+# Check if command is legal
+
+sub check_command {
+    my ($self, $id, $cmd) = @_;
+
+    my $test;
+    if ($cmd eq 'browse' || $cmd eq 'search') {
+        my ($filename, $extra) = $self->id_to_filename($id);
+
+        if ($extra || ! -e $filename) {
+            $test = 0;
+        } else {
+            $test = defined $self->{nt}->match('secondary.any', $filename);
+        }
+
+    } else {
+       $test = $self->SUPER::check_command($id, $cmd);
+    }
+
+    return $test;
+}
+
+#----------------------------------------------------------------------
 # Convert fields in records to their escaped form
 
 sub escape_data {

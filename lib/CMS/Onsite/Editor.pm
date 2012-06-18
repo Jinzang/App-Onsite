@@ -70,7 +70,7 @@ sub build_commandlinks {
     my $commands = $self->{data}->get_commands();
     
     foreach my $cmd (@$commands) {
-        next if $cmd eq $request->{cmd};
+        next if $cmd eq lc($request->{cmd});
         push(@commands, $cmd) if $self->{data}->check_command($id, $cmd);
     }
 
