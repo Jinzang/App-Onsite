@@ -305,10 +305,10 @@ sub set_response {
     
     my %response;
     $response{code} = $code;
-    $response{msg} = defined $msg ? $msg : RESPONSE_MSG->{$code};
-    $response{url} = $self->{data}->redirect_url($id);
     $response{protocol} = RESPONSE_PROTOCOL;
-    
+    $response{url} = $self->{data}->redirect_url($id);
+    $response{msg} = defined $msg ? $msg : RESPONSE_MSG->{$code};
+   
     return \%response;
 }
 

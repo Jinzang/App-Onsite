@@ -1,9 +1,6 @@
         [every]
 CLASS = CMS::Onsite::EveryCommand
 TEMPLATE = show_form.htm
-        [error]
-CLASS = CMS::Onsite::EveryCommand
-SUBTEMPLATE = error.htm
         [cancel]
 CLASS = CMS::Onsite::CancelCommand
         [add]

@@ -87,6 +87,35 @@ sub build_secondary {
 }
 
 #----------------------------------------------------------------------
+# Construct the data and command objects aprropriate for this command
+
+sub construct_objects {
+    my ($self, $request) = @_;
+    $request->{id} = '' unless exists $request->{id};
+
+    # Construct data object
+    
+    my $type = $self->id_to_type($request->{id});
+    $self->{data} = $self->{reg}->create_subobject($self->{configuration},
+                                                   $self->{data_registry},
+                                                   $type);
+
+    $self->{configuration}{data} = $self->{data};
+    
+    # Construct command object
+
+    my $cmd = $self->pick_command($request);
+    $request->{cmd} = $cmd;
+
+    $self->{cmd} = $self->{reg}->create_subobject($self->{configuration},
+                                                  $self->{command_registry},
+                                                  $cmd);
+
+    $self->{configuration}{cmd} = $self->{cmd};
+    return;
+}
+
+#----------------------------------------------------------------------
 # Create a new hash with html elements encoded
 
 sub encode_hash {
@@ -145,23 +174,7 @@ sub execute {
 
     eval {
         # Construct data object
-        $request->{id} = '' unless exists $request->{id};
-        my $type = $self->id_to_type($request->{id});
-        $self->{data} = $self->{reg}->create_subobject($self->{configuration},
-                                                       $self->{data_registry},
-                                                       $type);
-
-        $self->{configuration}{data} = $self->{data};
-        
-        # Construct command object
-        my $cmd = $self->pick_command($request);
-        $request->{cmd} = $cmd;
-    
-        $self->{cmd} = $self->{reg}->create_subobject($self->{configuration},
-                                                      $self->{command_registry},
-                                                      $cmd);
-
-        $self->{configuration}{cmd} = $self->{cmd};
+        $self->construct_objects($request);
 
         # Check request
         $response = $self->{cmd}->check($request);
@@ -173,18 +186,17 @@ sub execute {
     };
 
     if ($@) {
+        my $msg = $@;
+        chomp($msg);
+
         # Check if $self->{cmd} is a blessed object
         # If not, define an error command to handle reporting
 
-        unless ($self->{cmd} && UNIVERSAL::can($self->{cmd},'isa')) {
-            $self->{cmd} =
-                $self->{reg}->create_subobject($self->{configuration},
-                                               $self->{command_registry},
-                                               'error');
+        unless (%{$self->{data}} && %{$self->{cmd}}) {
+            delete $request->{id};
+            delete $request->{cmd};
+            $self->construct_objects($request);
         }
-
-        my $msg = $@;
-        chomp($msg);
 
         $response = $self->{cmd}->set_response($request->{id}, 500, $msg);
     }
