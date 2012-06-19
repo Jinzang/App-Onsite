@@ -14,11 +14,6 @@ my %parameters = (
                   permissions => 0666,
                  );
 
-# Get target directory from command line
-
-my $target = shift(@ARGV) || rel2abs('../test');
-$target =~ s/\/$//;
-
 # Set directory to one containing this script
 
 my $dir = $0;
@@ -26,6 +21,11 @@ $dir =~ s{/?[^/]*$}{};
 $dir ||= '.';
 
 chdir $dir or die "Cannot cd to $dir";
+
+# Get target directory from command line
+
+my $target = shift(@ARGV) || rel2abs('../test');
+$target =~ s/\/$//;
 
 # Set reasonable defaults for parameters that aren't set above
 
