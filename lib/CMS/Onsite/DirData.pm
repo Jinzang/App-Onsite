@@ -74,11 +74,11 @@ sub build_parentlinks {
     my ($parentid, $seq) = $self->{wf}->split_id($data->{id});
     my ($filename, $extra) = $self->id_to_filename($parentid);
     
-    my $links = $self->read_block($filename, 'parentlinks');
+    my $links = $self->read_records($filename, 'parentlinks');
     my $link = $self->single_navigation_link($data);
 
     $links = $self->{lo}->list_add($links, $link);
-    $links = $self->link_class($links, $data->{url});
+    $links = $self->link_class($links, $link->{url});
     
     return {data => $links};
 }

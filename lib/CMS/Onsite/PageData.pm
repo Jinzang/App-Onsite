@@ -362,7 +362,8 @@ sub navigation_links {
     foreach my $block (@$blocks) {
         my $blockname = $block->{NAME};	
         my $sort_field = $block->{sort} || $self->{sort_field};
-        my $current_links = $self->read_block($filename, $blockname);    
+
+        my $current_links = $self->read_records($filename, $blockname);
 
         my $new_links = $self->update_links($current_links, $record);
         $new_links = $self->{lo}->list_sort($new_links, $sort_field);
@@ -382,32 +383,8 @@ sub read_block {
 
     my $block = $self->{nt}->match($blockname, $filename);
     die "Can't read $blockname data from $filename\n" unless $block;
-    my $data = $block->data();
+    return $block->data();
 
-    my $records;
-    if (ref $data eq 'HASH') {
-    	my @keys = keys %$data;
-
-        if (@keys > 1) {
-            $records = $data;
-
-        } elsif (@keys == 1) {
-            $records = $data->{$keys[0]};
-
-            if (ref $records eq 'HASH') {
-                $records = [$records];
-            } elsif (! ref $records) {
-                $records = $data;
-            }
-
-        } else {
-            $records = [];
-        }
-
-    } else {
-        $records = [];
-    }
-    return $records;
 }
 
 #----------------------------------------------------------------------
@@ -420,12 +397,37 @@ sub read_primary {
 }
 
 #----------------------------------------------------------------------
+# Read a list of records from a file
+
+sub read_records {
+    my ($self, $filename, $blockname) = @_;
+
+    my $records = $self->read_block($filename, $blockname);
+    
+    if (ref $records eq 'HASH') {
+    	my @keys = keys %$records;
+
+        if (@keys == 1 && $keys[0] eq 'data') {
+            $records = $records->{data};
+        }
+    }
+    
+    if (! ref $records) {
+        $records = [];       
+    } elsif (ref $records eq 'HASH') {
+        $records = [$records];
+    }
+
+    return $records;
+}
+
+#----------------------------------------------------------------------
 # Read data from file
 
 sub read_secondary {
     my ($self, $filename) = @_;
 
-    return $self->read_block($filename, "secondary.any");
+    return $self->read_records($filename, "secondary.any");
 }
 
 #----------------------------------------------------------------------
@@ -456,9 +458,9 @@ sub single_navigation_link {
     
     my $link = {};
     $link->{id} = $seq ;
-    $link->{title} = $data->{title};
-    $link->{summary} = $data->{summary};
     $link->{url} = $self->id_to_url($id);
+    $link->{title} = $data->{title} if exists $data->{title};
+    $link->{summary} = $data->{summary} if exists $data->{summary};
 
     return $link;
 }

@@ -341,7 +341,7 @@ my $q = {id => $r->{id}, title => $r->{title}, url => $r->{url}};
 
 $data->update_data('a-title', $d);
 
-my $u = $data->read_block($pagename, 'pagelinks');
+my $u = $data->read_records($pagename, 'pagelinks');
 is_deeply($u, [$q], "Update page siblings"); # Test 6
 
 $r = $data->read_data('a-title');
