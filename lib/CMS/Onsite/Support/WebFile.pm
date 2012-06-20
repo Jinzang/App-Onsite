@@ -443,7 +443,8 @@ sub split_id {
     my ($self, $id) = @_;
 
     my @path = $self->id_to_path($id);
-    my $seq = pop(@path);
+	
+    my $seq = pop(@path) || '';
     my $parentid = $self->path_to_id(@path);
 
     return ($parentid, $seq);
