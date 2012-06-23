@@ -7,6 +7,7 @@ use Test::More tests => 27;
 
 use Cwd qw(abs_path getcwd);
 use CMS::Onsite::Support::WebFile;
+use CMS::Onsite::Support::RegistryFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -17,7 +18,6 @@ system("/bin/rm -rf $data_dir");
 
 mkdir $data_dir;
 $data_dir = abs_path($data_dir);
-my $template_dir = "$data_dir/templates";
 my $template_dir = "$data_dir/templates";
 my $data_registry = 'data.reg';
 
@@ -45,6 +45,7 @@ SUMMARY_FIELD = body
 ID_LENGTH = 63
 INDEX_LENGTH = 4
 HAS_SUBFOLDERS = 0
+DEFAULT_COMMAND = edit
 PARENT_COMMANDS = browse
 PARENT_COMMANDS = search
 COMMANDS = browse
@@ -297,8 +298,8 @@ $wf->writer($templatename, $update_template);
 
 BEGIN {use_ok("CMS::Onsite::PageData");} # test 1
 
-
-my $data = CMS::Onsite::PageData->new(%$params);
+my $reg = CMS::Onsite::Support::RegistryFile->new(%$params);
+my $data = $reg->create_subobject($params, $data_registry, 'page');
 
 isa_ok($data, "CMS::Onsite::PageData"); # test 2
 can_ok($data, qw(add_data browse_data edit_data read_data remove_data

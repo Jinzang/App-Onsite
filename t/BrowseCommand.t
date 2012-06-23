@@ -63,6 +63,7 @@ SUMMARY_FIELD = body
 ID_LENGTH = 63
 INDEX_LENGTH = 4
 HAS_SUBFOLDERS = 0
+DEFAULT_COMMAND = edit
 PARENT_COMMANDS = browse
 PARENT_COMMANDS = search
 COMMANDS = browse
@@ -579,7 +580,7 @@ for my $count (qw(First Second Third)) {
     $add->run($request);
     my $data = $con->{data}->read_data($id);
 
-    $data->{browselink} = {title => 'Edit Dir', 
+    $data->{itemlink} = {title => 'Edit', 
     url => "$params->{script_url}?cmd=edit&id=$data->{id}"};
 
     push (@data, $data);

@@ -27,21 +27,6 @@ sub parameters {
     return %parameters;
 }
 
-#---------------------------------------------------------------------------
-# Create edit link for browsed objects
-
-sub browse_links {
-    my($self, $results) = @_;
-
-    my $cmd = 'edit';
-    foreach my $result (@$results) {
-        my $query = {cmd => $cmd, id => $result->{id}};
-		$result->{browselink} = $self->{data}->single_command_link($query);
-    }
-
-    return $results;
-}
-
 #----------------------------------------------------------------------
 # Get data from all files
 
@@ -52,7 +37,7 @@ sub run {
     my $limit = $self->page_limit($request);
 
     my $results = $self->{data}->browse_data($id, $limit);    
-    $results = $self->browse_links($results);
+    $results = $self->create_links($results, 'edit');
     $results = $self->missing_text($results);
     $results = $self->paginate($request, $results);
     $results->{title} = $self->form_title($request);

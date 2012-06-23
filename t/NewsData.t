@@ -7,6 +7,7 @@ use Test::More tests => 13;
 
 use Cwd qw(abs_path getcwd);
 use CMS::Onsite::Support::WebFile;
+use CMS::Onsite::Support::RegistryFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -50,6 +51,7 @@ SUMMARY_FIELD = body
 ID_LENGTH = 63
 INDEX_LENGTH = 4
 HAS_SUBFOLDERS = 0
+DEFAULT_COMMAND = edit
 PARENT_COMMANDS = browse
 PARENT_COMMANDS = search
 COMMANDS = browse
@@ -82,6 +84,7 @@ COMMANDS = view
         [news]
 CLASS = CMS::Onsite::NewsData
 SUPER = page
+PLURAL = news
 INDEX_LENGTH = 6
 EOQ
 
@@ -243,7 +246,8 @@ $wf->writer($templatename, $rsstemplate);
 #----------------------------------------------------------------------
 # Create object
 
-my $data = CMS::Onsite::NewsData->new(%$params);
+my $reg = CMS::Onsite::Support::RegistryFile->new(%$params);
+my $data = $reg->create_subobject($params, $data_registry, 'news');
 
 isa_ok($data, "CMS::Onsite::NewsData"); # test 2
 can_ok($data, qw(add_data browse_data edit_data read_data remove_data

@@ -59,6 +59,7 @@ sub run {
 
     my $limit = $self->page_limit($request);
     my $results = $self->{data}->search_data($query, $id, $limit);
+    $results = $self->create_links($results, 'view');
     $results = $self->missing_text($results);
     $results = $self->paginate($request, $results);
     $results->{title} = $self->form_title($request);

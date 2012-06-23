@@ -7,6 +7,7 @@ use Test::More tests => 21;
 
 use Cwd qw(abs_path getcwd);
 use CMS::Onsite::Support::WebFile;
+use CMS::Onsite::Support::RegistryFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -51,6 +52,7 @@ SUMMARY_FIELD = body
 ID_LENGTH = 63
 INDEX_LENGTH = 4
 HAS_SUBFOLDERS = 0
+DEFAULT_COMMAND = edit
 PARENT_COMMANDS = browse
 PARENT_COMMANDS = search
 COMMANDS = browse
@@ -268,7 +270,8 @@ $wf->writer($templatename, $update_template);
 $config_file = $wf->validate_filename($config_file, 'w');
 $wf->writer($config_file, $config);
 
-my $data = CMS::Onsite::DirData->new(%$params);
+my $reg = CMS::Onsite::Support::RegistryFile->new(%$params);
+my $data = $reg->create_subobject($params, $data_registry, 'dir');
 
 #----------------------------------------------------------------------
 # Create object

@@ -51,8 +51,8 @@ sub build_commandlinks {
     my $id = $data->{id};
     my $subtypes = $self->get_subtypes($id);
 
-    my @commands = ('edit');
-    push(@commands, 'add') if @$subtypes == 1;
+    my @commands = ($self->{default_command});
+    push(@commands, 'add') if $self->has_one_subtype($id);
 
     my $links =  $self->command_links($id, \@commands);
     return {data => $links};

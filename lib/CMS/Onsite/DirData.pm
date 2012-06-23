@@ -117,7 +117,7 @@ sub check_command {
     my ($self, $id, $cmd) = @_;
 
     my $test;
-    if ($cmd eq 'browse' || $cmd eq 'search') {
+    if ($self->is_parent_command($cmd)) {
         $test = 1;
 
     } elsif ( $cmd eq 'remove') {

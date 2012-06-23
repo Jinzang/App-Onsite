@@ -20,6 +20,7 @@ sub parameters {
                     script_url => '',
                     data_registry => '',
                     summary_length => 300,
+                    default_title => 'Editor',
                     lo => {DEFAULT => 'CMS::Onsite::Listops'},
                     wf => {DEFAULT => 'CMS::Onsite::Support::WebFile'},
                     reg => {DEFAULT => 'CMS::Onsite::Support::RegistryFile'},
@@ -93,13 +94,11 @@ sub change_filename {
 sub check_command {
     my ($self, $id, $cmd) = @_;
 
-    my %parentcmd = map {$_ => 1} @{$self->{parent_commands}};
-
     if ($cmd eq 'add') {
         my $subtypes = $self->get_subtypes($id);
        return $self->can('write_secondary') && @$subtypes > 0;
         
-    } elsif ($parentcmd{$cmd}) {
+    } elsif ($self->is_parent_command($cmd)) {
         return $self->has_one_subtype($id);
 
     } elsif ($cmd eq 'edit' || $cmd eq 'remove') {
@@ -168,9 +167,15 @@ sub command_links {
         
         my $query = {cmd => $cmd, id => $id};  
 
-        if ($cmd eq 'add' && $self->has_one_subtype($id)) {
-            my $subtypes = $self->get_subtypes($id);
-            $query->{subtype} = $subtypes->[0];
+        if ($cmd eq 'add') {
+            if ($self->has_one_subtype($id)) {
+                my $subtypes = $self->get_subtypes($id);
+                $query->{subtype} = $subtypes->[0];
+                $query->{type} = $query->{subtype};
+            }
+
+        } else {
+            $query->{type} = $self->get_type();
         }
         
         my $link = $self->single_command_link($query);
@@ -187,27 +192,28 @@ sub command_title {
     my ($self, $args) = @_;
 
     my @words;
-    push(@words, ucfirst($args->{cmd})) if $args->{cmd};
+    if ($args->{cmd}) {
+        push(@words, ucfirst($args->{cmd}));
 
-    if ($args->{cmd} eq 'add') {
-        push(@words, ucfirst($args->{subtype})) if $args->{subtype};
+        if ($args->{type}) {
+            my $type = $args->{type};
 
-    } elsif ($args->{cmd}) {
-        my $type = ucfirst ($self->get_type());
-    
-        my %parentcmd = map {$_ => 1} @{$self->{parent_commands}};
-        if ($parentcmd{$args->{cmd}}) {
-            if ($self->{plural}) {
-                $type = $self->{plural};
-            } else {
-                $type .= 's';
+            if ($self->is_parent_command($args->{cmd})) {
+                if ($self->{plural}) {
+                    $type = $self->{plural};
+                } else {
+                    $type .= 's';
+                }
             }
+        
+            push(@words, ucfirst($type));
         }
-    
-        push(@words, ucfirst($type));
+
+    } else {
+        push(@words, ucfirst($self->{default_title}));
     }
     
-    return @words ? join(' ', @words) : 'Editor';
+    return join(' ', @words);
 }
 
 #----------------------------------------------------------------------
@@ -415,6 +421,30 @@ sub id_to_type {
 }
 
 #----------------------------------------------------------------------
+# Is the command a parent command?
+
+sub is_parent_command {
+    my ($self, $cmd) = @_;
+    
+    my $test;
+    if ($self->{parent_commands}) {
+        if (ref $self->{parent_commands}) {
+            foreach my $parent_cmd (@{$self->{parent_commands}}) {
+                if ($cmd eq $parent_cmd) {
+                    $test = 1;
+                    last;
+                }
+            }
+
+        } else {
+            $test = $cmd eq $self->{parent_commands};
+        }
+    }
+
+    return $test;
+}
+
+#----------------------------------------------------------------------
 # Return the next available id
 
 sub next_id {
@@ -583,6 +613,8 @@ sub single_command_link {
     my $parameters = '';
     foreach my $field (sort keys %$query) {
         next if $field eq 'subtype' && $query->{cmd} ne 'add';
+        next if $field eq 'type';
+        
         my $value = $query->{$field};
 		next if ! defined $value || length($value) == 0;
 

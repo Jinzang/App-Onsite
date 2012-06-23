@@ -158,6 +158,22 @@ sub clean_data {
     return $request;
 }
 
+#---------------------------------------------------------------------------
+# Create link for found objects
+
+sub create_links {
+    my($self, $results, $cmd) = @_;
+
+    foreach my $result (@$results) {
+        my $query = {id => $result->{id}};
+        $query->{cmd} = $cmd if defined $cmd;
+
+		$result->{itemlink} = $self->{data}->single_command_link($query);
+    }
+
+    return $results;
+}
+
 #----------------------------------------------------------------------
 # Build the command title for a form
 
