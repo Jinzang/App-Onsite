@@ -199,7 +199,7 @@ is_deeply($request, $cleaned, "clean_data"); # test 4
 # Form title
 
 my $title = $con->form_title($request);
-is($title, "Edit", "Form title"); # test 5
+is($title, "Edit Dir", "Form title"); # test 5
 
 #----------------------------------------------------------------------
 # Set Response

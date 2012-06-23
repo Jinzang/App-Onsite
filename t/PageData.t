@@ -310,12 +310,12 @@ $data->{wf}->relocate($data_dir);
 # command links
 
 my $elink = [{
-             title => 'Edit',
-             url => "test.cgi?cmd=edit&id=a-title&type=page",
+             title => 'Edit Page',
+             url => "test.cgi?cmd=edit&id=a-title",
             },
             {
              title => 'Add List',
-             url => "test.cgi?cmd=add&id=a-title&subtype=list&type=page",
+             url => "test.cgi?cmd=add&id=a-title&subtype=list",
             }];
 
 my $links = $data->build_commandlinks({id =>'a-title'});

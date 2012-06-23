@@ -55,5 +55,6 @@ COMMANDS = view
         [news]
 CLASS = CMS::Onsite::NewsData
 SUPER = page
+PLURAL = news
 INDEX_LENGTH = 6
 ADD_TEMPLATE = add_news.htm

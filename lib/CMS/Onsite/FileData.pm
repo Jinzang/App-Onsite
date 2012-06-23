@@ -93,13 +93,14 @@ sub change_filename {
 sub check_command {
     my ($self, $id, $cmd) = @_;
 
+    my %parentcmd = map {$_ => 1} @{$self->{parent_commands}};
+
     if ($cmd eq 'add') {
         my $subtypes = $self->get_subtypes($id);
        return $self->can('write_secondary') && @$subtypes > 0;
         
-    } elsif ($cmd eq 'browse' || $cmd eq 'search') {
-        my $subtypes = $self->get_subtypes($id);
-        return @$subtypes == 1;
+    } elsif ($parentcmd{$cmd}) {
+        return $self->has_one_subtype($id);
 
     } elsif ($cmd eq 'edit' || $cmd eq 'remove') {
         my ($filename, $extra) = $self->id_to_filename($id);
@@ -159,29 +160,17 @@ sub check_id {
 sub command_links {
 	my ($self, $id, $commands) = @_;
     
-    $commands ||= $self->{commands};
-    
     my @links;
-    my $type = $self->get_type();
-    my $subtypes = $self->get_subtypes($id);
-    my %parent_commands = map {$_ => 1} @{$self->{parent_commands}};
+    $commands ||= $self->{commands};
 
     foreach my $cmd (@$commands) {
         next unless $self->check_command($id, $cmd);
         
-        my $query;
-        if ($cmd eq 'add') {
-            next if ! @$subtypes;
-            $query = {cmd => $cmd, id => $id, type => $type};
-            $query->{subtype} = $subtypes->[0] if @$subtypes == 1;
-            
-        } elsif ($parent_commands{$cmd}) {
-            next if ! @$subtypes;
-            $query = {cmd => $cmd, id => $id};
-            $query->{type} = $subtypes->[0] if @$subtypes == 1;
- 
-        } else {
-            $query = {cmd => $cmd, id => $id, type => $type};            
+        my $query = {cmd => $cmd, id => $id};  
+
+        if ($cmd eq 'add' && $self->has_one_subtype($id)) {
+            my $subtypes = $self->get_subtypes($id);
+            $query->{subtype} = $subtypes->[0];
         }
         
         my $link = $self->single_command_link($query);
@@ -197,23 +186,28 @@ sub command_links {
 sub command_title {
     my ($self, $args) = @_;
 
-    my $title = ucfirst($args->{cmd});
+    my @words;
+    push(@words, ucfirst($args->{cmd})) if $args->{cmd};
 
     if ($args->{cmd} eq 'add') {
-        $title .= ' ' . ucfirst($args->{subtype}) . ' Item' if $args->{subtype};
+        push(@words, ucfirst($args->{subtype})) if $args->{subtype};
 
-    } elsif (exists $args->{type}) {
-        my $type = ucfirst ($args->{type});
+    } elsif ($args->{cmd}) {
+        my $type = ucfirst ($self->get_type());
     
         my %parentcmd = map {$_ => 1} @{$self->{parent_commands}};
-        if ($parentcmd{$args->{cmd}} && $type !~ /s$/) {
-            $type .= 's';
+        if ($parentcmd{$args->{cmd}}) {
+            if ($self->{plural}) {
+                $type = $self->{plural};
+            } else {
+                $type .= 's';
+            }
         }
     
-        $title .= ' ' . $type;
+        push(@words, ucfirst($type));
     }
     
-    return $title;
+    return @words ? join(' ', @words) : 'Editor';
 }
 
 #----------------------------------------------------------------------
@@ -275,6 +269,16 @@ sub filename_to_id {
 
     $filename =~ s/\.[^\.]*$//;
     return $self->{wf}->basename_to_id($filename);
+}
+
+#----------------------------------------------------------------------
+# Return true if there is only one subtype
+
+sub has_one_subtype {
+    my ($self, $id) = @_;
+
+    my $subtypes = $self->get_subtypes($id);
+    return @$subtypes == 1;    
 }
 
 #----------------------------------------------------------------------
@@ -596,10 +600,7 @@ sub single_command_link {
 
     my $link = {};
 	$link->{url} = $self->{script_url} . $parameters;
-
-	$link->{title}  = ucfirst($query->{cmd});
-    $link->{title} .= ' '  . ucfirst($query->{subtype})
-        if exists $query->{subtype};
+	$link->{title}  = $self->command_title($query);
     
     return $link;
 }

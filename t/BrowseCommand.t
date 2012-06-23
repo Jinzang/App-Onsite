@@ -579,7 +579,7 @@ for my $count (qw(First Second Third)) {
     $add->run($request);
     my $data = $con->{data}->read_data($id);
 
-    $data->{browselink} = {title => 'Edit', 
+    $data->{browselink} = {title => 'Edit Dir', 
     url => "$params->{script_url}?cmd=edit&id=$data->{id}"};
 
     push (@data, $data);
