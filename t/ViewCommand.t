@@ -6,7 +6,7 @@ use lib 'lib';
 use Test::More tests => 7;
 
 use Cwd qw(abs_path);
-use CMS::Onsite::Support::WebFile;
+use App::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -21,7 +21,7 @@ my $template_dir = "$data_dir/templates";
 my $data_registry = 'data.reg';
 my $command_registry = 'command.reg';
 
-BEGIN {use_ok("CMS::Onsite::ViewCommand");} # test 1
+BEGIN {use_ok("App::Onsite::ViewCommand");} # test 1
 
 my $params = {
               base_url => 'http://wwww.onsite.org',
@@ -32,20 +32,20 @@ my $params = {
               data_registry => $data_registry,
               valid_write => [$data_dir, $template_dir],
               nonce => '01234567',
-              data => 'CMS::Onsite::PageData',
+              data => 'App::Onsite::PageData',
              };
 
 #----------------------------------------------------------------------
 # Create templates
 
-my $wf = CMS::Onsite::Support::WebFile->new(%$params);
+my $wf = App::Onsite::Support::WebFile->new(%$params);
 
 my $command_registry_file = <<'EOQ';
         [every]
-CLASS = CMS::Onsite:EveryCommand
+CLASS = App::Onsite:EveryCommand
 TEMPLATE = show_form.htm
         [view]
-CLASS = CMS::Onsite:ViewCommand
+CLASS = App::Onsite:ViewCommand
 EOQ
 
 $wf->writer("$template_dir/$command_registry", $command_registry_file);
@@ -67,7 +67,7 @@ COMMANDS = remove
 COMMANDS = search
 		[page]
 EXTENSION = html
-CLASS = CMS::Onsite::PageData
+CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
 ADD_TEMPLATE = add_page.htm
@@ -80,7 +80,7 @@ COMMANDS = remove
 COMMANDS = search
 COMMANDS = view
         [dir]
-CLASS = CMS::Onsite::DirData
+CLASS = App::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
 ADD_TEMPLATE = add_dir.htm
@@ -239,9 +239,9 @@ $wf->writer($pagename, $page);
 #----------------------------------------------------------------------
 # Create object
 
-my $con = CMS::Onsite::ViewCommand->new(%$params);
+my $con = App::Onsite::ViewCommand->new(%$params);
 
-isa_ok($con, "CMS::Onsite::ViewCommand"); # test 2
+isa_ok($con, "App::Onsite::ViewCommand"); # test 2
 can_ok($con, qw(check run)); # test 3
 
 $wf->relocate($data_dir);

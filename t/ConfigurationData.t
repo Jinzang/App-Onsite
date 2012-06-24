@@ -7,7 +7,7 @@ use Test::More tests => 11;
 
 use IO::File;
 use Cwd qw(abs_path);
-use CMS::Onsite::Support::WebFile;
+use App::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -23,7 +23,7 @@ my $data_registry = 'data.reg';
 
 #----------------------------------------------------------------------
 #
-BEGIN {use_ok("CMS::Onsite::ConfigurationData");} # test 1
+BEGIN {use_ok("App::Onsite::ConfigurationData");} # test 1
 
 my $params = {
               data_dir => $data_dir,
@@ -36,7 +36,7 @@ my $params = {
 #----------------------------------------------------------------------
 # Create test file
 
-my $wf = CMS::Onsite::Support::WebFile->new(%$params);
+my $wf = App::Onsite::Support::WebFile->new(%$params);
 
 my $config = <<'EOQ';
 # Length of time until cache expires
@@ -70,7 +70,7 @@ COMMANDS = search
 EXTENSION = cfg
 SUMMARY_FIELD = data
 COMMANDS = edit
-CLASS = CMS::Onsite::ConfigurationData
+CLASS = App::Onsite::ConfigurationData
 EOQ
 
 $wf->writer("$template_dir/$data_registry", $registry);
@@ -79,9 +79,9 @@ $wf->writer("$template_dir/$data_registry", $registry);
 # Create object
 
 
-my $data = CMS::Onsite::ConfigurationData->new(%$params);
+my $data = App::Onsite::ConfigurationData->new(%$params);
 
-isa_ok($data, "CMS::Onsite::ConfigurationData"); # test 2
+isa_ok($data, "App::Onsite::ConfigurationData"); # test 2
 can_ok($data, qw(browse_data search_data read_data write_data
                  add_data edit_data remove_data check_id next_id)); # test 3
 

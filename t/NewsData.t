@@ -6,8 +6,8 @@ use lib 'lib';
 use Test::More tests => 13;
 
 use Cwd qw(abs_path getcwd);
-use CMS::Onsite::Support::WebFile;
-use CMS::Onsite::Support::RegistryFile;
+use App::Onsite::Support::WebFile;
+use App::Onsite::Support::RegistryFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -24,7 +24,7 @@ my $data_registry = 'data.reg';
 #----------------------------------------------------------------------
 # Create object
 
-BEGIN {use_ok("CMS::Onsite::NewsData");} # test 1
+BEGIN {use_ok("App::Onsite::NewsData");} # test 1
 
 my $params = {
               base_dir => $data_dir,
@@ -39,7 +39,7 @@ my $params = {
 #----------------------------------------------------------------------
 # Create test files
 
-my $wf = CMS::Onsite::Support::WebFile->new(%$params);
+my $wf = App::Onsite::Support::WebFile->new(%$params);
 
 my $registry = <<'EOQ';
         [file]
@@ -61,7 +61,7 @@ COMMANDS = remove
 COMMANDS = search
 		[page]
 EXTENSION = html
-CLASS = CMS::Onsite::PageData
+CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
 ADD_TEMPLATE = add_page.htm
@@ -74,7 +74,7 @@ COMMANDS = remove
 COMMANDS = search
 COMMANDS = view
         [list]
-CLASS = CMS::Onsite::ListData
+CLASS = App::Onsite::ListData
 ADD_TEMPLATE = add_subpage.htm
 EDIT_TEMPLATE = edit_subpage.htm
 UPDATE_TEMPLATE = 
@@ -82,7 +82,7 @@ COMMANDS = edit
 COMMANDS = remove
 COMMANDS = view
         [news]
-CLASS = CMS::Onsite::NewsData
+CLASS = App::Onsite::NewsData
 SUPER = page
 PLURAL = news
 INDEX_LENGTH = 6
@@ -246,10 +246,10 @@ $wf->writer($templatename, $rsstemplate);
 #----------------------------------------------------------------------
 # Create object
 
-my $reg = CMS::Onsite::Support::RegistryFile->new(%$params);
+my $reg = App::Onsite::Support::RegistryFile->new(%$params);
 my $data = $reg->create_subobject($params, $data_registry, 'news');
 
-isa_ok($data, "CMS::Onsite::NewsData"); # test 2
+isa_ok($data, "App::Onsite::NewsData"); # test 2
 can_ok($data, qw(add_data browse_data edit_data read_data remove_data
                  search_data check_id)); # test 3
 

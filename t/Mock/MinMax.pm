@@ -6,7 +6,7 @@ use warnings;
 
 package Mock::MinMax;
 
-use base qw(CMS::Onsite::Support::ConfiguredObject);
+use base qw(App::Onsite::Support::ConfiguredObject);
 
 #----------------------------------------------------------------------
 # Set default values
