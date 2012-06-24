@@ -231,6 +231,16 @@ sub get_subtypes {
 }
 
 #----------------------------------------------------------------------
+# Return true if there is only one subtype
+
+sub has_one_subtype {
+    my ($self, $parentid) = @_;
+
+    my $subtypes = $self->get_subtypes($parentid);
+    return @$subtypes == 1;
+}
+
+#----------------------------------------------------------------------
 # Remove a directory
 
 sub remove_data {

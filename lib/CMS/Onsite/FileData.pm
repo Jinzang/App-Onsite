@@ -167,12 +167,13 @@ sub command_links {
         
         my $query = {cmd => $cmd, id => $id};  
 
-        if ($cmd eq 'add') {
+        if ($cmd eq 'add' || $self->is_parent_command($cmd)) {
             if ($self->has_one_subtype($id)) {
                 my $subtypes = $self->get_subtypes($id);
-                $query->{subtype} = $subtypes->[0];
-                $query->{type} = $query->{subtype};
-            }
+                $query->{type} = $subtypes->[0];
+                
+            }           
+            $query->{subtype} = $query->{type} if $cmd eq 'add';
 
         } else {
             $query->{type} = $self->get_type();
