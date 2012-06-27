@@ -1,73 +1,163 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
-<head>
-<meta http-equiv="content-type" content="text/html; charset=utf-8">
-<!-- begin meta -->
-<!-- set title [[Welcome]] -->
-<!-- set base_url [[]] -->
-<base href="" />
-<title>Welcome</title>
-<meta name="robots" content="index, follow" />
-<!-- end meta -->
-<link rel="stylesheet" type="text/css" href="Style.css" />
-</head>
-<body>
-<div id="container">
-<div id="header">
-<h1><a href="">Onsite Editor</a></h1>
-<ul>
-<!-- begin toplinks -->
-<!-- begin data -->
-<!-- end data -->
-<!-- end toplinks -->
-</ul>
-</div>
-<div id="wrapper">
-<div id="content">
-<div  id="primary">
-<!-- begin primary -->
-<!-- begin dirdata -->
-<h1><!-- begin title valid="&" -->
-Welcome<!-- end title --></h1>
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <!-- begin meta -->
+  <!-- set title [[Home]] -->
+  <!-- set base_url [[]] -->
+  <base href="" />
+  <title>Home</title>
+  <meta name="robots" content="index, follow" />
+  <!-- end meta -->
 
-<!-- begin body required valid="&html" style="rows=20;cols=80" -->
-<p>Welcome to your new web site. You can start changing it by clicking this
-<a href="editor.cgi?cmd=edit">edit link</a>.</p>
-<!-- end body -->
-<!-- end dirdata -->
-<!-- end primary -->
-</div>
-<div id="secondary">
-<!-- begin secondary -->
-<!-- end secondary -->
-</div>
-</div>
-</div>
-<div id="navigation">
-<ul>
-<!-- begin parentlinks -->
-<!-- begin data -->
-<!-- set id [[]] -->
-<!-- set url [[]] -->
-<li><a href="index.html"><!--begin title -->
-Home
-<!-- end title --></a></li>
-<!-- end data -->
-<!-- end parentlinks -->
-<!-- begin pagelinks -->
-<!-- end pagelinks -->
-</ul>
-<ul>
-<!-- begin commandlinks -->
-<!-- begin data -->
-<li><a href="editor.cgi?cmd=edit"><!-- begin title -->
-Edit<!--end title --></a><!-- set url [[editor.cgi?cmd=edit]] --></li>
-<!-- end data -->
-</ul>
-<!-- end commandlinks -->
-</div>
-<div id="footer"><p>The Onsite Editor is free software,
-licensed on the same terms as Perl.</p></div>
-</div>
-</body>
-</html>
+  <link rel="shortcut icon" href="http://www.stsci.edu/resources/images/favicon.ico" />
+  <link rel="stylesheet" href="http://www.stsci.edu/resources/styles/style.css" media="screen" />
+  <!--[if lt IE 9]><link rel="stylesheet" href="http://www.stsci.edu/resources/styles/IEstyle.css" media="screen" /><![endif]-->
+
+  <!-- Add elements to IE DOM - leave in the doc head -->
+  <!--[if lt IE 9]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Droid+Sans" type="text/css" />
+  <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Droid+Serif" type="text/css" />
+  <link rel="stylesheet" href="http://www.stsci.edu/resources/styles/print.css" media="print" />
+  <link rel="stylesheet" href="http://www.stsci.edu/resources/styles/mobile.css" media="screen and (max-width: 430px)" />
+    <style>
+  #main, #main_body, #main_nav  {
+    margin: 0.25%; padding: 0.25%;
+    background-color: #fff;
+  }
+  #main {
+    float: left;
+  }
+  #main_body {
+    border: 1px solid #DDD;
+  }
+  @media screen and (min-width: 431px) {
+    #main_body {
+      float: left;
+      width: 78.6%;
+    }
+    #main_nav {
+      float: right;
+      width: 19.1%;
+    }
+  }
+  @media screen  {
+    #main_body {
+      float: left;
+    }
+    #main_nav {
+      float: left;
+    }
+  }
+  @media print {
+    #main_body {
+      float: left;
+      width: 99%;
+    }
+    #main_nav {
+      display: none;
+    }
+  }
+  </style>
+</head>
+
+<body>
+  <header>
+    <a href="http://www.stsci.edu/"><img src="http://www.stsci.edu/resources/images/logo.png" alt="STScI Logo" title="Return to home page" width="700" height="60"></a>
+
+    <nav class="primary">
+      <ul>
+        <li id="home"><a href="http://www.stsci.edu/">Home</a></li>
+        <li id="about"><a href="http://www.stsci.edu/institute/">The<br>Institute</a></li>
+        <li id="current"><a href="http://www.stsci.edu/hst/">Hubble<br>Telescope</a></li>
+        <li id="future"><a href="http://www.stsci.edu/jwst/">James Webb<br>Telecope</a></li>
+        <li id="archives"><a href="http://archive.stsci.edu/">Data<br>Archives</a></li>
+        <li id="news"><a href="http://oposite.stsci.edu/">News and<br>Education</a></li>
+        <li id="staff"><a href="http://www.stsci.edu/institute/smo">Staff<br>Research</a></li>
+        <li id="events"><a href="http://www.stsci.edu/institute/calendar">Events</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div id="main">
+    <article id="main_body">
+      <!-- begin primary -->
+      <!-- begin dirdata -->
+      <h1><!-- begin title valid="&" -->Home<!-- end title --></h1>
+
+      <!-- begin body required valid="&html" style="rows=10;cols=80" -->
+      <p>Quisque et nisl a magna faucibus imperdiet sed sit amet
+      lectus. Aliquam nec gravida arcu. Ut adipiscing adipiscing mi at
+      pulvinar. Maecenas quis facilisis orci. Phasellus in elementum
+      orci. Cum sociis natoque penatibus et magnis dis parturient montes,
+      nascetur ridiculus mus. Fusce imperdiet odio sit amet ipsum lacinia at
+      vehicula est ultrices. Donec erat ligula, dignissim sit amet euismod
+      vitae, ullamcorper ac sem. In sed augue risus. Duis mollis justo sit
+      amet nisl porta molestie. Nulla sit amet quam risus. Ut id metus
+      elit. Cras adipiscing, arcu eu eleifend mollis, sem est vestibulum
+      leo, vel tristique lectus nibh sed mi. Nullam eu nisl nibh, non
+      consequat tellus. Cras eu iaculis diam.</p>
+
+      <p>Proin sed eros dolor. Aenean ut consequat elit. Suspendisse
+      porttitor gravida dui, sed ullamcorper dolor accumsan nec. Integer vel
+      tellus vel mi ornare ultrices sed nec enim. Curabitur a bibendum
+      justo. Ut condimentum augue eget sem ultricies ultrices. Etiam aliquet
+      ante vel ipsum blandit nec malesuada mi sagittis. Praesent bibendum
+      volutpat fringilla. Praesent fermentum sem eu eros blandit non
+      scelerisque nibh vestibulum. Donec magna nisi, consectetur non
+      pellentesque vitae, luctus eget orci. Pellentesque blandit sagittis
+      blandit. Vivamus ut nisi ac lacus tincidunt mollis vel ac nisl.</p>
+
+      <p>Nulla faucibus venenatis nunc, vel mattis sem posuere sit
+      amet. Nunc a blandit nisi. Praesent in nulla massa, vel blandit
+      quam. Nulla nec dignissim lorem. Fusce eget lacus iaculis mi fringilla
+      fermentum. Donec adipiscing quam a nisl dignissim viverra. Nullam orci
+      risus, pulvinar a ornare non, placerat vel ligula. Nullam et risus
+      erat. Suspendisse a magna lectus, sit amet elementum orci. Aenean
+      malesuada sapien arcu. Praesent feugiat blandit fermentum. Vestibulum
+      ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia
+      Curae; Donec a velit vel urna porta lobortis.</p>
+      <!-- end body -->
+      <!-- end dirdata -->
+      <!-- end primary -->
+      <!-- begin secondary -->
+      <!-- end secondary -->
+    </article>
+    <nav id="main_nav">
+    <h3>Page Links</h3>
+    <ul class="indent5">
+    <!-- begin parentlinks -->
+    <!-- begin data -->
+    <!-- set id [[]] -->
+    <!-- set url [[]] -->
+    <li><a href="index.html"><!--begin title -->Home<!-- end title --></a></li>
+    <!-- end data -->
+    <!-- end parentlinks -->
+    <!-- begin pagelinks -->
+    <!-- end pagelinks -->
+    </ul>
+    <h3>Command Links</h3>
+    <ul class="indent5">
+    <!-- begin commandlinks -->
+    <!-- begin data -->
+    <li><a href="editor.cgi?cmd=edit"><!-- begin title -->Edit<!--end title --></a>
+        <!-- set url [[editor.cgi?cmd=edit]] --></li>
+    <!-- end data -->
+    <!-- end commandlinks -->
+    </ul>
+    </nav>
+  </div>
+
+  <footer class="clearfix">
+    <section class="float_left">
+      <a href="http://www.stsci.edu/institute/Copyright">Copyright</a> |
+      <a href="http://www.stsci.edu/institute/help.html">Help</a>
+    </section>
+    <section class="float_right">
+      <a href="http://www.stsci.edu/institute/internal/">Intranet</a>
+    </section>
+  </footer>
+
+
+</body></html>
