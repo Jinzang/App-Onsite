@@ -17,7 +17,9 @@ Unpack these files on your computer and edit the files
   site/index.html
   site/Style.css
 
-to give the site the look you want. Be careful to 
+to give the site the look you want. Be careful to not modify the html comments
+surrounding the editable text.
+
 Ftp these files to your webserver, login to the webserver and cd to the top level
 directory the files are installed in. Type the command
 
