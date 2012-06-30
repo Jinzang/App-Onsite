@@ -7,7 +7,7 @@ use Test::More tests => 12;
 
 use IO::File;
 use Cwd qw(abs_path getcwd);
-use App::Onsite::Support::WebFile;
+use CMS::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -33,7 +33,7 @@ my $params = {
 #----------------------------------------------------------------------
 # Create test files
 
-my $wf = App::Onsite::Support::WebFile->new(%$params);
+my $wf = CMS::Onsite::Support::WebFile->new(%$params);
 
 my $hash = {
     'title' => 'A title',
@@ -68,7 +68,7 @@ COMMANDS = remove
 COMMANDS = search
         [dumper]
 EXTENSION = dump
-CLASS = App::Onsite::DumperData
+CLASS = CMS::Onsite::DumperData
 EOQ
 
 $wf->writer("$template_dir/$data_registry", $registry);
@@ -76,10 +76,10 @@ $wf->writer("$template_dir/$data_registry", $registry);
 #----------------------------------------------------------------------
 # Create object
 
-BEGIN {use_ok("App::Onsite::DumperData");} # test 1
+BEGIN {use_ok("CMS::Onsite::DumperData");} # test 1
 
-my $data = App::Onsite::DumperData->new(%$params);
-isa_ok($data, "App::Onsite::DumperData"); # test 2
+my $data = CMS::Onsite::DumperData->new(%$params);
+isa_ok($data, "CMS::Onsite::DumperData"); # test 2
 can_ok($data, qw(browse_data search_data read_data write_data
                  add_data edit_data remove_data check_id next_id)); # test 3
 

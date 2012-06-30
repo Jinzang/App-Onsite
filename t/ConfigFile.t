@@ -10,7 +10,7 @@ use IO::File;
 #----------------------------------------------------------------------
 # Create objext
 
-BEGIN {use_ok("App::Onsite::Support::ConfigFile");} # test 1
+BEGIN {use_ok("CMS::Onsite::Support::ConfigFile");} # test 1
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -45,7 +45,7 @@ my @config_lines = map {"$_\n"} split(/\n/, $config);
 # Test parsing
 
 my $filename = "$data_dir/config.dat";
-my $cf = App::Onsite::Support::ConfigFile->new(config_file => $filename,
+my $cf = CMS::Onsite::Support::ConfigFile->new(config_file => $filename,
                          cache => 'Mock::CachedFile');
 
 my $lines;

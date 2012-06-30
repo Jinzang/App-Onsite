@@ -15,18 +15,18 @@ COMMANDS = remove
 COMMANDS = search
         [dumper]
 EXTENSION = dump
-CLASS = App::Onsite::DumperData
+CLASS = CMS::Onsite::DumperData
 		[textdb]
 EXTENSION = data
-CLASS = App::Onsite::TextdbData
+CLASS = CMS::Onsite::TextdbData
         [configuration]
 EXTENSION = cfg
 SUMMARY_FIELD = data
 COMMANDS = edit
-CLASS = App::Onsite::ConfigurationData
+CLASS = CMS::Onsite::ConfigurationData
 		[page]
 EXTENSION = html
-CLASS = App::Onsite::PageData
+CLASS = CMS::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
 ADD_TEMPLATE = add_page.htm
@@ -39,21 +39,21 @@ COMMANDS = remove
 COMMANDS = search
 COMMANDS = view
         [dir]
-CLASS = App::Onsite::DirData
+CLASS = CMS::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
 ADD_TEMPLATE = add_dir.htm
 EDIT_TEMPLATE = edit_dir.htm
 UPDATE_TEMPLATE = update_dir.htm
         [list]
-CLASS = App::Onsite::ListData
+CLASS = CMS::Onsite::ListData
 EDIT_TEMPLATE = edit_subpage.htm
 UPDATE_TEMPLATE = 
 COMMANDS = edit
 COMMANDS = remove
 COMMANDS = view
         [news]
-CLASS = App::Onsite::NewsData
+CLASS = CMS::Onsite::NewsData
 SUPER = page
 PLURAL = news
 INDEX_LENGTH = 6

@@ -6,8 +6,8 @@ use lib 'lib';
 use Test::More tests => 6;
 
 use Cwd qw(abs_path getcwd);
-use App::Onsite::AddCommand;
-use App::Onsite::Support::WebFile;
+use CMS::Onsite::AddCommand;
+use CMS::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -22,7 +22,7 @@ my $template_dir = "$data_dir/templates";
 my $data_registry = 'data.reg';
 my $command_registry = 'command.reg';
 
-BEGIN {use_ok("App::Onsite::SearchCommand");} # test 1
+BEGIN {use_ok("CMS::Onsite::SearchCommand");} # test 1
 
 my $params = {
               items => 10,
@@ -33,23 +33,23 @@ my $params = {
               command_registry => $command_registry,
               data_registry => $data_registry,
               valid_write => [$data_dir, $template_dir],
-              data => 'App::Onsite::DirData',
+              data => 'CMS::Onsite::DirData',
              };
 
 #----------------------------------------------------------------------
 # Create templates
 
-my $wf = App::Onsite::Support::WebFile->new(%$params);
+my $wf = CMS::Onsite::Support::WebFile->new(%$params);
 
 my $command_registry_file = <<'EOQ';
         [every]
-CLASS = App::Onsite::EveryCommand
+CLASS = CMS::Onsite::EveryCommand
 TEMPLATE = show_form.htm
         [add]
-CLASS = App::Onsite::AddCommand
+CLASS = CMS::Onsite::AddCommand
 SUBTEMPLATE = add.htm
         [search]
-CLASS = App::Onsite::SearchCommand
+CLASS = CMS::Onsite::SearchCommand
 SUBTEMPLATE = search.htm
 EOQ
 
@@ -73,7 +73,7 @@ COMMANDS = remove
 COMMANDS = search
 		[page]
 EXTENSION = html
-CLASS = App::Onsite::PageData
+CLASS = CMS::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
 ADD_TEMPLATE = add_page.htm
@@ -86,7 +86,7 @@ COMMANDS = remove
 COMMANDS = search
 COMMANDS = view
         [dir]
-CLASS = App::Onsite::DirData
+CLASS = CMS::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
 ADD_TEMPLATE = add_dir.htm
@@ -551,9 +551,9 @@ $wf->writer($templatename, $update_dir_template);
 #----------------------------------------------------------------------
 # Create object
 
-my $con = App::Onsite::SearchCommand->new(%$params);
+my $con = CMS::Onsite::SearchCommand->new(%$params);
 
-isa_ok($con, "App::Onsite::SearchCommand"); # test 2
+isa_ok($con, "CMS::Onsite::SearchCommand"); # test 2
 can_ok($con, qw(check run)); # test 3
 
 $wf->relocate($data_dir);
@@ -562,7 +562,7 @@ $wf->relocate($data_dir);
 # Search
 
 my @data;
-my $add = App::Onsite::AddCommand->new(%$params);
+my $add = CMS::Onsite::AddCommand->new(%$params);
 my %template = (title => "%% file", body => "%% text.", author => "%% author");
 
 for my $count (qw(First Second Third)) {

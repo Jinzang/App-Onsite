@@ -11,7 +11,7 @@ use Mock::TestObject2;
 #----------------------------------------------------------------------
 # Create object
 
-BEGIN {use_ok("App::Onsite::Support::ConfiguredObject");} # test 1
+BEGIN {use_ok("CMS::Onsite::Support::ConfiguredObject");} # test 1
 
 my %parameters = (
     two => 2,
@@ -22,7 +22,7 @@ my %parameters = (
 #----------------------------------------------------------------------
 # Test new
 
-my $co = App::Onsite::Support::ConfiguredObject->new(cf => 'Mock::ConfigFile');
+my $co = CMS::Onsite::Support::ConfiguredObject->new(cf => 'Mock::ConfigFile');
 can_ok($co, qw(new parameters)); #test 2
 is(ref($co->{cf}), 'Mock::ConfigFile', "Creation"); # test 3
 
@@ -48,7 +48,7 @@ is ($@, "Field type mismatch for two in Mock::TestObject\n",
     "Array type mismatch"); # test 8
 
 $to = eval {Mock::TestObject->new(cf => [1])};
-is ($@, "Field type mismatch for cf in App::Onsite::Support::ConfiguredObject\n",
+is ($@, "Field type mismatch for cf in CMS::Onsite::Support::ConfiguredObject\n",
     "Hash type mismatch"); # test 9
 
 $co->{cf}->write_file({one => 1, two => 2, three => 3, list => [qw(x y z)]});

@@ -7,7 +7,7 @@ use Test::More tests => 15;
 
 use IO::File;
 use Cwd qw(abs_path getcwd);
-use App::Onsite::Support::NestedTemplate;
+use CMS::Onsite::Support::NestedTemplate;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -25,7 +25,7 @@ $script_dir = abs_path($script_dir);
 #----------------------------------------------------------------------
 # Create object
 
-BEGIN {use_ok("App::Onsite::Support::WebFile");} # test 1
+BEGIN {use_ok("CMS::Onsite::Support::WebFile");} # test 1
 
 my $params = {
               index_length => 3,
@@ -33,10 +33,10 @@ my $params = {
               valid_write => [$data_dir, $script_dir,],
              };
 
-my $wf = App::Onsite::Support::WebFile->new(%$params);
-my $nt = App::Onsite::Support::NestedTemplate->new();
+my $wf = CMS::Onsite::Support::WebFile->new(%$params);
+my $nt = CMS::Onsite::Support::NestedTemplate->new();
 
-isa_ok($wf, "App::Onsite::Support::WebFile"); # test 2
+isa_ok($wf, "CMS::Onsite::Support::WebFile"); # test 2
 can_ok($wf, qw(relocate reader writer validate_filename)); # test 3
 
 #----------------------------------------------------------------------

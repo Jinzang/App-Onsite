@@ -6,12 +6,12 @@ use lib 'lib';
 use Test::More tests => 12;
 
 use Cwd qw(abs_path getcwd);
-use App::Onsite::Support::WebFile;
+use CMS::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Create object
 
-BEGIN {use_ok("App::Onsite::Support::CgiHandler");} # test 1
+BEGIN {use_ok("CMS::Onsite::Support::CgiHandler");} # test 1
 
 my $params = {
               min => 10,
@@ -22,9 +22,9 @@ my $params = {
               handler => 'Mock::MinMax',
              };
 
-my $o = App::Onsite::Support::CgiHandler->new(%$params);
+my $o = CMS::Onsite::Support::CgiHandler->new(%$params);
 
-isa_ok($o, "App::Onsite::Support::CgiHandler"); # test 2
+isa_ok($o, "CMS::Onsite::Support::CgiHandler"); # test 2
 can_ok($o, qw(run)); # test 3
 
 #----------------------------------------------------------------------

@@ -6,7 +6,7 @@ use lib 'lib';
 use Test::More tests => 6;
 
 use Cwd qw(abs_path);
-use App::Onsite::Support::WebFile;
+use CMS::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -21,7 +21,7 @@ my $template_dir = "$data_dir/templates";
 my $data_registry = 'data.reg';
 my $command_registry = 'command.reg';
 
-BEGIN {use_ok("App::Onsite::RemoveCommand");} # test 1
+BEGIN {use_ok("CMS::Onsite::RemoveCommand");} # test 1
 
 my $params = {
               base_url => 'http://wwww.onsite.org',
@@ -32,20 +32,20 @@ my $params = {
               data_registry => $data_registry,
               valid_write => [$data_dir, $template_dir],
               nonce => '01234567',
-              data => 'App::Onsite::PageData',
+              data => 'CMS::Onsite::PageData',
              };
 
 #----------------------------------------------------------------------
 # Create templates
 
-my $wf = App::Onsite::Support::WebFile->new(%$params);
+my $wf = CMS::Onsite::Support::WebFile->new(%$params);
 
 my $command_registry_file = <<'EOQ';
         [every]
-CLASS = App::Onsite:EveryCommand
+CLASS = CMS::Onsite:EveryCommand
 TEMPLATE = show_form.htm
          [remove]
-CLASS = App::Onsite:RemoveCommand
+CLASS = CMS::Onsite:RemoveCommand
 SUBTEMPLATE = remove.htm
 EOQ
 
@@ -69,7 +69,7 @@ COMMANDS = remove
 COMMANDS = search
 		[page]
 EXTENSION = html
-CLASS = App::Onsite::PageData
+CLASS = CMS::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
 ADD_TEMPLATE = add_page.htm
@@ -82,7 +82,7 @@ COMMANDS = remove
 COMMANDS = search
 COMMANDS = view
         [dir]
-CLASS = App::Onsite::DirData
+CLASS = CMS::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
 ADD_TEMPLATE = add_dir.htm
@@ -311,9 +311,9 @@ $wf->writer($templatename, $update_page_template);
 #----------------------------------------------------------------------
 # Create object
 
-my $con = App::Onsite::RemoveCommand->new(%$params);
+my $con = CMS::Onsite::RemoveCommand->new(%$params);
 
-isa_ok($con, "App::Onsite::RemoveCommand"); # test 2
+isa_ok($con, "CMS::Onsite::RemoveCommand"); # test 2
 can_ok($con, qw(check run)); # test 3
 
 $wf->relocate($data_dir);

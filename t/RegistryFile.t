@@ -7,12 +7,12 @@ use Test::More tests => 10;
 
 use IO::File;
 use Cwd qw(abs_path getcwd);
-use App::Onsite::Support::WebFile;
+use CMS::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Create objext
 
-BEGIN {use_ok("App::Onsite::Support::RegistryFile");} # test 1
+BEGIN {use_ok("CMS::Onsite::Support::RegistryFile");} # test 1
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -23,7 +23,7 @@ system("/bin/rm -rf $data_dir");
 mkdir $data_dir;
 $data_dir = abs_path($data_dir);
 
-my $wf = App::Onsite::Support::WebFile->new(valid_write => [$data_dir]);
+my $wf = CMS::Onsite::Support::WebFile->new(valid_write => [$data_dir]);
 $data_dir = $wf->validate_filename($data_dir, 'w');
 
 #----------------------------------------------------------------------
@@ -65,7 +65,7 @@ close($io);
 #----------------------------------------------------------------------
 # Test read file
 
-my $reg = App::Onsite::Support::RegistryFile->new(template_dir => $data_dir,
+my $reg = CMS::Onsite::Support::RegistryFile->new(template_dir => $data_dir,
                          cache => 'Mock::CachedFile');
 
 my $registry = $reg->read_file($registry_name);

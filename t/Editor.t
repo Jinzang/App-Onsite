@@ -6,7 +6,7 @@ use lib 'lib';
 use Test::More tests => 15;
 
 use Cwd qw(abs_path getcwd);
-use App::Onsite::Support::WebFile;
+use CMS::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -21,7 +21,7 @@ my $template_dir = "$data_dir/templates";
 my $data_registry = 'data.reg';
 my $cmd_registry = 'command.reg';
 
-BEGIN {use_ok("App::Onsite::Editor");} # test 1
+BEGIN {use_ok("CMS::Onsite::Editor");} # test 1
 
 my $params = {
               items => 10,
@@ -34,14 +34,14 @@ my $params = {
               script_url => 'http://www.stsci.edu/test.cgi',
               base_url => 'http://www.stsci.edu/',
               valid_write => [$data_dir, $template_dir],
-              data => 'App::Onsite::DirData',
-              cmd => 'App::Onsite::ViewCommand',
+              data => 'CMS::Onsite::DirData',
+              cmd => 'CMS::Onsite::ViewCommand',
              };
 
 #----------------------------------------------------------------------
 # Create templates
 
-my $wf = App::Onsite::Support::WebFile->new(%$params);
+my $wf = CMS::Onsite::Support::WebFile->new(%$params);
 
 my $type_registry = <<'EOQ';
         [file]
@@ -61,7 +61,7 @@ COMMANDS = remove
 COMMANDS = search
 		[page]
 EXTENSION = html
-CLASS = App::Onsite::PageData
+CLASS = CMS::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
 ADD_TEMPLATE = add_page.htm
@@ -74,7 +74,7 @@ COMMANDS = remove
 COMMANDS = search
 COMMANDS = view
         [dir]
-CLASS = App::Onsite::DirData
+CLASS = CMS::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
 ADD_TEMPLATE = add_dir.htm
@@ -84,30 +84,30 @@ EOQ
 
 my $command_registry = <<'EOQ';
         [every]
-CLASS = App::Onsite::EveryCommand
+CLASS = CMS::Onsite::EveryCommand
 TEMPLATE = show_form.htm
         [error]
-CLASS = App::Onsite::EveryCommand
+CLASS = CMS::Onsite::EveryCommand
 SUBTEMPLATE = error.htm
         [cancel]
-CLASS = App::Onsite::CancelCommand
+CLASS = CMS::Onsite::CancelCommand
         [add]
-CLASS = App::Onsite::AddCommand
+CLASS = CMS::Onsite::AddCommand
 SUBTEMPLATE = add.htm
         [browse]
-CLASS = App::Onsite::BrowseCommand
+CLASS = CMS::Onsite::BrowseCommand
 SUBTEMPLATE = browse.htm
         [edit]
-CLASS = App::Onsite::EditCommand
+CLASS = CMS::Onsite::EditCommand
 SUBTEMPLATE = edit.htm
         [remove]
-CLASS = App::Onsite::RemoveCommand
+CLASS = CMS::Onsite::RemoveCommand
 SUBTEMPLATE = remove.htm
         [search]
-CLASS = App::Onsite::SearchCommand
+CLASS = CMS::Onsite::SearchCommand
 SUBTEMPLATE = search.htm
         [view]
-CLASS = App::Onsite::ViewCommand
+CLASS = CMS::Onsite::ViewCommand
 EOQ
 
 $wf->writer("$template_dir/$data_registry", $type_registry);
@@ -593,9 +593,9 @@ $wf->writer($templatename, $edit_form);
 #----------------------------------------------------------------------
 # Create object
 
-my $con = App::Onsite::Editor->new(%$params);
+my $con = CMS::Onsite::Editor->new(%$params);
 
-isa_ok($con, "App::Onsite::Editor"); # test 2
+isa_ok($con, "CMS::Onsite::Editor"); # test 2
 can_ok($con, qw(batch execute run)); # test 3
 
 #----------------------------------------------------------------------

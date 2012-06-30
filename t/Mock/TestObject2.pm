@@ -5,7 +5,7 @@ use integer;
 package Mock::TestObject2;
 
 use lib '../../lib';
-use base qw(App::Onsite::Support::ConfiguredObject);
+use base qw(CMS::Onsite::Support::ConfiguredObject);
 
 #----------------------------------------------------------------------
 # Get hardcoded default parameter values

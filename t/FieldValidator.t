@@ -9,16 +9,16 @@ use Test::More tests => 50;
 #----------------------------------------------------------------------
 # Create object
 
-BEGIN {use_ok("App::Onsite::FieldValidator");} # test 1
+BEGIN {use_ok("CMS::Onsite::FieldValidator");} # test 1
 
 do {
-	my $fv = App::Onsite::FieldValidator->new(valid => '');
+	my $fv = CMS::Onsite::FieldValidator->new(valid => '');
 	my $r = {};
 	is_deeply($fv, $r, "Empty validator"); # Test 2
 };
 
 do {
-	my $fv = App::Onsite::FieldValidator->new(valid => 'string');
+	my $fv = CMS::Onsite::FieldValidator->new(valid => 'string');
 	my $r = {};
 	is_deeply($fv, $r, "String validator"); # Test 3
 	my $b = $fv->validate('');
@@ -28,7 +28,7 @@ do {
 };
 
 do {
-	my $fv = App::Onsite::FieldValidator->new(valid => 'number');
+	my $fv = CMS::Onsite::FieldValidator->new(valid => 'number');
 	my $r = {};
 	is_deeply($fv, $r, "Number validator"); # Test 6
 	my $b = $fv->validate('');
@@ -40,7 +40,7 @@ do {
 };
 
 do {
-	my $fv = App::Onsite::FieldValidator->new(valid => '&string');
+	my $fv = CMS::Onsite::FieldValidator->new(valid => '&string');
 	my $r = {required => 1};
 	is_deeply($fv, $r, "Required string validator"); # Test 10
 	my $b = $fv->validate('');
@@ -50,7 +50,7 @@ do {
 };
 
 do {
-	my $fv = App::Onsite::FieldValidator->new(valid => '&number');
+	my $fv = CMS::Onsite::FieldValidator->new(valid => '&number');
 	my $r = {required => 1};
 	$r->{required} = 1;
 	is_deeply($fv, $r, "Required number validator"); # Test 13
@@ -62,7 +62,7 @@ do {
 
 do {
 	my $valid = '/\$\d+\.\d\d/';
-	my $fv = App::Onsite::FieldValidator->new(valid => $valid);
+	my $fv = CMS::Onsite::FieldValidator->new(valid => $valid);
 	my $r = {regexp => '\$\d+\.\d\d'};
 	is_deeply($fv, $r, "String regexp"); # Test 16
 	my $b = $fv->validate('$317.43');
@@ -74,7 +74,7 @@ do {
 
 do {
 	my $valid = '|joe|jack|jim|';
-	my $fv = App::Onsite::FieldValidator->new(valid => $valid);
+	my $fv = CMS::Onsite::FieldValidator->new(valid => $valid);
 	my $r = {selection => 'joe|jack|jim'};
 	is_deeply($fv, $r, "String selector"); # Test 19
 	my $b = $fv->validate('jack');
@@ -85,7 +85,7 @@ do {
 
 do {
 	my $valid = 'number|10|20|30|';
-	my $fv = App::Onsite::FieldValidator->new(valid => $valid);
+	my $fv = CMS::Onsite::FieldValidator->new(valid => $valid);
 	my $r = {selection => '10|20|30'};
 	is_deeply($fv, $r, "Number selector"); # Test 22
 	my $b = $fv->validate('10.0');
@@ -96,7 +96,7 @@ do {
 
 do {
 	my $valid = 'number[10,30]';
-	my $fv = App::Onsite::FieldValidator->new(valid => $valid);
+	my $fv = CMS::Onsite::FieldValidator->new(valid => $valid);
 	my $r = {limits => '[10,30]'};
 	is_deeply($fv, $r, "Numeric limits"); # Test 25
 	my $b = $fv->validate('10.0');
@@ -111,7 +111,7 @@ do {
 
 do {
 	my $valid = 'number(10,30)';
-	my $fv = App::Onsite::FieldValidator->new(valid => $valid);
+	my $fv = CMS::Onsite::FieldValidator->new(valid => $valid);
 	my $r = {limits => '(10,30)'};
 	is_deeply($fv, $r, "Open numeric limits"); # Test 30
 	my $b = $fv->validate('10.0');
@@ -126,7 +126,7 @@ do {
 
 do {
 	my $valid = 'number(0,)';
-	my $fv = App::Onsite::FieldValidator->new(valid => $valid);
+	my $fv = CMS::Onsite::FieldValidator->new(valid => $valid);
 	my $r = {limits => '(0,)'};
 	is_deeply($fv, $r, "Open numeric one sided limits"); # Test 35
 	my $b = $fv->validate('0.0');
@@ -139,7 +139,7 @@ do {
 
 do {
 	my $valid = 'number[,9]';
-	my $fv = App::Onsite::FieldValidator->new(valid => $valid);
+	my $fv = CMS::Onsite::FieldValidator->new(valid => $valid);
 	my $r = {limits => '[,9]'};
 	is_deeply($fv, $r, "Closed numeric limits"); # Test 39
 	my $b = $fv->validate('5.0');
@@ -152,7 +152,7 @@ do {
 
 do {
 	my $valid = 'string[5,]';
-	my $fv = App::Onsite::FieldValidator->new(valid => $valid);
+	my $fv = CMS::Onsite::FieldValidator->new(valid => $valid);
 	my $r = {limits => '[5,]'};
 	is_deeply($fv, $r, "String limits"); # Test 43
 	my $str = $fv->canonize(' <b> </b>');
@@ -164,12 +164,12 @@ do {
 };
 
 do {
-	my $fv = App::Onsite::FieldValidator->new(valid => 'string');
+	my $fv = CMS::Onsite::FieldValidator->new(valid => 'string');
 	my $field = $fv->build_field('foo', 'bar');
 	is($field, '<input type="text" name="foo" value="bar" id="foo-field" />',
 	   "Form text field"); # Test 47
 
-	$fv = App::Onsite::FieldValidator->new(valid => 'html');
+	$fv = CMS::Onsite::FieldValidator->new(valid => 'html');
 	$field = $fv->build_field('foo', 'bar');
 	is($field, '<textarea name="foo" id="foo-field">bar</textarea>',
 	   "Form textarea"); # Test 48
@@ -179,7 +179,7 @@ do {
 	   '<textarea name="foo" rows="20" cols="64" id="foo-field">bar</textarea>',
 	   "Form textarea with style"); # Test 49
 
-	$fv = App::Onsite::FieldValidator->new(valid => 'string|bar|biz|baz|');
+	$fv = CMS::Onsite::FieldValidator->new(valid => 'string|bar|biz|baz|');
 	$field = $fv->build_field('foo', 'bar');
 	my $r = <<EOQ;
 <select name="foo" id="foo-field">

@@ -6,8 +6,8 @@ use lib 'lib';
 use Test::More tests => 21;
 
 use Cwd qw(abs_path getcwd);
-use App::Onsite::Support::WebFile;
-use App::Onsite::Support::RegistryFile;
+use CMS::Onsite::Support::WebFile;
+use CMS::Onsite::Support::RegistryFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -25,7 +25,7 @@ my $data_registry = 'data.reg';
 #----------------------------------------------------------------------
 # Create object
 
-BEGIN {use_ok("App::Onsite::DirData");} # test 1
+BEGIN {use_ok("CMS::Onsite::DirData");} # test 1
 
 my $params = {
               data_dir => $data_dir,
@@ -40,7 +40,7 @@ my $params = {
 #----------------------------------------------------------------------
 # Create test files
 
-my $wf = App::Onsite::Support::WebFile->new(%$params);
+my $wf = CMS::Onsite::Support::WebFile->new(%$params);
 
 my $registry = <<'EOQ';
         [file]
@@ -62,7 +62,7 @@ COMMANDS = remove
 COMMANDS = search
 		[page]
 EXTENSION = html
-CLASS = App::Onsite::PageData
+CLASS = CMS::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
 ADD_TEMPLATE = add_page.htm
@@ -75,7 +75,7 @@ COMMANDS = remove
 COMMANDS = search
 COMMANDS = view
         [dir]
-CLASS = App::Onsite::DirData
+CLASS = CMS::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
 ADD_TEMPLATE = add_dir.htm
@@ -270,13 +270,13 @@ $wf->writer($templatename, $update_template);
 $config_file = $wf->validate_filename($config_file, 'w');
 $wf->writer($config_file, $config);
 
-my $reg = App::Onsite::Support::RegistryFile->new(%$params);
+my $reg = CMS::Onsite::Support::RegistryFile->new(%$params);
 my $data = $reg->create_subobject($params, $data_registry, 'dir');
 
 #----------------------------------------------------------------------
 # Create object
 
-isa_ok($data, "App::Onsite::DirData"); # test 2
+isa_ok($data, "CMS::Onsite::DirData"); # test 2
 can_ok($data, qw(add_data browse_data edit_data read_data remove_data
                  search_data check_id)); # test 3
 

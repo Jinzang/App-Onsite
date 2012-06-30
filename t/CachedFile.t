@@ -11,7 +11,7 @@ use Cwd qw(abs_path);
 #----------------------------------------------------------------------
 # Create objext
 
-BEGIN {use_ok("App::Onsite::Support::CachedFile");} # test 1
+BEGIN {use_ok("CMS::Onsite::Support::CachedFile");} # test 1
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -32,8 +32,8 @@ foreach my $filename (qw(one two three four)) {
     close $fd;
 }
 
-my $cache = App::Onsite::Support::CachedFile->new(expires => 2);
-isa_ok($cache, "App::Onsite::Support::CachedFile"); # test 2
+my $cache = CMS::Onsite::Support::CachedFile->new(expires => 2);
+isa_ok($cache, "CMS::Onsite::Support::CachedFile"); # test 2
 can_ok($cache, qw(fetch save free flush)); # test 3
 
 #----------------------------------------------------------------------

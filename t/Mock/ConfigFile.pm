@@ -5,7 +5,7 @@ use integer;
 package Mock::ConfigFile;
 
 use lib '../../lib';
-use base qw(App::Onsite::Support::ConfiguredObject);
+use base qw(CMS::Onsite::Support::ConfiguredObject);
 
 my $cache = {};
 

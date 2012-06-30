@@ -8,7 +8,7 @@ use Test::More tests => 17;
 #----------------------------------------------------------------------
 # Create objext
 
-BEGIN {use_ok("App::Onsite::Support::FileHandler");} # test 1
+BEGIN {use_ok("CMS::Onsite::Support::FileHandler");} # test 1
 
 #----------------------------------------------------------------------
 # Create object
@@ -18,11 +18,11 @@ my $params = {
                 handler => 'Mock::Terminator',
              };
 
-BEGIN {use_ok("App::Onsite::Support::FileHandler");} # test 1
+BEGIN {use_ok("CMS::Onsite::Support::FileHandler");} # test 1
 
-my $fh = App::Onsite::Support::FileHandler->new(%$params);
+my $fh = CMS::Onsite::Support::FileHandler->new(%$params);
 
-isa_ok($fh, "App::Onsite::Support::FileHandler"); # test 2
+isa_ok($fh, "CMS::Onsite::Support::FileHandler"); # test 2
 can_ok($fh, qw(run)); # test 3
 
 #----------------------------------------------------------------------

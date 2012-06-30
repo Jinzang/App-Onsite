@@ -9,16 +9,16 @@ use Test::More tests => 8;
 # Create object
 
 $ENV{PATH} = '/bin';
-BEGIN {use_ok("App::Onsite::Form");} # test 1
+BEGIN {use_ok("CMS::Onsite::Form");} # test 1
 
 my $params = {
               nonce => '01234567',
               script_url => 'http://www.stsci.edu/test.cgi',
              };
 
-my $con = App::Onsite::Form->new(%$params);
+my $con = CMS::Onsite::Form->new(%$params);
 
-isa_ok($con, "App::Onsite::Form"); # test 2
+isa_ok($con, "CMS::Onsite::Form"); # test 2
 can_ok($con, qw(create_form)); # test 3
 
 #----------------------------------------------------------------------
