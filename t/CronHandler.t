@@ -8,7 +8,7 @@ use Test::More tests => 6;
 #----------------------------------------------------------------------
 # Create objext
 
-BEGIN {use_ok("CMS::Onsite::Support::CronHandler");} # test 1
+BEGIN {use_ok("App::Onsite::Support::CronHandler");} # test 1
 
 my $base_dir = '/tmp';
 my $uname = `which uname`;
@@ -22,9 +22,9 @@ my $params = {
                 handler => 'Mock::MinMax'
              };
 
-my $o = CMS::Onsite::Support::CronHandler->new(%$params);
+my $o = App::Onsite::Support::CronHandler->new(%$params);
 
-isa_ok($o, "CMS::Onsite::Support::CronHandler"); # test 2
+isa_ok($o, "App::Onsite::Support::CronHandler"); # test 2
 can_ok($o, qw(run)); # test 3
 
 my $msg = $o->run("value=15");

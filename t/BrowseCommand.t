@@ -6,8 +6,8 @@ use lib 'lib';
 use Test::More tests => 5;
 
 use Cwd qw(abs_path getcwd);
-use CMS::Onsite::AddCommand;
-use CMS::Onsite::Support::WebFile;
+use App::Onsite::AddCommand;
+use App::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -22,7 +22,7 @@ my $template_dir = "$data_dir/templates";
 my $data_registry = 'data.reg';
 my $command_registry = 'command.reg';
 
-BEGIN {use_ok("CMS::Onsite::BrowseCommand");} # test 1
+BEGIN {use_ok("App::Onsite::BrowseCommand");} # test 1
 
 my $params = {
               items => 10,
@@ -33,23 +33,23 @@ my $params = {
               command_registry => $command_registry,
               data_registry => $data_registry,
               valid_write => [$data_dir, $template_dir],
-              data => 'CMS::Onsite::DirData',
+              data => 'App::Onsite::DirData',
              };
 
 #----------------------------------------------------------------------
 # Create templates
 
-my $wf = CMS::Onsite::Support::WebFile->new(%$params);
+my $wf = App::Onsite::Support::WebFile->new(%$params);
 
 my $command_registry_file = <<'EOQ';
         [every]
-CLASS = CMS::Onsite::EveryCommand
+CLASS = App::Onsite::EveryCommand
 TEMPLATE = show_form.htm
          [add]
-CLASS = CMS::Onsite::AddCommand
+CLASS = App::Onsite::AddCommand
 SUBTEMPLATE = add.htm
         [browse]
-CLASS = CMS::Onsite::BrowseCommand
+CLASS = App::Onsite::BrowseCommand
 SUBTEMPLATE = browse.htm
 EOQ
 
@@ -73,7 +73,7 @@ COMMANDS = remove
 COMMANDS = search
 		[page]
 EXTENSION = html
-CLASS = CMS::Onsite::PageData
+CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
 ADD_TEMPLATE = add_page.htm
@@ -86,7 +86,7 @@ COMMANDS = remove
 COMMANDS = search
 COMMANDS = view
         [dir]
-CLASS = CMS::Onsite::DirData
+CLASS = App::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
 ADD_TEMPLATE = add_dir.htm
@@ -551,9 +551,9 @@ $wf->writer($templatename, $update_dir_template);
 #----------------------------------------------------------------------
 # Create object
 
-my $con = CMS::Onsite::BrowseCommand->new(%$params);
+my $con = App::Onsite::BrowseCommand->new(%$params);
 
-isa_ok($con, "CMS::Onsite::BrowseCommand"); # test 2
+isa_ok($con, "App::Onsite::BrowseCommand"); # test 2
 can_ok($con, qw(check run)); # test 3
 
 $wf->relocate($data_dir);
@@ -562,7 +562,7 @@ $wf->relocate($data_dir);
 # Browse
 
 my @data;
-my $add = CMS::Onsite::AddCommand->new(%$params);
+my $add = App::Onsite::AddCommand->new(%$params);
 my %template = (title => "%% file", body => "%% text.", author => "%% author");
 
 for my $count (qw(First Second Third)) {

@@ -24,10 +24,10 @@ sub filter_caps {
 #----------------------------------------------------------------------
 # Create objext
 
-BEGIN {use_ok("CMS::Onsite::Support::NestedTemplate");} # test 1
+BEGIN {use_ok("App::Onsite::Support::NestedTemplate");} # test 1
 
-my $n = CMS::Onsite::Support::NestedTemplate->new();
-isa_ok($n, "CMS::Onsite::Support::NestedTemplate"); # test 2
+my $n = App::Onsite::Support::NestedTemplate->new();
+isa_ok($n, "App::Onsite::Support::NestedTemplate"); # test 2
 can_ok($n, qw(data info parse render unparse)); # test 3
 
 #----------------------------------------------------------------------
@@ -317,7 +317,7 @@ eval {
 };
 
 
-like($@, qr(CMS::Onsite::Support::NestedTemplate: Mismatched begin/end),
+like($@, qr(App::Onsite::Support::NestedTemplate: Mismatched begin/end),
 	 "Missing begin"); # test 14
 
 #----------------------------------------------------------------------
@@ -348,7 +348,7 @@ eval {
 };
 
 
-like($@, qr(CMS::Onsite::Support::NestedTemplate: Mismatched begin/end), "Missing end"); # test 15
+like($@, qr(App::Onsite::Support::NestedTemplate: Mismatched begin/end), "Missing end"); # test 15
 
 #----------------------------------------------------------------------
 # Test data retrieval

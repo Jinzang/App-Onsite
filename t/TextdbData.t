@@ -6,7 +6,7 @@ use lib 'lib';
 use Test::More tests => 15;
 
 use Cwd qw(abs_path);
-use CMS::Onsite::Support::WebFile;
+use App::Onsite::Support::WebFile;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -30,12 +30,12 @@ my $params = {
               data_registry => $data_registry,
              };
 
-BEGIN {use_ok("CMS::Onsite::TextdbData");} # test 1
+BEGIN {use_ok("App::Onsite::TextdbData");} # test 1
 
 #----------------------------------------------------------------------
 # Create test file
 
-my $wf = CMS::Onsite::Support::WebFile->new(%$params);
+my $wf = App::Onsite::Support::WebFile->new(%$params);
 my $filename = "$data_dir/test.data";
 
 my $db = <<'EOQ';
@@ -71,7 +71,7 @@ COMMANDS = remove
 COMMANDS = search
 		[textdb]
 EXTENSION = data
-CLASS = CMS::Onsite::TextdbData
+CLASS = App::Onsite::TextdbData
 EOQ
 
 $wf->writer("$template_dir/$data_registry", $registry);
@@ -79,10 +79,10 @@ $wf->writer("$template_dir/$data_registry", $registry);
 #----------------------------------------------------------------------
 # Create object
 
-my $data = CMS::Onsite::TextdbData->new(%$params);
+my $data = App::Onsite::TextdbData->new(%$params);
 $data->{wf}->relocate($data_dir);
 
-isa_ok($data, "CMS::Onsite::TextdbData"); # test 2
+isa_ok($data, "App::Onsite::TextdbData"); # test 2
 can_ok($data, qw(browse_data search_data read_data write_data
                  add_data edit_data remove_data check_id next_id)); # test 3
 
