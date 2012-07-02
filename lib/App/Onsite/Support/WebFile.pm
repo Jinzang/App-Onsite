@@ -401,35 +401,35 @@ sub sorted_files {
     my @augmented;
     
     if ($sort_field eq 'date') {
-	my @augmented;
-	foreach (@unsorted) {
-	    push(@augmented, [-M, $_]);
-	}
+        my @augmented;
+        foreach (@unsorted) {
+            push(@augmented, [-M, $_]);
+        }
 				
     } elsif ($sort_field eq 'id') {
-	my @augmented;
-	foreach (@unsorted) {
-	    my $basename = $self->get_basename($_);
-	    push(@augmented, [$basename, $_]);
-	}
+        my @augmented;
+        foreach (@unsorted) {
+            my $basename = $self->get_basename($_);
+            push(@augmented, [$basename, $_]);
+        }
 
     } elsif ($sort_field eq 'ext') {
-	my @augmented;
-	foreach (@unsorted) {
-	    my ($ext) = /\.([^\.]*)$/;
-	    $ext = '' unless defined $ext;
-	    push(@augmented, [$ext, $_]);
-	}
+        my @augmented;
+        foreach (@unsorted) {
+            my ($ext) = /\.([^\.]*)$/;
+            $ext = '' unless defined $ext;
+            push(@augmented, [$ext, $_]);
+        }
     }
 
     if (@augmented) {
-	@augmented = sort {$a->[0] <=> $b->[0]
-			   || $b->[1] cmp $a->[1]} @augmented;
-	
-	@sorted =  map {$_->[1]} @augmented;
+        @augmented = sort {$a->[0] <=> $b->[0]
+                   || $b->[1] cmp $a->[1]} @augmented;
+        
+        @sorted =  map {$_->[1]} @augmented;
 
     } else {
-	@sorted = sort @unsorted;
+        @sorted = sort @unsorted;
     }
 
     @sorted = reverse @sorted if $order eq '-';

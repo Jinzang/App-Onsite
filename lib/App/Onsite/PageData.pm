@@ -234,7 +234,7 @@ sub get_templates {
         my ($parentid, $seq) = $self->{wf}->split_id($id);
 
         my $extra;
-        ($template, $extra) = $self->id_to_filename($parentid);        
+        ($template, $extra) = $self->id_to_filename($parentid);
     }
 
     my $subsubtemplate;
