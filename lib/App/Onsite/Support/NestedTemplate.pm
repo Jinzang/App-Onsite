@@ -17,7 +17,6 @@ sub parameters {
     my ($pkg) = @_;
 
     my %parameters = (
-        lo => {DEFAULT => 'App::Onsite::Listops'},
 		wf => {DEFAULT => 'App::Onsite::Support::WebFile'},
 		cache => {DEFAULT => 'App::Onsite::Support::CachedFile'},
 		lexer => {DEFAULT => 'App::Onsite::Support::NestedTemplateLexer'},
