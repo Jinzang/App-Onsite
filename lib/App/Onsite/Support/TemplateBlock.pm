@@ -457,7 +457,7 @@ sub data {
 }
 
 #----------------------------------------------------------------------
-# Return undef to make with blocks invisible
+# Return undef to make control blocks invisible
 
 sub info_item {
     my ($self) = @_;
