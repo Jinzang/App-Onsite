@@ -115,7 +115,7 @@ my $blog = <<'EOQ';
 <!-- end title --></title>
 <!-- end meta -->
 </head>
-<body bgcolor=\"#ffffff\">
+<body>
 <div id = "container">
 <div  id="content">
 <!-- begin primary -->
@@ -124,43 +124,39 @@ my $blog = <<'EOQ';
 My Very Fine Blog
 <!-- end title --></h1>
 <p><!-- begin body -->
-The Content
+A blog for testing.
 <!-- end body --></p>
 <div><!-- begin author -->
-An author
+The Blogger.
 <!-- end author --></div>
 <!-- end blogdata -->
 <!-- end primary -->
 <!-- begin secondary -->
 <!-- begin postdata -->
-<!-- begin data -->
-<!-- set id [[20010101]] -->
-<h3><!-- begin title -->
-A title
-<!-- end title --></h3>
-<p><!-- begin body -->
-The Content
-<!-- end body --></p>
-<div><!-- begin author -->
-An author
-<!-- end author --></div>
-<!-- end data -->
 <!-- end postdata -->
 <!-- end secondary -->
 </div>
 <div id="sidebar">
 <ul>
 <!-- begin parentlinks -->
+<!-- begin data -->
+<!-- set id [[]] -->
+<!-- set url [[http://www.stsci.edu/]] -->
+<li><a href="http://www.stsci.edu/"><!--begin title -->
+Home
+<!-- end title --></a></li>
+<!-- end data -->
 <!-- end parentlinks -->
 <!-- begin pagelinks -->
 <!-- begin data -->
-<!-- set id [[a-title]] -->
-<!-- set url [[http://www.stsci.edu/a-title.html]] -->
-<li><a href="http://www.stsci.edu/a-title.html"><!--begin title -->
-A Title
+<!-- set id [[]] -->
+<!-- set url [[http://www.stsci.edu/blog/index.html]] -->
+<li><a href="http://www.stsci.edu/blog/index.html"><!--begin title -->
+Blog
 <!-- end title --></a></li>
 <!-- end data -->
 <!-- end pagelinks -->
+</ul>
 <!-- begin commandlinks -->
 <ul>
 <!-- begin data -->
@@ -183,12 +179,20 @@ my $edit_post = <<'EOQ';
 <title>{{title}}</title>
 <!-- end meta -->
 </head>
-<body bgcolor=\"#ffffff\">
+<body>
 <!-- begin primary -->
 <!-- begin any -->
 <!-- end any -->
 <!-- end primary -->
+<!-- begin secondary -->
+<!-- begin any -->
+<!-- end any -->
+<!-- end secondary -->
 <div id="sidebar">
+<!-- begin parentlinks -->
+<!-- end parentlinks -->
+<!-- begin pagelinks -->
+<!-- end pagelinks -->
 <!-- begin commandlinks -->
 <!-- end commandlinks -->
 </div>
@@ -204,7 +208,7 @@ my $post_template = <<'EOQ';
 <!-- end title --></title>
 <!-- end meta -->
 </head>
-<body bgcolor=\"#ffffff\">
+<body>
 <!-- begin primary -->
 <!-- begin postdata -->
 <h1><!-- begin title -->
@@ -215,8 +219,10 @@ my $post_template = <<'EOQ';
 <!-- end author --></div>
 <!-- end postdata -->
 <!-- end primary -->
+<!-- begin secondary -->
+<!-- end secondary -->
 <div id="sidebar">
-<!-- begin pagelinks -->
+<!-- begin parentlinks -->
 <ul>
 <!-- begin data -->
 <!-- set url [[]] -->
@@ -224,7 +230,7 @@ my $post_template = <<'EOQ';
 <!--end title --></a></li>
 <!-- end data -->
 </ul>
-<!-- end pagelinks -->
+<!-- end parentlinks -->
 <!-- begin commandlinks -->
 <ul>
 <!-- begin data -->
@@ -243,16 +249,14 @@ my $update_template = <<'EOQ';
 <html>
 <head>
 </head>
-<body bgcolor=\"#ffffff\">
+<body>
 <ul>
-<!-- begin pagelinks -->
+<!-- begin parentlinks -->
 <!-- begin data -->
-<!-- set id [[]] -->
-<!-- set url [[]] -->
-<li><a href="{{url}}"><!--begin title -->
-<!-- end title --></a></li>
+<li><a href="{{url}}"><!-- begin title -->
+<!--end title --></a><!-- set url [[]] --></li>
 <!-- end data -->
-<!-- end pagelinks -->
+<!-- end parentlinks -->
 </ul>
 </body>
 </html>
@@ -279,7 +283,7 @@ my $posttemplate = <<'EOQ';
 <title>{{title}}</title>
 <!-- end meta -->
 </head>
-<body bgcolor=\"#ffffff\">
+<body>
 <div id = "container">
 <div  id="content">
 <!-- begin primary -->
@@ -297,11 +301,12 @@ my $posttemplate = <<'EOQ';
 </div>
 <div id="sidebar">
 <ul>
-<!-- begin pagelinks -->
+<!-- begin parentlinks -->
 <!-- begin data -->
-<li><a href="{{url}}">{{title}}</a></li>
+<li><a href="{{url}}"><!-- begin title -->
+<!--end title --></a><!-- set url [[]] --></li>
 <!-- end data -->
-<!-- end pagelinks -->
+<!-- end parentlinks -->
 </ul>
 <ul>
 <!-- begin commandlinks -->
@@ -324,28 +329,35 @@ my $monthtemplate = <<'EOQ';
 <title>{{title}}</title>
 <!-- end meta -->
 </head>
-<body bgcolor=\"#ffffff\">
+<body>
 <div id = "container">
 <div  id="content">
 <!-- begin primary -->
 <!-- begin postdata -->
+<h1>{{title}}</h1>
+<!-- end postdata -->
+<!-- end primary -->
+<!-- begin secondary -->
+<!-- begin postdata -->
 <!-- begin data -->
 <h2><!-- begin title -->
 <!-- end title --></h2>
+<!-- set id [[]] -->
 <p><!-- begin summary -->
 <!-- end summary -->
 <a href="{{url}}">More</a></p>
 <!-- end data -->
 <!-- end postdata -->
-<!-- end primary -->
+<!-- end secondary -->
 </div>
 <div id="sidebar">
 <ul>
-<!-- begin pagelinks -->
+<!-- begin parentlinks -->
 <!-- begin data -->
-<li><a href="{{url}}">{{title}}</a></li>
+<li><a href="{{url}}"><!-- begin title -->
+<!--end title --></a><!-- set url [[]] --></li>
 <!-- end data -->
-<!-- end pagelinks -->
+<!-- end parentlinks -->
 </ul>
 </div>
 </div>
@@ -360,26 +372,33 @@ my $yeartemplate = <<'EOQ';
 <title>{{title}}</title>
 <!-- end meta -->
 </head>
-<body bgcolor=\"#ffffff\">
+<body>
 <div id = "container">
 <div  id="content">
 <!-- begin primary -->
 <!-- begin postdata -->
+<h1>{{title}}</h1>
+<!-- end postdata -->
+<!-- end primary -->
+<!-- begin secondary -->
+<!-- begin postdata -->
 <ul>
 <!-- begin data -->
+<!-- set id [[]] -->
 <li><a href="{{url}}">{{title}}</a></li>
 <!-- end data -->
 </ul>
 <!-- end postdata -->
-<!-- end primary -->
+<!-- end secondary -->
 </div>
 <div id="sidebar">
 <ul>
-<!-- begin pagelinks -->
+<!-- begin parentlinks -->
 <!-- begin data -->
-<li><a href="{{url}}">{{title}}</a></li>
+<li><a href="{{url}}"><!-- begin title -->
+<!--end title --></a><!-- set url [[]] --></li>
 <!-- end data -->
-<!-- end pagelinks -->
+<!-- end parentlinks -->
 </ul>
 </div>
 </div>
@@ -394,14 +413,17 @@ my $blogtemplate = <<'EOQ';
 <title>{{title}}</title>
 <!-- end meta -->
 </head>
-<body bgcolor=\"#ffffff\">
+<body>
 <div id = "container">
 <div  id="content">
+<!-- begin primary -->
+<!-- end primary -->
 <!-- begin secondary -->
 <!-- begin postdata sort="-id" -->
 <!-- begin data -->
 <h1><!-- begin title -->
 <!-- end title --></h1>
+<!-- set id [[]] -->
 <p><!-- begin body -->
 <!-- end body --></p>
 <div><!-- begin author -->
@@ -661,7 +683,7 @@ $list = $data->search_data({author => 'An'}, 'blog');
 delete $list->[0]{date}{second};
 is_deeply($list, [$r], "Search data single term"); # test 18
 
-$list = $data->search_data({body =>'New', title => 'New'});
+$list = $data->search_data({body =>'New', title => 'New'}, 'blog');
 delete $list->[0]{date}{second};
 is_deeply($list, [$s], "Search data multiple terms"); # test 19
 

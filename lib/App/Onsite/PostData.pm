@@ -27,21 +27,64 @@ sub parameters {
 }
 
 #----------------------------------------------------------------------
-# Construct command links for page
+# Construct pageinks
+
+sub build_pagelinks {
+    my ($self, $data) = @_;
+
+    my $id = $data->{id} || '';
+    my ($filename, $extra) = $self->id_to_filename($id);
+    my $uplinks = $self->get_downlinks($filename);
+    
+    my $url = $self->id_to_url($id);
+    my $links = $self->link_class($uplinks, $url);
+   
+    return {data => $links};
+}
+
+
+#----------------------------------------------------------------------
+# Construct parent links for page
 
 sub build_parentlinks {
-    my ($self, $data, $sort) = @_;
+    my ($self, $data) = @_;
 
     my $id = $data->{id} || '';
     my ($filename, $extra) = $self->id_to_filename($id);
     my $uplinks = $self->get_uplinks($filename);
-    my $downlinks = $self->get_downlinks($filename);
     
-    my %links = (%$uplinks, %$downlinks);
-    my $links = $self->link_class(\%links, $data->{url});
-    $links = $self->{lo}->list_sort($links, $sort);
-    
+    my $url = $self->id_to_url($id);
+    my $links = $self->link_class($uplinks, $url);
+   
     return {data => $links};
+}
+
+#----------------------------------------------------------------------
+# Build an empty data set for thr secondary block
+
+sub build_primary {
+	my ($self, $request) = @_;
+
+    my %primary;
+    while (my ($name, $value) = each %$request) {
+        next if $name eq 'data';
+        $primary{$name} = $value;
+    }
+    
+    my $type = $self->get_type();
+    return {"${type}data" =>  \%primary};
+}
+
+#----------------------------------------------------------------------
+# Build an empty data set for thr secondary block
+
+sub build_secondary {
+	my ($self, $request) = @_;
+
+    return '' unless exists $request->{data};
+
+    my $type = $self->get_type();
+    return {"${type}data" => {data => $request->{data}}};
 }
 
 #----------------------------------------------------------------------
@@ -120,7 +163,8 @@ sub filename_to_id {
     my $info = $self->info_from_filename($filename);
 
     push(@ids, $self->{wf}->basename_to_id($info->{dir}));
-    push(@ids, $info->{year} . $info->{monthnum} . $info->{post});
+    push(@ids, $info->{year} . $info->{monthnum} . $info->{post})
+        if $info->{year} !~ /^0+$/;
 
     return $self->{wf}->path_to_id(@ids);
 }
@@ -168,7 +212,8 @@ sub get_index_files {
 
     my @index_files;
     while (@dirs) {
-        my $index_file = join('/', @dirs, $self->{index_name});
+        my $index_file = "$self->{index_name}.$self->{extension}";
+        $index_file = join('/', @dirs, $index_file);
         push(@index_files, $index_file) if $index_file ne $filename;
 
         my $basename = pop(@dirs);
@@ -197,8 +242,10 @@ sub get_downlinks {
         my $basename = $self->{wf}->get_basename($path);
         next if $basename !~ /^[my]\d+$/;
 
+        my $index_file = "$self->{index_name}.$self->{extension}";
+        my $file = join('/', $path, $index_file);
+
         my $data = {};
-        my $file = join('/', $path, $self->{index_file});
         $data->{title} = $self->title_from_filename($file);
         $data->{url} = $self->filename_to_url($file);
 
@@ -216,18 +263,59 @@ sub get_kind_file {
 
     my @dirs = split('/', $filename);
     my $basename = pop(@dirs);
-    my $basedir = pop(@dirs);
 
     my $kind;
-    if ($basedir =~ /^m\d+/) {
-    	$kind = 'postindex';
-    } elsif ($basedir =~ /^y\d+/) {
-    	$kind = 'monthindex';
+    my $type = $self->get_type();
+    if ($basename =~ /^$type/) {
+        $kind = 'post';
+
     } else {
-    	$kind = 'blogindex';
+        my $basedir = pop(@dirs);
+    
+        if ($basedir =~ /^m\d+/) {
+            $kind = 'postindex';
+        } elsif ($basedir =~ /^y\d+/) {
+            $kind = 'monthindex';
+        } else {
+            $kind = 'blogindex';
+        }
     }
 
     return $kind;
+}
+
+#---------------------------------------------------------------------------
+# Construct the template used to render the data
+
+sub get_templates {
+    my ($self, $blockname, $filename, $subtemplate) = @_;
+            
+    my $id = $self->filename_to_id($filename);
+    my ($parentid, $seq) = $self->{wf}->split_id($id);
+    
+    my $template;
+    if ($seq =~ /^\d+$/) {
+        my $extra;
+        ($template, $extra) = $self->id_to_filename($parentid);
+    } else {
+        $template = $filename;
+    }
+
+    my $subsubtemplate;
+    my $kind = $self->get_kind_file($filename);
+
+    if ($kind eq 'post') {
+        $subsubtemplate = $self->{add_template};
+    } else {
+        $subsubtemplate = $self->{"${kind}_template"};
+    }
+
+    $subsubtemplate = join('/', $self->{template_dir}, $subsubtemplate);
+        
+    $template = $self->{nt}->parse($template, $subtemplate);
+    $subtemplate = $self->{nt}->parse($subtemplate, $subsubtemplate);
+    
+    return ($template, $subtemplate);
 }
 
 #----------------------------------------------------------------------
@@ -291,7 +379,7 @@ sub id_to_filename {
 sub info_from_filename {
     my ($self, $filename) = @_;
 
-    my $info = {year => '0000', month => '00'};
+    my $info = {year => '0000', monthnum => '00'};
     $info->{post} = '0' x $self->{index_length};
     
     my @dirs = split(/\//, $filename);
@@ -345,11 +433,11 @@ sub title_from_filename {
     my $title;
     my $info = $self->info_from_filename($filename);
 
-    if (exists $info->{post}) {
+    if ($info->{post} !~ /^0+$/) {
     	$title = "Archived post";
-    } elsif (exists $info->{month}) {
+    } elsif ($info->{monthnum}  !~ /^0+$/) {
     	$title = "Archive for $info->{month}";
-    } elsif (exists $info->{year}) {
+    } elsif ($info->{year} !~ /^0+$/) {
     	$title = "Archive for $info->{year}";
     } else {
     	$title = "Recent posts";
@@ -362,12 +450,13 @@ sub title_from_filename {
 # Create the blog index
 
 sub update_blogindex {
-    my ($self, $parentid, $list) = @_;
+    my ($self, $filename, $record) = @_;
 
-    my $dir = $self->get_repository($parentid);
-    my $index_file = "$self->{index_name}.$self->{extension}";
-    my $filename = join('/', $dir, $index_file);
-    $self->update_records($filename, $list);
+    my $sort_field = '-id';
+    my $index_file = $self->update_indexfile($filename, 3);
+
+    $self->update_records($index_file, $record, $sort_field, 
+                          $self->{max_entries});
 
     return;
 }
@@ -379,16 +468,31 @@ sub update_data {
     my ($self, $id, $data) = @_;
 
     my ($filename, $extra) = $self->id_to_filename($id);
-    my $change = $self->update_postindex($filename);
+
+    my $change = $self->update_postindex($filename, $data);
     $self->update_monthindex($filename) if $change;
+    $self->update_blogindex($filename, $data);
 
-    my ($parentid, $seq) = $self->{wf}->split_id($id);
-    my $list = $self->browse_data($parentid, $self->{max_entries});
-
-    $self->update_blogindex($parentid, $list);
-    $self->write_rss($parentid);
+    # TODO: fix later
+    ##my ($parentid, $seq) = $self->{wf}->split_id($id);
+    ##$self->write_rss($parentid);
 
     return;
+}
+
+#----------------------------------------------------------------------
+# Create the index file name
+
+sub update_indexfile {
+    my ($self, $filename, $levels) = @_;
+
+    my @dirs = split('/', $filename);
+    pop(@dirs) while $levels -- > 0;
+
+    my $index_file = "$self->{index_name}.$self->{extension}";
+    $index_file = join('/', @dirs, $index_file);
+
+    return $index_file;
 }
 
 #----------------------------------------------------------------------
@@ -397,14 +501,16 @@ sub update_data {
 sub update_monthindex {
     my ($self, $filename) = @_;
 
-    my @dirs = split('/', $filename);
-    pop(@dirs);
-    pop(@dirs);
+    my $index_file = $self->update_indexfile($filename, 1);
 
-    my $index_file = "$self->{index_name}.$self->{extension}";
-    $index_file = join('/', @dirs, $index_file);
-    my $records = $self->get_downlinks($index_file);
-    $self->update_records($index_file, $records);
+    my $record = {};
+    $record->{title} = $self->title_from_filename($index_file);
+    $record->{url} = $self->filename_to_url($index_file);
+    $record->{id} = $self->filename_to_id($index_file);
+
+    my $sort_field = 'id';
+    $index_file = $self->update_indexfile($filename, 2);
+    $self->update_records($index_file, $record, $sort_field);
 
     return;
 }
@@ -413,61 +519,52 @@ sub update_monthindex {
 # Update the monthly index of posts
 
 sub update_postindex {
-    my ($self, $filename) = @_;
+    my ($self, $filename, $record) = @_;
 
-    my @dirs = split(/\//, $filename);
-    pop(@dirs);
-    my $index_dir = join('/', @dirs);
-
-    my $index_file = "$self->{index_name}.$self->{extension}";
-    $index_file = join('/', $index_dir, $index_file);
+    my $index_file = $self->update_indexfile($filename, 1);
     my $change = ! -e $index_file;
 
-    my $subfolders = 0;
     my $sort_field = 'id';
-    my $visitor = $self->{wf}->visitor($index_dir, $subfolders, $sort_field);
+    $self->update_records($index_file, $record, $sort_field);
 
-    my @list;
-    while (defined(my $filename = &$visitor)) {
-    	next unless $self->valid_filename($filename);
-
-        my $data = $self->read_primary($filename);
-        push(@list, $data);
-    }
-
-    if (@list) {
-        $self->update_records($index_file, \@list);
-
-    } else {
-        $self->{wf}->remove_directory($index_dir);
-        $change = 1;
-    }
-
+    return $change;
 }
 
 #----------------------------------------------------------------------
 # Write blog index
 
 sub update_records {
-    my ($self, $filename, $records) = @_;
+    my ($self, $index_file, $record, $sort, $limit) = @_;
 
-    my $kind = $self->get_kind_file($filename);
-    my $subtemplate = $self->{"${kind}_template"};
-    $subtemplate = join('/', $self->{template_dir}, $subtemplate);
+    my $records = -e $index_file ? $self->read_secondary($index_file) : [];        
 
-    my $data;
-    if (! -e $filename) {
-        $data = {};
-        $data->{base_url} = $self->{base_url};
-        $data->{title} = $self->title_from_filename($filename);
+    my ($parentid, $seq) = $self->{wf}->split_id($record->{id});
+    $record->{id} = $seq;
 
-        $self->write_file("primary.any", $filename, $subtemplate, $data);
+    $records = $self->{lo}->list_add($records, $record);
+    $records = $self->{lo}->list_sort($records, $sort);
+
+    if ($limit && $limit < @$records) {
+        my @records = @$records;
+        @records = @records[0 .. $limit-1];
+        $records = \@records;
     }
 
-    $data = {data => $records};
-    $self->write_file("secondary.any", $filename, $subtemplate, $data);
+    my $data = {};
+    $data->{data} = $records;
+    $data->{base_url} = $self->{base_url};
+    $data->{id} = $self->filename_to_id($index_file);
+    $data->{title} = $self->title_from_filename($index_file);
 
-    return;
+    my $subtemplate = $self->{edit_template};
+    $subtemplate = "$self->{template_dir}/$subtemplate";
+
+    $self->write_file('secondary.any',
+                      $index_file,
+                      $subtemplate,
+                      $data);
+
+   return;
 }
 
 1;
