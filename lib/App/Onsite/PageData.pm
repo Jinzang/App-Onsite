@@ -470,7 +470,7 @@ sub sort_data {
     my $block = $self->{nt}->match($blockname, $template);
 
     if ($block) {
-        my $info = $block->info_item();
+        my $info = $block->parse_args();
         $sort = $info->{sort};
     }
 

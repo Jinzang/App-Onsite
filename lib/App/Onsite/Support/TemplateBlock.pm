@@ -107,35 +107,14 @@ sub info {
     
     my $info = [];
     foreach my $block (@{$self->{BLOCKS}}) {
-        my $item = $block->info_item();
+        my $item = $block->parse_args();
 		next unless defined $item;
 
 		$item->{NAME} = $block->{NAME};
-		$item->{VALUE} = $block->info();
-
         push(@$info, $item);
     }
 
     return $info;
-}
-
-#----------------------------------------------------------------------
-# Parse the block arguments
-
-sub info_item {
-    my ($self) = @_;
-
-    my $item = {};
-    my @tags = $self->{ARGS} =~ /(\w+(?:="[^"]*")?)/g;
-
-    foreach my $tag (@tags) {
-        my ($tagname, $tagvalue) = $tag =~ /(\w+)(?:="([^"]*)")?/;
-
-        $tagvalue = undef unless defined $tagvalue;
-        $item->{lc($tagname)} = $tagvalue;
-    }
-
-    return $item;
 }
 
 #----------------------------------------------------------------------
@@ -151,12 +130,9 @@ sub match {
 	$names = join('.', @names);
 
 	foreach my $block (@{$self->{BLOCKS}}) {
-		if ($name eq 'any' ||
-            $block->{NAME} eq 'any' ||
-            $name eq $block->{NAME}) {
-
-			my $template = $names ? $block->match($names) : $block;
-			return $template if $template;
+		if ($name eq $block->{NAME}) {
+			my $matched_block = $names ? $block->match($names) : $block;
+			return $matched_block if $matched_block;
 		}
 	}
 
@@ -226,6 +202,25 @@ sub parse {
 }
 
 #----------------------------------------------------------------------
+# Parse the block arguments
+
+sub parse_args {
+    my ($self) = @_;
+
+    my $item = {};
+    my @tags = $self->{ARGS} =~ /(\w+(?:="[^"]*")?)/g;
+
+    foreach my $tag (@tags) {
+        my ($tagname, $tagvalue) = $tag =~ /(\w+)(?:="([^"]*)")?/;
+
+        $tagvalue = undef unless defined $tagvalue;
+        $item->{lc($tagname)} = $tagvalue;
+    }
+
+    return $item;
+}
+
+#----------------------------------------------------------------------
 # Render a data structure using the template block
 
 sub render {
@@ -236,6 +231,7 @@ sub render {
     return '' unless defined $result;
 
     my $bin =  App::Onsite::Support::Bin->new($data);
+
     if ($result !~ s/$pattern/$self->render_macro($bin, $1)/ge) {
         $result = $self->render_data($data);
     }
@@ -253,7 +249,9 @@ sub render_block {
     return $self->unparse() unless defined $data;
 
     my $result;
-    if ($data =~ /ARRAY/) {
+    my $ref = ref $data;
+    
+    if ($ref eq 'ARRAY') {
         # Take each element of the array, render, and concatenate the results
 
         my @results;
@@ -279,7 +277,7 @@ sub render_data {
 
     my $result;
     if (! ref $data) {
-	$result = $data;
+        $result = $data;
 
     } else {
         # Check for cycles in the data to prevent an endless loop
@@ -335,35 +333,12 @@ sub render_macro {
         $result = $block->render_block($bin) if defined $block;
 
     } else {
-        my $data = $bin->get($name, '');
-        $result = $self->render_data($data);
+        my $data = $bin->get($name);
+        $result = $self->render_data($data) if defined $data;
     }
 
     $result = '' unless defined $result;
     return $result;
-}
-
-#----------------------------------------------------------------------
-# Replace a block by a subtemplate block of the same name, if found
-
-sub replace {
-	my ($self, $block) = @_;
-
-    my $new_block;
-	my $subtemplate = $self->match($block->{NAME});
-
-	if ($subtemplate) {
-        if ($self->has_blocks() && $subtemplate->has_blocks()) {
-            $new_block = $block->subtemplate($subtemplate);
-        } else {
-            $new_block = $subtemplate->copy();
-        }
- 
-	} else {
-		$new_block = $block->copy();
-	}
-
-	return $new_block;
 }
 
 #----------------------------------------------------------------------
@@ -372,24 +347,15 @@ sub replace {
 sub subtemplate {
 	my ($self, $subtemplate) = @_;
 
-	my $blocks = $self->{BLOCKS};
-	my $template = $subtemplate->copy();
+    my @new_blocks;
+	my $template = $self->copy();
 
-	if (@$blocks) {
-		my @new_blocks;
-		$template->{VALUE} = $self->{VALUE};
+    foreach my $block (@{$template->{BLOCKS}}) {
+        my $new_block = $subtemplate->match($block->{NAME}) || $block;
+        push(@new_blocks, $new_block);       
+    }
 
-        my $oldname= '';
-		foreach my $block (@$blocks) {
-            if ($block->{NAME} ne $oldname) {
-                $oldname = $block->{NAME};
-                push(@new_blocks, $subtemplate->replace($block));
-            }
-		}
-
-		$template->{BLOCKS} = \@new_blocks;
-	}
-
+    $template->{BLOCKS} = \@new_blocks;
 	return $template;
 }
 
@@ -457,19 +423,19 @@ sub data {
 }
 
 #----------------------------------------------------------------------
-# Return undef to make control blocks invisible
-
-sub info_item {
-    my ($self) = @_;
-    return;
-}
-
-#----------------------------------------------------------------------
 # Match fails for control blocks
 
 sub match {
 	my ($self, $names) = @_;
 	return;
+}
+
+#----------------------------------------------------------------------
+# Return undef to make control blocks invisible
+
+sub parse_args {
+    my ($self) = @_;
+    return;
 }
 
 #----------------------------------------------------------------------
@@ -486,15 +452,6 @@ sub render {
 }
 
 #----------------------------------------------------------------------
-# Replace is a copy for control blocks
-
-sub replace {
-	my ($self, $subtemplate) = @_;
-
-	return $self->copy();
-}
-
-#----------------------------------------------------------------------
 package App::Onsite::Support::BeginTemplateBlock;
 
 use base qw(App::Onsite::Support::TemplateSubBlock);
@@ -503,9 +460,9 @@ use base qw(App::Onsite::Support::TemplateSubBlock);
 # Render a data structure using the template block
 
 sub render {
-    my ($self, $bin) = @_;
+    my ($self, $data) = @_;
 
-    my $result = $self->App::Onsite::Support::TemplateBlock::render($bin);
+    my $result = $self->SUPER::render($data);
     return $self->decorate($result);
 }
 
@@ -603,37 +560,14 @@ sub parse {
 sub render_block {
     my ($self, $bin) = @_;
 
-    my $data = $bin->get($self->{NAME}, '');
-    return $self->decorate($data);
-}
-
-#----------------------------------------------------------------------
-package App::Onsite::Support::WithTemplateBlock;
-
-use base qw(App::Onsite::Support::TemplateSubBlock);
-
-#----------------------------------------------------------------------
-# Return undef to make with blocks invisible
-
-sub data {
-    my ($self) = @_;
-    return;
-}
-
-#----------------------------------------------------------------------
-# Return undef to make with blocks invisible
-
-sub info_item {
-    my ($self) = @_;
-    return;
-}
-
-#----------------------------------------------------------------------
-# Match fails for with blocks
-
-sub match {
-	my ($self, $names) = @_;
-	return;
+    my $data = $bin->get($self->{NAME});
+    if (defined $data) {
+        $data = $self->decorate($data);
+    } else {
+        $data = $self->unparse();
+    }
+    
+    return $data;
 }
 
 #----------------------------------------------------------------------
@@ -656,6 +590,11 @@ sub render_block {
 
     return $result;
 }
+
+#----------------------------------------------------------------------
+package App::Onsite::Support::WithTemplateBlock;
+
+use base qw(App::Onsite::Support::TemplateSubBlock);
 
 #----------------------------------------------------------------------
 # Bin holds the data used for interpolation
@@ -683,28 +622,17 @@ sub new {
 
 #----------------------------------------------------------------------
 # Get the named value or the default value
+# TODO: simplify, simplify
 
 sub get {
-    my ($self, $name, $default) = @_;
-
-    my $rest;
-    if ($name =~ /\./) {
-        ($name, $rest) = split(/\./, $name, 2);
-    }
+    my ($self, $name) = @_;
 
     my $val;
     if (exists $self->{$name}) {
         $val = $self->{$name};
-        if (defined $rest) {
-            my $bin = App::Onsite::Support::Bin->new($val);
-            $val = $bin->get($rest, $default);
-        }
-
+ 
     } elsif  (exists $self->{''}) {
         $val = $self->{''};
-
-    } else {
-        $val = $default;
     }
 
     return $val;

@@ -1,10 +1,10 @@
-#!/usr/bin/env perl -T
+#!/usr/bin/env perl 
 
 use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 27;
+use Test::More tests => 26;
 
 #----------------------------------------------------------------------
 # Remove internal entries from hash
@@ -39,15 +39,6 @@ my $s = $n->render($d, $code);
 is($s, "Hello Bernie", "Render simple template"); # test 4
 
 #----------------------------------------------------------------------
-#Substitute for scalar in subhash
-
-$code = $n->parse('My name is {{data.name}} and I like to {{data.hobby}}');
-$d = {data => {name => 'Bernie', hobby => 'run'}};
-$s = $n->render($d, $code);
-is($s, "My name is Bernie and I like to run",
-   "Render scalar with subhash"); # test 5
-
-#----------------------------------------------------------------------
 # Substitute for list
 
 my $t = <<'END';
@@ -72,7 +63,7 @@ END
 $code = $n->parse($t);
 $d = {name =>'Bernie', friends => [qw(Leigh Greg Craig Mike)]};
 $s = $n->render($d,  $code);
-is($s, $r, "Render template with list"); # test 6
+is($s, $r, "Render template with list"); # test 5
 
 #----------------------------------------------------------------------
 # Substitute for list of hashes
@@ -109,7 +100,7 @@ $d = {name =>'Bernie',
      };
 
 $s = $n->render($d,  $code);
-is($s, $r, "Render template with list of hashes"); # test 7
+is($s, $r, "Render template with list of hashes"); # test 6
 
 #----------------------------------------------------------------------
 # Substitute for list of lists
@@ -162,7 +153,7 @@ $d = {name =>'Bernie',
      };
 
 $s = $n->render($d,  $code);
-is_deeply($s, $r, "Render template with list of lists"); # test 8
+is_deeply($s, $r, "Render template with list of lists"); # test 7
 
 #----------------------------------------------------------------------
 # Render a data structure with no template
@@ -216,7 +207,7 @@ $d = {d =>
 
 $code = $n->parse('{{d}}');
 $s = $n->render($d,  $code);
-is($s, $r, "Render data structure with no templates"); # test 9
+is($s, $r, "Render data structure with no templates"); # test 8
 
 #----------------------------------------------------------------------
 # Test if blocks
@@ -249,7 +240,7 @@ END
 $code = $n->parse($t);
 $d = {name =>'Bernie', friends => [qw(Leigh Greg Craig Mike)]};
 $s = $n->render($d,  $code);
-is($s, $r, "If blocks"); # test 10
+is($s, $r, "If blocks"); # test 9
 
 #----------------------------------------------------------------------
 # Test scalar block
@@ -262,7 +253,7 @@ $code = $n->parse($t);
 $d = {name => 'Bernie'};
 
 $s = $n->render($d,  $code);
-is($s, "Hello Bernie\n", "Render scalar block"); # test 11
+is($s, "Hello Bernie\n", "Render scalar block"); # test 10
 
 #----------------------------------------------------------------------
 # Test scalar reference
@@ -272,7 +263,7 @@ $code = $n->parse('Hello {{name}}');
 $d = {name => \$name};
 
 $s = $n->render($d,  $code);
-is($s, "Hello Bernie", "Render scalar reference"); # test 12
+is($s, "Hello Bernie", "Render scalar reference"); # test 11
 
 #----------------------------------------------------------------------
 # Test block parse with missing blanks
@@ -287,7 +278,7 @@ eval {
     $code = $n->parse($t);
     $s = $n->render($d,  $code);
 };
-is($s, "Hello Bernie\n", "Parse blocks with missing blanks"); # test 13
+is($s, "Hello Bernie\n", "Parse blocks with missing blanks"); # test 12
 
 #----------------------------------------------------------------------
 # Missing begin
@@ -318,7 +309,7 @@ eval {
 
 
 like($@, qr(App::Onsite::Support::NestedTemplate: Mismatched begin/end),
-	 "Missing begin"); # test 14
+	 "Missing begin"); # test 13
 
 #----------------------------------------------------------------------
 # Missing end
@@ -348,7 +339,8 @@ eval {
 };
 
 
-like($@, qr(App::Onsite::Support::NestedTemplate: Mismatched begin/end), "Missing end"); # test 15
+like($@, qr(App::Onsite::Support::NestedTemplate: Mismatched begin/end),
+     "Missing end"); # test 14
 
 #----------------------------------------------------------------------
 # Test data retrieval
@@ -386,17 +378,17 @@ $r = {
 $code = $n->parse($t);
 $d = $n->data($code);
 
-is_deeply($d, $r, "Data retrieval"); # test 16
+is_deeply($d, $r, "Data retrieval"); # test 15
 
 $d = $n->info($code);
 
 $r = [
-    {NAME => 'header', VALUE => '<title>{{title}}</title>', id => 'header'},
-    {NAME => 'content', VALUE => "<p>Cogito ergo sum</p>", id => 'content'},
-    {NAME => 'sidebar', VALUE => "<p>Side comment</p>", id => 'sidebar'},
+    {NAME => 'header', id => 'header'},
+    {NAME => 'content', id => 'content'},
+    {NAME => 'sidebar', id => 'sidebar'},
 ];
 
-is_deeply($d, $r, "Info retrieval"); # test 17
+is_deeply($d, $r, "Info retrieval"); # test 16
 
 #----------------------------------------------------------------------
 # Test begin block
@@ -441,7 +433,7 @@ $d = {name =>'Bernie',
      };
 
 $s = $n->render($d,  $code);
-is_deeply($s, $r, "Begin block"); # test 18
+is_deeply($s, $r, "Begin block"); # test 17
 
 #----------------------------------------------------------------------
 # Test block arguments
@@ -488,7 +480,7 @@ $d = {name =>'Bernie',
      };
 
 $s = $n->render($d,  $code);
-is_deeply($s, $r, "Block arguments"); # test 19
+is_deeply($s, $r, "Block arguments"); # test 18
 
 #----------------------------------------------------------------------
 # Test multiple blocks with same name
@@ -523,25 +515,7 @@ $r = {comments => {comment => [
 ]}};
 
 $s = $n->data($t);
-is_deeply($s, $r, "Data from multiple blocks"); # Test 20
-
-$r = [{NAME =>'comments', VALUE =>
-	   [{id => '0001', NAME => 'comment', VALUE =>
-		  [{NAME => 'title', VALUE => 'Rocks!'},
-		   {NAME => 'body', VALUE => '<p>This rocks!</p>'}],
-		},
-		{id => '0002', NAME => 'comment', VALUE =>
-		  [{NAME => 'title', VALUE => 'Sucks!'},
-		   {NAME => 'body', VALUE => '<p>This sucks!</p>'}],
-		},
-		{id => '0003', NAME => 'comment', VALUE =>
-		  [{NAME => 'title', VALUE => 'Blows!'},
-		   {NAME => 'body', VALUE => '<p>This blows!</p>'}],
-		}],
-     }];
-
-$s = $n->info($t);
-is_deeply($s, $r, "Info from multiple blocks"); # Test 21
+is_deeply($s, $r, "Data from multiple blocks"); # Test 19
 
 #----------------------------------------------------------------------
 # Test set with value
@@ -570,7 +544,7 @@ $r = {urls =>
        }
      };
 
-is_deeply($s, $r, "Set with value"); # Test 22
+is_deeply($s, $r, "Set with value"); # Test 20
 
 #----------------------------------------------------------------------
 # Test render set
@@ -608,7 +582,7 @@ END
 $d = {urls => $s->{urls}{url}};
 $code = $n->parse($t);
 my $list = $n->render($d,  $code);
-is_deeply($list, $r, "Render set"); # Test 23
+is_deeply($list, $r, "Render set"); # Test 21
 
 #----------------------------------------------------------------------
 # Match block
@@ -640,7 +614,7 @@ $code = $n->parse($t);
 $d = $code->match("comments.comment")->data();
 $r = {title => 'Rocks!', body => '<p>This rocks!</p>'};
 
-is_deeply($d, $r, "Match block"); # Test 24
+is_deeply($d, $r, "Match block"); # Test 22
 
 #----------------------------------------------------------------------
 # Render template and subtemplate
@@ -649,14 +623,14 @@ my $t1 = <<'END';
 <h1>{{name}}'s friends</h1>
 <table>
 <tr><th>Name</th><th>Phone</th></tr>
-<!-- begin subtemplate -->
+<!-- begin subtemplate type="one" -->
 <!-- end subtemplate -->
 </table>
 END
 
 my $t2 = <<'END';
 
-<!-- begin subtemplate -->
+<!-- begin subtemplate type="two" -->
 <!-- with friends -->
 <tr><td>{{name}}</td><td>{{phone}}</td></tr>
 <!-- end friends -->
@@ -668,7 +642,7 @@ $r = <<'END';
 <h1>Bernie's friends</h1>
 <table>
 <tr><th>Name</th><th>Phone</th></tr>
-<!-- begin subtemplate -->
+<!-- begin subtemplate type="two" -->
 <tr><td>Leigh</td><td>1242</td></tr>
 <tr><td>Greg</td><td>1345</td></tr>
 <tr><td>Craig</td><td>4849</td></tr>
@@ -691,10 +665,10 @@ $d = {name =>'Bernie',
      };
 
 $s = $n->render($d,  $code);
-is($s, $r, "Render template and subtemplate"); # test 25
+is($s, $r, "Render template and subtemplate"); # test 23
 
 #----------------------------------------------------------------------
-# Test replace
+# Test subtemplate
 
 $t1 = <<'END';
 <h1>{{name}}'s friends</h1>
@@ -736,7 +710,7 @@ END
 
 $code = $n->parse($t2, $t1);
 $s = $n->unparse($code);
-is($s, $r, "Replace with subtemplate"); # test 26
+is($s, $r, "Replace with subtemplate"); # test 24
 
 #----------------------------------------------------------------------
 # Test multi-level replace
@@ -783,4 +757,54 @@ END
 
 $code = $n->parse($t2, $t1);
 $s = $n->unparse($code);
-is($s, $r, "Multi-level replace with subtemplate"); # test 27
+is($s, $r, "Multi-level replace with subtemplate"); # test 25
+
+#----------------------------------------------------------------------
+# Partial update
+
+$t = <<'END';
+<!-- begin caption -->
+<h1><!-- begin name -->Bernie<!-- end name -->'s friends</h1>
+<!-- end caption -->
+<table>
+<!-- begin table -->
+<tr><th>Name</th><th>Phone</th></tr>
+<!-- begin friends -->
+<tr><td><!-- begin name -->Leigh<!-- end name --></td>
+<td><!-- begin phone -->1242<!-- end phone --></td></tr>
+<!-- end friends -->
+<!-- begin friends -->
+<tr><td><!-- begin name -->Greg<!-- end name --></td>
+<td><!-- begin phone -->1345<!-- end phone --></td></tr>
+<!-- end friends -->
+<!-- begin friends -->
+<tr><td><!-- begin name -->Craig<!-- end name --></td>
+<td><!-- begin phone -->4849<!-- end phone --></td></tr>
+<!-- end friends -->
+<!-- begin friends -->
+<tr><td><!-- begin name -->Mike<!-- end name --></td>
+<td><!-- begin phone -->4998<!-- end phone --></td></tr>
+<!-- end friends -->
+<!-- end table -->
+</table>
+END
+
+my $caption = {caption => {name => 'Anne'}};
+                   
+$code = $n->parse($t);
+$r = $n->render($caption,  $code);
+$s = $n->data($r);
+
+$d = {
+      caption => {name =>'Anne'},
+      table => {friends => [
+                  {name =>'Leigh', phone => '1242'},
+                  {name =>'Greg', phone => '1345'},
+                  {name =>'Craig', phone => '4849'},
+                  {name =>'Mike', phone => '4998'}
+                 ]
+              }
+     };
+
+is_deeply($s, $d, "Partial data render"); # test 26
+
