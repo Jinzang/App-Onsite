@@ -3,7 +3,7 @@ use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 27;
+use Test::More tests => 26;
 
 use Cwd qw(abs_path getcwd);
 use App::Onsite::Support::WebFile;
@@ -25,7 +25,7 @@ my $params = {
               data_dir => $data_dir,
               template_dir => "$template_dir",
               script_url => 'test.cgi',
-              base_url => 'http://www.stsci.edu',
+              base_url => 'http://www.onsite.org',
               valid_write => [$data_dir, $template_dir],
               data_registry => $data_registry,
              };
@@ -58,9 +58,7 @@ EXTENSION = html
 CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
-ADD_TEMPLATE = add_page.htm
-EDIT_TEMPLATE = edit_page.htm
-UPDATE_TEMPLATE = update_page.htm
+SUBTEMPLATE = add_page.htm
 COMMANDS = browse
 COMMANDS = add
 COMMANDS = edit
@@ -82,8 +80,7 @@ my $page = <<'EOQ';
 <body bgcolor=\"#ffffff\">
 <div id = "container">
 <div  id="content">
-<!-- begin primary -->
-<!-- begin pagedata -->
+<!-- begin primary type="page" -->
 <h1><!-- begin title -->
 A title
 <!-- end title --></h1>
@@ -93,10 +90,8 @@ The Content
 <div><!-- begin author -->
 An author
 <!-- end author --></div>
-<!-- end pagedata -->
 <!-- end primary -->
-<!-- begin secondary -->
-<!-- begin listdata -->
+<!-- begin secondary type="list" -->
 <!-- begin data -->
 <!-- set id [[0001]] -->
 <h3><!-- begin title -->
@@ -109,7 +104,6 @@ The Content
 An author
 <!-- end author --></div>
 <!-- end data -->
-<!-- end listdata -->
 <!-- end secondary -->
 </div>
 <div id="sidebar">
@@ -119,8 +113,8 @@ An author
 <!-- begin pagelinks -->
 <!-- begin data -->
 <!-- set id [[a-title]] -->
-<!-- set url [[http://www.stsci.edu/a-title.html]] -->
-<li><a href="http://www.stsci.edu/a-title.html"><!--begin title -->
+<!-- set url [[http://www.onsite.org/a-title.html]] -->
+<li><a href="http://www.onsite.org/a-title.html"><!--begin title -->
 A Title
 <!-- end title --></a></li>
 <!-- end data -->
@@ -128,50 +122,14 @@ A Title
 <!-- begin commandlinks -->
 <ul>
 <!-- begin data -->
-<li><a href="{{url}}"><!-- begin title -->
-<!--end title --></a><!-- set url [[]] --></li>
+<!-- set url [[test.cgi?cmd=edit&id=a-title]] -->
+<li><a href="test.cgi?cmd=edit&id=a-title"><!-- begin title -->
+A Title<!--end title --></a></li>
 <!-- end data -->
 </ul>
 <!-- end commandlinks -->
 </ul>
 </div>
-</div>
-</body>
-</html>
-EOQ
-
-my $edit_page = <<'EOQ';
-<html>
-<head>
-<!-- begin meta -->
-<title>{{title}}</title>
-<!-- end meta -->
-</head>
-<body bgcolor=\"#ffffff\">
-<!-- begin primary -->
-<!-- begin any -->
-<!-- end any -->
-<!-- end primary -->
-<div id="sidebar">
-<!-- begin commandlinks -->
-<!-- end commandlinks -->
-</div>
-</body>
-</html>
-EOQ
-
-my $edit_subpage = <<'EOQ';
-<html>
-<head>
-</head>
-<body bgcolor=\"#ffffff\">
-<!-- begin secondary -->
-<!-- begin any -->
-<!-- begin data -->
-<!-- end data -->
-<!-- end any -->
-<!-- end secondary -->
-<div id="sidebar">
 </div>
 </body>
 </html>
@@ -185,21 +143,22 @@ my $page_template = <<'EOQ';
 <!-- end title --></title>
 <!-- end meta -->
 </head>
-<body bgcolor=\"#ffffff\">
-<!-- begin primary -->
-<!-- begin pagedata -->
+<body>
+<!-- begin primary type="page" -->
 <h1><!-- begin title -->
 <!-- end title --></h1>
 <p><!-- begin body -->
 <!-- end body --></p>
 <div><!-- begin author -->
 <!-- end author --></div>
-<!-- end pagedata -->
 <!-- end primary -->
 <div id="sidebar">
+<!-- begin parentlinks -->
+<!-- end parentlinks -->
 <!-- begin pagelinks -->
 <ul>
 <!-- begin data -->
+<!-- set id [[]] -->
 <!-- set url [[]] -->
 <li><a href="{{url}}"><!-- begin title -->
 <!--end title --></a></li>
@@ -244,25 +203,6 @@ my $subpage_template = <<'EOQ';
 </html>
 EOQ
 
-my $update_template = <<'EOQ';
-<html>
-<head>
-</head>
-<body bgcolor=\"#ffffff\">
-<ul>
-<!-- begin pagelinks -->
-<!-- begin data -->
-<!-- set id [[]] -->
-<!-- set url [[]] -->
-<li><a href="{{url}}"><!--begin title -->
-<!-- end title --></a></li>
-<!-- end data -->
-<!-- end pagelinks -->
-</ul>
-</body>
-</html>
-EOQ
-
 # Write page as templates and pages
 
 my $indexname = "$data_dir/index.html";
@@ -273,25 +213,13 @@ my $pagename = "$data_dir/a-title.html";
 $pagename = $wf->validate_filename($pagename, 'w');
 $wf->writer($pagename, $page);
 
-my $templatename = "$template_dir/edit_page.htm";
-$templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $edit_page);
-
-$templatename = "$template_dir/edit_subpage.htm";
-$templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $edit_subpage);
-
-$templatename = "$template_dir/add_page.htm";
+my $templatename = "$template_dir/add_page.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $page_template);
 
 $templatename = "$template_dir/add_subpage.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $subpage_template);
-
-$templatename = "$template_dir/update_page.htm";
-$templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $update_template);
 
 #----------------------------------------------------------------------
 # Create object
@@ -310,7 +238,7 @@ $data->{wf}->relocate($data_dir);
 #----------------------------------------------------------------------
 # command links
 
-my $elink = [{
+my $elinks = [{
              title => 'Edit Page',
              url => "test.cgi?cmd=edit&id=a-title",
             },
@@ -319,35 +247,25 @@ my $elink = [{
              url => "test.cgi?cmd=add&id=a-title&subtype=list",
             }];
 
-my $links = $data->build_commandlinks({id =>'a-title'});
-is_deeply($links, {data => $elink}, "Page command links"); # test 4
+my $links = $data->build_commandlinks($pagename, {id =>'a-title'});
+is_deeply($links, {data => $elinks}, "Page command links"); # test 4
 
 #----------------------------------------------------------------------
-# Update data
+# Read data
 
 my $r = {title => "A title",
       body => "The Content",
       author => 'An author',
-      id => 'a-title',
      };
 
-$r->{summary} = $r->{body};
-$r->{url} = join('/', $params->{base_url}, "a-title.html");
-my $d = $data->read_data('a-title');
+my $d = $data->read_primary($pagename);
+is_deeply($d, $r, "Read primary"); # Test 5
 
-is_deeply($d, $r, "Read data"); # Test 5
-
-$d->{cmd} = 'edit';
-my $q = {id => $r->{id}, title => $r->{title}, url => $r->{url}};
-
-$data->update_data('a-title', $d);
-
-my $u = $data->read_records($pagename, 'pagelinks');
-is_deeply($u, [$q], "Update page siblings"); # Test 6
-
-$r = $data->read_data('a-title');
-$r->{cmd} = $d->{cmd};
-is_deeply($r, $d, "Update page contents"); # Test 7
+my $s = {};
+%$s = %$r;
+$s->{id} = '0001';
+$d = $data->read_secondary($pagename);
+is_deeply($d, [$s], "Read secondary"); # Test 6
 
 #----------------------------------------------------------------------
 # summarize
@@ -356,17 +274,17 @@ my $text = "<p>" . "abcd <b>efgh</b>" x 300 . "</p>";
 my $summary = $data->summarize($text);
 my $required_summary = "abcd efgh " x 29 . "abcd ...";
 
-is($summary, $required_summary, "Summarize page"); # test 8
+is($summary, $required_summary, "Summarize page"); # test 7
 
 #----------------------------------------------------------------------
 # extra_data
 
-my $hash = {body => $text};
-$hash = $data->extra_data($hash, '0001');
+my $hash = {id => 'a-title', body => $text};
+$hash = $data->extra_data($hash);
 
 is_deeply([sort keys %$hash],
-          [qw(body summary url)],
-          "Page extra data"); # test 9
+          [qw(body id summary url)],
+          "Page extra data"); # test 8
 
 #----------------------------------------------------------------------
 # File Visitor
@@ -376,22 +294,22 @@ $hash = &$get_next();
 my @keys = sort keys %$hash;
 
 is_deeply(\@keys, [qw(author body id
-                   summary title url)], "File visitor"); # test 10
+                   summary title url)], "File visitor"); # test 9
 
 #----------------------------------------------------------------------
 # Check id
 
 my $test = $data->check_id('a-title') ? 1 : 0;
-is ($test, 1, "Page has id");  # test 11
+is ($test, 1, "Page has id");  # test 10
 
 $test = $data->check_id('new-title') ? 1 : 0;
-is ($test, 0, "Page doesn't have id");  # test 12
+is ($test, 0, "Page doesn't have id");  # test 11
 
 #----------------------------------------------------------------------
 # Generate id
 
 my $id2 = $data->generate_id('', 'New Title');
-is ($id2, 'new-title', "Generate page id");  # test 13
+is ($id2, 'new-title', "Generate page id");  # test 12
 
 #----------------------------------------------------------------------
 # Read data
@@ -408,12 +326,11 @@ $r = {title => "A title",
      };
 
 $d = $data->read_data('a-title');
-is_deeply($d, $r, "Read page"); # Test 14
+is_deeply($d, $r, "Read page"); # Test 13
 
 #----------------------------------------------------------------------
 # Edit data
 
-my $s;
 %$s = %$d;
 $d->{cmd} = 'edit';
 
@@ -421,15 +338,15 @@ $data->edit_data('a-title', $d);
 $d = $data->read_data('a-title');
 $s->{summary} = $d->{summary};
 
-is_deeply($d, $s, "Edit"); # Test 15
+is_deeply($d, $s, "Edit"); # Test 14
 
 my $pagedata = $data->{nt}->data("$data_dir/a-title.html");
 
 my $meta = $pagedata->{meta};
-is_deeply($meta, {title => $d->{title}}, "Page meta"); # Test 16
+is_deeply($meta, {title => $d->{title}}, "Page meta"); # Test 15
 
-$links = $pagedata->{commandlinks}{data};
-is_deeply($links, $elink, "Page command Links"); # Test 17
+is_deeply($pagedata->{commandlinks}, {data => $elinks},
+          "Page command Links"); # Test 16
 
 #----------------------------------------------------------------------
 # Read data
@@ -439,11 +356,11 @@ $r = {title => "A title",
       summary => "The Content",
       author => "An author",
       id => 'a-title:0001',
-      url => 'http://www.stsci.edu/a-title.html#0001',
+      url => 'http://www.onsite.org/a-title.html#0001',
      };
 
 $d = $data->read_data('a-title:0001');
-is_deeply($d, $r, "Read subpage"); # Test 18
+is_deeply($d, $r, "Read subpage"); # Test 17
 
 #----------------------------------------------------------------------
 # Add Second Page
@@ -456,18 +373,18 @@ $d->{author} =~ s/An/New/;
 
 %$s = %$d;
 $s->{id} = 'new-title';
-$s->{url}= 'http://www.stsci.edu/new-title.html';
+$s->{url}= 'http://www.onsite.org/new-title.html';
 
 $data->add_data('', $d);
 $d = $data->read_data('new-title');
-is_deeply($d, $s, "Add second page"); # Test 19
+is_deeply($d, $s, "Add second page"); # Test 18
 
 #----------------------------------------------------------------------
 # Redirect url
 
 my $url = $data->redirect_url('a-title');
 is($url, "$params->{base_url}/a-title.html",
-         "Redirect page url"); # test 20
+         "Redirect page url"); # test 19
    
 #----------------------------------------------------------------------
 # Rename page
@@ -484,7 +401,7 @@ delete $d->{base_url};
 delete $d->{oldid};
 delete $d->{cmd};
 
-is_deeply($s, $d, "Rename page"); # Test 21
+is_deeply($s, $d, "Rename page"); # Test 20
 
 #----------------------------------------------------------------------
 # Remove page
@@ -492,26 +409,26 @@ is_deeply($s, $d, "Rename page"); # Test 21
 $d->{cmd} = 'remove';
 $data->remove_data('strange-title', $d);
 my $file = $data->id_to_filename('strange-title');
-ok(! -e $file, "Remove page"); # Test 22
+ok(! -e $file, "Remove page"); # Test 21
 
 #----------------------------------------------------------------------
 # Browse subpage
 
 my $results = $data->browse_data('a-title');
-is_deeply($results, [$r], "Browse subpage"); # test 23
+is_deeply($results, [$r], "Browse subpage"); # test 22
 
 #----------------------------------------------------------------------
 # Search subpage
 
 my $list = $data->search_data({author => 'author'}, 'a-title');
-is_deeply($list, [$r], "Search subpage"); # test 24
+is_deeply($list, [$r], "Search subpage"); # test 23
 
 $list = $data->search_data({author => 'author'}, 'a-title', 1);
-is_deeply($list, [$r], "Search subpage with limit"); # test 25
+is_deeply($list, [$r], "Search subpage with limit"); # test 24
 
 $list = $data->search_data({author => 'An'}, 'a-title');
-is_deeply($list, [$r], "Search subpage single term"); # test 26
+is_deeply($list, [$r], "Search subpage single term"); # test 25
 
 $list = $data->search_data({body =>'The', title => 'A'}, 'a-title');
-is_deeply($list, [$r], "Search subpage multiple terms"); # test 27
+is_deeply($list, [$r], "Search subpage multiple terms"); # test 26
 

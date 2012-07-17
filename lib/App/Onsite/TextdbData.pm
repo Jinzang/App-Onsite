@@ -126,21 +126,30 @@ sub read_secondary {
 # Write a text database with records separated by double bars
 
 sub write_secondary {
-    my ($self, $filename, $records) = @_;
+    my ($self, $filename, $request) = @_;
 
 	# Read info record or generate if new file
 
 	my $info;
+    my $records;
 	if (-e $filename) {
-		$info = $self->read_info($filename);
-
+        $records = $self->read_every_record($filename);
+        $info = shift @$records;
+        
 	} else {
 		$info = {};
-		foreach my $field (keys %${$records->[0]}) {
+        $records = [];
+		foreach my $field (keys %$request) {
 			next if $field eq 'id';
 			$info->{"$field.valid"} = '';
 		}
 	}
+
+    my ($parentid, $seq) = $self->{wf}->split_id($request->{id});
+    $request->{id} = $seq;
+
+    $records = $self->update_records($records, $request);
+    $records = $self->{lo}->list_sort($records);
 
 	# Add info record to output
 	unshift(@$records, $info);

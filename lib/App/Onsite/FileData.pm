@@ -76,7 +76,8 @@ sub browse_data {
         last unless -- $limit;
     }
 
-    return $self->{lo}->list_sort(\@list);
+    return \@list;
+    ##return $self->{lo}->list_sort(\@list);
 }
 
 #----------------------------------------------------------------------
@@ -279,16 +280,6 @@ sub filename_to_id {
 }
 
 #----------------------------------------------------------------------
-# Return true if there is only one subtype
-
-sub has_one_subtype {
-    my ($self, $id) = @_;
-
-    my $subtypes = $self->get_subtypes($id);
-    return @$subtypes == 1;    
-}
-
-#----------------------------------------------------------------------
 # Convert title string to id
 
 sub generate_id {
@@ -400,6 +391,16 @@ sub get_type {
     }
     
     return $self->{type};
+}
+
+#----------------------------------------------------------------------
+# Return true if there is only one subtype
+
+sub has_one_subtype {
+    my ($self, $id) = @_;
+
+    my $subtypes = $self->get_subtypes($id);
+    return @$subtypes == 1;    
 }
 
 #----------------------------------------------------------------------
@@ -545,14 +546,14 @@ sub remove_data {
 	die "Invalid id: $id\n" unless -e $filename;
 
     if ($extra) {
-        my $records = $self->read_secondary($filename);
-        my $new_records = $self->{lo}->list_delete($records, $extra);
-        $self->write_secondary($filename, $new_records);
+        my ($parentid, $seq) = $self->{wf}->split_id($id);
+        $request->{oldid} = $seq;
+        delete $request->{id};
+        
+        $self->write_secondary($filename, $request);
 
     } elsif ($self->can('write_primary')) {
         $self->{wf}->remove_file($filename);
-        $request->{oldid} = $request->{id};
-        $self->update_data($id, $request);
 
     } else {
         die "Delete not permitted: $filename\n";
@@ -670,12 +671,22 @@ sub summarize {
 }
 
 #----------------------------------------------------------------------
-# Update navigation links after a file is changed (stub)
+# Update a list of records
 
-sub update_data {
-    my ($self, $id, $record) = @_;
+sub update_records {
+    my ($self, $current_records, $record) = @_;
+    my $new_records;
+    
+    if (exists $record->{id}) {
+        $new_records = $self->{lo}->list_add($current_records, $record);
+    }
+    
+    if (exists $record->{oldid}) {
+        my ($parentid, $seq) = $self->{wf}->split_id($record->{oldid});
+        $new_records = $self->{lo}->list_delete($current_records, $seq);
+    }
 
-    return;
+    return $new_records;
 }
 
 #----------------------------------------------------------------------
@@ -699,14 +710,10 @@ sub write_data {
     my ($filename, $extra) = $self->id_to_filename($id);
 
     if ($extra) {
-        my $records = $self->read_secondary($filename);
+        my ($parentid, $seq) = $self->{wf}->split_id($id);
+        $request->{id} = $seq;
         
-        $request->{id} = $extra;
-        my $new_records = $self->{lo}->list_add($records, $request);
-        $new_records = $self->{lo}->list_sort($new_records);
-
-        $self->write_secondary($filename, $new_records);
-        $request->{id} = $id;
+        $self->write_secondary($filename, $request);
 
     } elsif ($self->can('write_primary')) {
         $id = $self->change_filename($id, $filename, $request);
@@ -718,7 +725,6 @@ sub write_data {
         }
 
         $self->write_primary($filename, $request);
-        $self->update_data($id, $request);
 
     } else {
         die "Write not permitted: $filename\n";
@@ -734,7 +740,6 @@ sub write_data {
 
 FileData is the base class for file storage in App::Onsite
 
-    $self->update_data($id, $request);
 =head1 DESCRIPTION
 
 This class serves as the base class for all file storage. It has two interfaces:
@@ -803,10 +808,6 @@ Remove record with given id.
 =item search_data $query, $parentid, $limit
 
 Retrieve records matching query.
-
-=item update_data $id, $request
-
-Update other files after change to recod
 
 =back
 

@@ -43,39 +43,115 @@ sub add_data {
 }
 
 #----------------------------------------------------------------------
+# Return a specific item from the info for a file
+
+sub block_info {
+    my ($self, $blockname, $filename) = @_;
+    
+    my $info = $self->{nt}->info($filename);
+    foreach my $item (@$info) {
+        return $item if $item->{NAME} eq $blockname;
+    }
+
+    die "Couldn't find $blockname in $filename\n";
+    return;
+}
+
+#----------------------------------------------------------------------
 # Construct command links for page
 
 sub build_commandlinks {
-    my ($self, $data) = @_;
+    my ($self, $filename, $request) = @_;
 
-    my $id = $data->{id};
+    my $id = $request->{id};
     my $subtypes = $self->get_subtypes($id);
 
     my @commands = ($self->{default_command});
-    push(@commands, 'add') if $self->has_one_subtype($id);
+    push(@commands, 'add') if @$subtypes == 1;
 
     my $links =  $self->command_links($id, \@commands);
     return {data => $links};
 }
 
 #----------------------------------------------------------------------
+# Build navigation links
+
+sub build_links {
+    my ($self, $blockname, $filename, $request) = @_;
+
+    $filename = $self->{wf}->parent_file($filename) unless -e $filename;
+    my $link = $self->single_navigation_link($request);
+
+    my $links = $self->build_records($blockname, $filename, $link);
+    return unless $links;
+    
+    $links =  $self->link_class($links, $link->{url});
+    return $links;
+}
+
+#----------------------------------------------------------------------
+# Set up data for meta block
+
+sub build_meta {
+    my ($self, $filename, $request) = @_;
+
+    my %data = %$request;    
+    $data{base_url} = $self->{base_url};
+    
+    return \%data;
+}
+
+#----------------------------------------------------------------------
+# Set up data for pagelinks block
+
+sub build_pagelinks {
+    my ($self, $filename, $request) = @_;
+
+    return $self->build_links('pagelinks', $filename, $request);    
+}
+
+#----------------------------------------------------------------------
+# Set up data for parentlinks block
+
+sub build_parentlinks {
+    my ($self, $filename, $request) = @_;
+    
+    return $self->build_links('parentlinks', $filename, $request);    
+}
+
+#----------------------------------------------------------------------
 # Set up data for primary block
 
 sub build_primary {
-    my ($self, $data) = @_;
+    my ($self, $filename, $request) = @_;
+
+    return $request;    
+}
+
+#----------------------------------------------------------------------
+# Build a new set of records that includes request
+
+sub build_records {
+    my ($self, $blockname, $filename, $request) = @_;
+
+    my $current_records = $self->read_records($blockname, $filename);
+    my $new_records = $self->update_records($current_records, $request);
+    return if $self->{lo}->list_same($current_records, $new_records);
+
+    my $item = $self->block_info($blockname, $filename);
+    my $sort_field = $item->{sort} || 'id';
     
-    my $type = $self->get_type();
-    return {"${type}data" => $data};
+    $new_records = $self->{lo}->list_sort($new_records, $sort_field);
+    return {data => $new_records};       
 }
 
 #----------------------------------------------------------------------
 # Set up data for secondary block
 
 sub build_secondary {
-    my ($self, $data) = @_;
+    my ($self, $filename, $request) = @_;
     
-    my $type = $self->get_type();
-    return {"${type}data" => $data};
+    return $self->build_records('secondary', $filename, $request);
 }
 
 #----------------------------------------------------------------------
@@ -103,18 +179,18 @@ sub escape_data {
     my $new_data;
     my $ref = ref $data;
     if (! $ref) {
-	$new_data = $data;
-	if ($strip) {
-	    $new_data =~ s/<!--.*?-->/ /gs;
-	    $new_data =~ s/<[^>]*>/ /gs;
-	    $new_data =~ s/&nbsp;/ /g;
-	    $new_data =~ tr/\t\r\n / /s;
+        $new_data = $data;
+        if ($strip) {
+            $new_data =~ s/<!--.*?-->/ /gs;
+            $new_data =~ s/<[^>]*>/ /gs;
+            $new_data =~ s/&nbsp;/ /g;
+            $new_data =~ tr/\t\r\n / /s;
 	    
-	} else {
-	    $new_data =~ s/&/&amp;/g;
-	    $new_data =~ s/</&lt;/g;
-	    $new_data =~ s/>/&gt;/g;
-	}
+        } else {
+            $new_data =~ s/&/&amp;/g;
+            $new_data =~ s/</&lt;/g;
+            $new_data =~ s/>/&gt;/g;
+        }
 	
     } elsif ($ref eq 'ARRAY') {
         $new_data = [];
@@ -151,18 +227,39 @@ sub extra_data {
 }
 
 #----------------------------------------------------------------------
+# Extract an array element from a hash with a single key
+
+sub extract_from_data {
+    my ($self, $records) = @_;
+
+    if (ref $records eq 'HASH') {
+        my @keys = keys %$records;
+
+        if (@keys == 1 && $keys[0] eq 'data') {
+            $records =  $records->{$keys[0]};
+        }
+
+    } elsif (ref $records eq 'ARRAY') {
+        @$records = map {$self->extract_from_data($_)} @$records;       
+    }
+
+    return $records;
+}
+
+#----------------------------------------------------------------------
 # Get field information by reading template file
 
 sub field_info {
     my ($self, $id) = @_;
 
     my ($filename, $extra) = $self->id_to_filename($id);
+    my $blockname = $extra ? 'secondary.data' : 'primary';
+    
+    my @templates = $self->get_templates($filename);
+    my $template = pop(@templates);
+    
+    my $block = $self->{nt}->match($blockname, $template);
 
-    if (! defined $filename || ! -e $filename) {
-        $filename = "$self->{template_dir}/$self->{add_template}";
-    }
-
-    my $block = $self->{nt}->match("primary.any", $filename);
     die "Cannot get field info for $id\n" unless $block;
     my $info = $block->info();
 
@@ -181,6 +278,7 @@ sub filename_to_url {
     my $url;
     if ($path eq '.') {
         $url = $self->{base_url};
+
     } else {
         $url = $self->{base_url};
         $url .= '/' unless $url =~ /\/$/;
@@ -199,81 +297,40 @@ sub get_subtypes {
     my $subtypes;
     my ($filename, $extra) = $self->id_to_filename($id);
 
-    if (-e $filename) {
-        my $block = $self->{nt}->match("secondary.any", $filename);
-    
-        if ($block) {
-            my $type = $block->{NAME};
-            $type =~ s/data$//;
-            $subtypes = [$type];
-    
-        } else {
-            $subtypes = $self->SUPER::get_subtypes($id);   
-        }
+    if ($extra || ! -e $filename) {
+        $subtypes = [];
 
     } else {
-        $subtypes = [];
+        my $item = $self->block_info('secondary', $filename);
+        $subtypes = exists $item->{type} ? [$item->{type}]
+                                         : $self->SUPER::get_subtypes($id);
     }
     
     return $subtypes;
 }
 
 #---------------------------------------------------------------------------
-# Construct the template used to render the data
+# Get the names of the templates used to render the data
 
 sub get_templates {
-    my ($self, $blockname, $filename, $subtemplate) = @_;
+    my ($self, $filename) = @_;
     
-    my $template;
-
+    my @templates;
     if (-e $filename) {
-        $template = $filename;
+        push(@templates, $filename);
 
     } else {
         my $id = $self->filename_to_id($filename);
         my ($parentid, $seq) = $self->{wf}->split_id($id);
-
-        my $extra;
-        ($template, $extra) = $self->id_to_filename($parentid);
-    }
-
-    my $subsubtemplate;
-    my $type = $self->get_type();
-
-    if ($blockname) {
-        if ($template eq $filename) {
-            my $block = $self->{nt}->match($blockname, $template);
-            if ($block && $block->{NAME} eq "${type}data") {
-                $subsubtemplate = $template;
-            }
-        }
-    }
-    
-    $subsubtemplate = "$self->{template_dir}/$self->{add_template}"
-        unless $subsubtemplate;
         
-    $template = $self->{nt}->parse($template, $subtemplate);
-    $subtemplate = $self->{nt}->parse($subtemplate, $subsubtemplate);
-    
-    return ($template, $subtemplate);
-}
-
-#----------------------------------------------------------------------
-# Return true if there is only one subtype
-
-sub has_one_subtype {
-    my ($self, $id) = @_;
-
-    my $test;
-    my ($filename, $extra) = $self->id_to_filename($id);
-
-    if ($extra || ! -e $filename) {
-        $test = 0;
-    } else {
-        $test = defined $self->{nt}->match('secondary.any', $filename);
+        my ($template, $extra) = $self->id_to_filename($parentid);
+        push(@templates, $template);
+        
+        my $subtemplate = "$self->{template_dir}/$self->{subtemplate}";
+        push(@templates, $subtemplate);
     }
-
-    return $test;    
+    
+    return @templates;
 }
 
 #----------------------------------------------------------------------
@@ -286,13 +343,11 @@ sub id_to_type {
     my ($filename, $extra) = $self->id_to_filename($id);
 
     if (-e $filename) {
-        my $container_name = $extra ? 'secondary' : 'primary';
-
-        my $block = $self->{nt}->match("$container_name.any", $filename);
-        die "Cannot determine type for $id\n" unless $block;
-
-        $type = $block->{NAME};
-        $type =~ s/data$//;
+        my $blockname = $extra ? 'secondary' : 'primary';
+        
+        my $item = $self->block_info($blockname, $filename);
+        die "Cannot determine type for $id\n" unless exists $item->{type};
+        $type = $item->{type};
 
     } else {
         $type = $self->get_type();
@@ -345,41 +400,15 @@ sub link_class {
 }
 
 #----------------------------------------------------------------------
-# Build navigation links
-
-sub navigation_links {
-    my ($self, $subtemplate, $filename, $record) = @_;
-
-    my $same = 1;
-    my $data = {};
-    my $blocks = $self->{nt}->info($subtemplate);
-
-    foreach my $block (@$blocks) {
-        my $blockname = $block->{NAME};	
-        my $sort_field = $block->{sort} || $self->{sort_field};
-
-        my $current_links = $self->read_records($filename, $blockname);
-
-        my $new_links = $self->update_links($current_links, $record);
-        $new_links = $self->{lo}->list_sort($new_links, $sort_field);
-        $same  &&= $self->{lo}->list_same($current_links, $new_links);
-
-        $data = {data => $new_links};
-    }
-    
-    return $same ? undef : $data;   
-}
-
-#----------------------------------------------------------------------
 # Read data from file
 
 sub read_block {
-    my ($self, $filename, $blockname) = @_;
+    my ($self, $blockname, $filename) = @_;
 
     my $block = $self->{nt}->match($blockname, $filename);
     die "Can't read $blockname data from $filename\n" unless $block;
-    return $block->data();
 
+    return $block->data();
 }
 
 #----------------------------------------------------------------------
@@ -388,29 +417,23 @@ sub read_block {
 sub read_primary {
     my ($self, $filename) = @_;
 
-    return $self->read_block($filename, "primary.any");
+    return $self->read_block('primary', $filename);
 }
 
 #----------------------------------------------------------------------
 # Read a list of records from a file
 
 sub read_records {
-    my ($self, $filename, $blockname) = @_;
+    my ($self, $blockname, $filename) = @_;
 
-    my $records = $self->read_block($filename, $blockname);
-    
-    if (ref $records eq 'HASH') {
-    	my @keys = keys %$records;
-
-        if (@keys == 1 && $keys[0] eq 'data') {
-            $records = $records->{data};
-        }
-    }
-    
-    if (! ref $records) {
-        $records = [];       
-    } elsif (ref $records eq 'HASH') {
-        $records = [$records];
+    my $records = $self->read_block($blockname, $filename);
+        
+    if (ref $records) {
+        $records = $self->extract_from_data($records);
+        $records = [$records] unless ref $records eq 'ARRAY';
+        
+    } else {
+        $records = [];               
     }
 
     return $records;
@@ -422,7 +445,7 @@ sub read_records {
 sub read_secondary {
     my ($self, $filename) = @_;
 
-    return $self->read_records($filename, "secondary.any");
+    return $self->read_records('secondary', $filename);
 }
 
 #----------------------------------------------------------------------
@@ -440,6 +463,24 @@ sub redirect_url {
     }
 
     return $self->{base_url};
+}
+
+#----------------------------------------------------------------------
+# Remove a file
+
+sub remove_data {
+    my ($self, $id, $request) = @_;
+
+    my ($filename, $extra) = $self->id_to_filename($id);
+
+    my $data = {};
+    $data->{pagelinks} = $self->build_pagelinks($filename, $request)
+        unless $extra;
+
+    $self->SUPER::remove_data($id, $request);
+    $self->update_files($filename, $data) if $data->{pagelinks};
+
+    return;    
 }
 
 #----------------------------------------------------------------------
@@ -461,144 +502,64 @@ sub single_navigation_link {
 }
 
 #----------------------------------------------------------------------
-# Sort data if marked to be sorted in template
-
-sub sort_data {
-    my ($self, $template, $blockname, $data) = @_;
-
-    my $sort;
-    my $block = $self->{nt}->match($blockname, $template);
-
-    if ($block) {
-        my $info = $block->parse_args();
-        $sort = $info->{sort};
-    }
-
-    $data = $self->sort_records($sort, $data) if defined $sort;   
-    return $data;
-}
-
-#----------------------------------------------------------------------
-# Sort arrays in a hash
-
-sub sort_records {
-    my ($self, $sort, $records) = @_;
-
-    if (ref $records eq 'ARRAY') {
-        $records = $self->{lo}->list_sort($records, $sort);
-
-    } elsif (ref $records eq 'HASH') {
-        foreach my $name (keys %$records) {
-            $records->{$name} = $self->sort_records($sort, $records->{$name});
-        }
-    }
-
-    return $records;
-}
-
-#----------------------------------------------------------------------
 # Update navigation links after a file is changed
 
-sub update_data {
-    my ($self, $id, $record) = @_;
+sub update_files {
+    my ($self, $filename, $data) = @_;
 
-    my ($parentid, $seq) = $self->{wf}->split_id($id);
-    my ($indexfile, $extra) = $self->id_to_filename($parentid);
+    my $subfolders = 0;
+    my ($repository, $basename) = $self->{wf}->split_filename($filename);    
 
-    my $subtemplate = $self->{update_template};
-    $subtemplate = "$self->{template_dir}/$subtemplate";
+    my $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
 
-    my $data = $self->navigation_links($subtemplate, $indexfile, $record);
-    return unless $data;
-    
-    my $url = $self->filename_to_url($indexfile);
-    $data =  $self->link_class($data, $url);
-    $self->write_file('', $indexfile, $subtemplate, $data);
-
-    my $dir = $self->get_repository($parentid);
-    my $subfolders = $self->{has_subfolders};
-    my $visitor = $self->{wf}->visitor($dir, $subfolders, 'any');
-
-    while (my $filename = &$visitor()) {
-        next unless $self->valid_filename($filename);
-        next if $filename eq $indexfile;
-
-        $url = $self->filename_to_url($filename);
+    while (my $file = &$visitor()) {
+        next unless $self->valid_filename($file);
+       
+        my $url = $self->filename_to_url($file);
         $data =  $self->link_class($data, $url);
-        $self->write_file('', $filename, $subtemplate, $data);
+        $self->write_file($file, $data);
     }
 
     return;
-}
-
-#----------------------------------------------------------------------
-# Build navigation links
-
-sub update_links {
-    my ($self, $current_links, $data) = @_;
-    my $new_links;
-    
-    if (exists $data->{id}) {
-        my $link = $self->single_navigation_link($data);
-        $new_links = $self->{lo}->list_add($current_links, $link);
-    }
-    
-    if (exists $data->{oldid}) {
-        my ($parentid, $seq) = $self->{wf}->split_id($data->{oldid});
-        $new_links = $self->{lo}->list_delete($current_links, $seq);
-    }
-
-    return $new_links;
 }
 
 #---------------------------------------------------------------------------
 # Write a list of records to disk as a file
 
 sub write_file {
-    my ($self, $blockname, $filename, $subtemplate, $data) = @_;
+    my ($self, $filename, $data) = @_;
     
-    my $template;
-    ($template, $subtemplate) =
-        $self->get_templates($blockname, $filename, $subtemplate);
-
-    $data = $self->sort_data($subtemplate,
-                             $blockname,
-                             $data);
-    
-    my $result = $self->{nt}->distribute_data($self,
-                                              $data,
-                                              $subtemplate); 
-
-    my $output = $self->{nt}->render($result,
-                                     $template,
-                                     $subtemplate); 
-                                     
+    my @templates = $self->get_templates($filename);
+    my $output = $self->{nt}->render($data, @templates); 
     $self->{wf}->writer($filename, $output);
 
     return;
 }
 
 #---------------------------------------------------------------------------
-# Write a list of records to disk as a file
+# Write a record to disk as a file
 
 sub write_primary {
-    my ($self, $filename, $record) = @_;
+    my ($self, $filename, $request) = @_;
 
-    my $subtemplate = $self->{edit_template};
-    $subtemplate = "$self->{template_dir}/$subtemplate";
-   
-    $record->{base_url} = $self->{base_url};
-    
-    $self->write_file('primary.any',
-                      $filename,
-                      $subtemplate,
-                      $record);
+    my $data = {};
+    $data->{meta} = $self->build_meta($filename, $request);
+    $data->{primary} = $self->build_primary($filename, $request);
+    $data->{pagelinks} = $self->build_pagelinks($filename, $request);
+    $data->{commandlinks} = $self->build_commandlinks($filename, $request);
+    $self->write_file($filename, $data);
+ 
+    if ($data->{pagelinks}) {
+        my $update_data = {};
+        $update_data->{pagelinks} = $data->{pagelinks};
+        $self->update_files($filename, $update_data);
+    }
     
     return;
 }
 
 #----------------------------------------------------------------------
-# Write rss file
+# Write rss file 
 
 sub write_rss {
     my ($self, $id) = @_;
@@ -625,15 +586,12 @@ sub write_rss {
 # Write a list of records to disk as a file
 
 sub write_secondary {
-    my ($self, $filename, $records) = @_;
+    my ($self, $filename, $request) = @_;
 
-    my $subtemplate = $self->{edit_template};
-    $subtemplate = "$self->{template_dir}/$subtemplate";
+    my $data ={};
+    $data->{secondary} = $self->build_secondary($filename, $request);
+    $self->write_file($filename, $data);
 
-    $self->write_file('secondary.any',
-                      $filename,
-                      $subtemplate,
-                      {data => $records});
     return;
 }
 

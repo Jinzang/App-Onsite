@@ -31,9 +31,11 @@ my $params = {
               data_dir => $data_dir,
               template_dir => "$template_dir",
               script_url => 'test.cgi',
-              base_url => 'http://www.stsci.edu',
+              base_url => 'http://www.onsite.org',
               valid_write => [$data_dir, $template_dir],
               data_registry => $data_registry,
+              max_news_age => 7,
+              max_news_entries => 10,
              };
 
 #----------------------------------------------------------------------
@@ -64,9 +66,7 @@ EXTENSION = html
 CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
-ADD_TEMPLATE = add_page.htm
-EDIT_TEMPLATE = edit_page.htm
-UPDATE_TEMPLATE = update_page.htm
+SUBTEMPLATE = add_page.htm
 COMMANDS = browse
 COMMANDS = add
 COMMANDS = edit
@@ -75,14 +75,13 @@ COMMANDS = search
 COMMANDS = view
         [list]
 CLASS = App::Onsite::ListData
-ADD_TEMPLATE = add_subpage.htm
-EDIT_TEMPLATE = edit_subpage.htm
-UPDATE_TEMPLATE = 
+SUBTEMPLATE = add_subpage.htm
 COMMANDS = edit
 COMMANDS = remove
 COMMANDS = view
         [news]
 CLASS = App::Onsite::NewsData
+SUBTEMPLATE = add_news.htm
 SUPER = page
 PLURAL = news
 INDEX_LENGTH = 6
@@ -90,7 +89,7 @@ EOQ
 
 $wf->writer("$template_dir/$data_registry", $registry);
 
-my $page = <<'EOQ';
+my $pagefile = <<'EOQ';
 <html>
 <head>
 <!-- begin meta -->
@@ -98,11 +97,10 @@ my $page = <<'EOQ';
 <!-- end title --></title>
 <!-- end meta -->
 </head>
-<body bgcolor=\"#ffffff\">
+<body>
 <div id = "container">
 <div  id="content">
-<!-- begin primary -->
-<!-- begin pagedata -->
+<!-- begin primary type="page" -->
 <h1><!-- begin title -->
 A title
 <!-- end title --></h1>
@@ -112,10 +110,8 @@ The Content
 <div><!-- begin author -->
 An author
 <!-- end author --></div>
-<!-- end pagedata -->
 <!-- end primary -->
-<!-- begin secondary -->
-<!-- begin newsdata sort="-id" -->
+<!-- begin secondary type="news" sort="-id" -->
 <!-- begin data -->
 <!-- set id [[0001]] -->
 <!-- set time [[2265810786]] -->
@@ -125,11 +121,10 @@ A title
 <p><!-- begin body -->
 The Content
 <!-- end body --></p>
-<div><!-- begin url -->
+<div><!-- begin weburl -->
 http://www.website.com/
-<!-- end url --></div>
+<!-- end weburl --></div>
 <!-- end data -->
-<!-- end newsdata -->
 <!-- end secondary -->
 </div>
 <div id="sidebar">
@@ -153,34 +148,12 @@ http://www.website.com/
 </html>
 EOQ
 
-my $edit_template = <<'EOQ';
-<html>
-<head>
-</head>
-<body bgcolor=\"#ffffff\">
-<div id = "container">
-<div  id="content">
-<!-- begin secondary -->
-<!-- begin any -->
-<!-- begin data -->
-<!-- end data -->
-<!-- end any -->
-<!-- end secondary -->
-</div>
-<div id="sidebar">
-</div>
-</div>
-</body>
-</html>
-EOQ
-
 my $news_template = <<'EOQ';
 <html>
 <head>
 </head>
-<body bgcolor=\"#ffffff\">
-<!-- begin secondary -->
-<!-- begin newsdata sort="-id" -->
+<body>
+<!-- begin secondary type="news" sort="-id" -->
 <!-- begin data -->
 <!-- set id [[]] -->
 <!-- set time [[]] -->
@@ -188,10 +161,9 @@ my $news_template = <<'EOQ';
 <!-- end title --></h3>
 <p><!-- begin body -->
 <!-- end body --></p>
-<div><!-- begin url -->
-<!-- end url --></div>
+<div><!-- begin weburl -->
+<!-- end weburl --></div>
 <!-- end data -->
-<!-- end newsdata -->
 <!-- end secondary -->
 <div id="sidebar">
 </div>
@@ -213,7 +185,7 @@ my $rsstemplate = <<'EOQ';
 <!-- with rss_items -->
 <item>
 <title>{{title}}</title>
-<link>{{url}}</link>
+<link>{{weburl}}</link>
 <description>{{body}}</description>
 </item>
 <!-- end rss_items -->
@@ -225,19 +197,15 @@ EOQ
 
 my $indexname = "$data_dir/index.html";
 $indexname = $wf->validate_filename($indexname, 'w');
-$wf->writer($indexname, $page);
+$wf->writer($indexname, $pagefile);
 
 my $pagename = "$data_dir/a-title.html";
 $pagename = $wf->validate_filename($pagename, 'w');
-$wf->writer($pagename, $page);
+$wf->writer($pagename, $pagefile);
 
 my $templatename = "$template_dir/add_news.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $news_template);
-
-$templatename = "$template_dir/edit_subpage.htm";
-$templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $edit_template);
 
 $templatename = "$template_dir/rss.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
@@ -247,26 +215,27 @@ $wf->writer($templatename, $rsstemplate);
 # Create object
 
 my $reg = App::Onsite::Support::RegistryFile->new(%$params);
-my $data = $reg->create_subobject($params, $data_registry, 'news');
+my $page = $reg->create_subobject($params, $data_registry, 'page');
+my $news = $reg->create_subobject($params, $data_registry, 'news');
 
-isa_ok($data, "App::Onsite::NewsData"); # test 2
-can_ok($data, qw(add_data browse_data edit_data read_data remove_data
+isa_ok($news, "App::Onsite::NewsData"); # test 2
+can_ok($news, qw(add_data browse_data edit_data read_data remove_data
                  search_data check_id)); # test 3
 
 #----------------------------------------------------------------------
 # Read data
 
-$data->{wf}->relocate($data_dir);
+$page->{wf}->relocate($data_dir);
 
 my $r = {
          id => 'a-title:0001',
-         url => 'http://www.website.com/',
+         weburl => 'http://www.website.com/',
          title => "A title",
          body => "The Content",
          summary => "The Content",
         };
 
-my $d = $data->read_data('a-title:0001');
+my $d = $news->read_data('a-title:0001');
 delete $d->{time};
 
 is_deeply($d, $r, "Read data"); # Test 4
@@ -274,17 +243,18 @@ is_deeply($d, $r, "Read data"); # Test 4
 #----------------------------------------------------------------------
 # Add Data
 
-delete $d->{id};
+$d->{id} = 'a-title';
 $d->{title} =~ s/A/New/;
 $d->{body} =~ s/The/New/;
 $d->{summary} = $d->{body};
 
 my $s;
 %$s = %$d;
+$d->{subtype} = 'news';
 $s->{id} = 'a-title:0002';
 
-$data->add_data('a-title', $d);
-$d = $data->read_data('a-title:0002');
+$news->add_data('a-title', $d);
+$d = $news->read_data('a-title:0002');
 delete $d->{time};
 
 is_deeply($d, $s, "Add second entry"); # Test 5
@@ -292,26 +262,29 @@ is_deeply($d, $s, "Add second entry"); # Test 5
 #----------------------------------------------------------------------
 # Browse data
 
-my $results = $data->browse_data('a-title');
+$r->{url} = 'http://www.onsite.org/a-title.html#0001';
+$s->{url} = 'http://www.onsite.org/a-title.html#0002';
+
+my $results = $page->browse_data('a-title');
 delete $_->{time} foreach @$results;
 is_deeply($results, [$r, $s], "Browse data"); # test 6
 
 #----------------------------------------------------------------------
 # Search data
 
-my $list = $data->search_data({title => 'title'}, 'a-title');
+my $list = $page->search_data({title => 'title'}, 'a-title');
 delete $_->{time} foreach @$list;
 is_deeply($list, [$r, $s], "Search data"); # test 7
 
-$list = $data->search_data({title => 'title'}, 'a-title', 1);
+$list = $page->search_data({title => 'title'}, 'a-title', 1);
 delete $_->{time} foreach @$list;
 is_deeply($list, [$r], "Search data with limit"); # test 8
 
-$list = $data->search_data({title => 'A'}, 'a-title');
+$list = $page->search_data({title => 'A'}, 'a-title');
 delete $_->{time} foreach @$list;
 is_deeply($list, [$r], "Search data single term"); # test 9
 
-$list = $data->search_data({description =>'New', title => 'New'}, 'a-title');
+$list = $page->search_data({description =>'New', title => 'New'}, 'a-title');
 delete $_->{time} foreach @$list;
 is_deeply($list, [$s], "Search data multiple terms"); # test 10
 
@@ -320,19 +293,19 @@ is_deeply($list, [$s], "Search data multiple terms"); # test 10
 
 $d->{id} = 'a-title:0001';
 $d->{time} = 2265810786;
-$d->{url} = 'http://www.website.net/';
+$d->{weburl} = 'http://www.website.net/';
 %$s = %$d;
 
-$data->edit_data('a-title:0001', $d);
-$d = $data->read_data('a-title:0001');
+$news->edit_data('a-title:0001', $d);
+$d = $news->read_data('a-title:0001');
 is_deeply($d, $s, "Edit data"); # Test 11
 
 #----------------------------------------------------------------------
 # Remove data
 
-
-$data->remove_data('a-title:0002');
-$d = $data->read_data('a-title:0002');
+$d->{id} = 'a-title:0002';
+$news->remove_data('a-title:0002', $d);
+$d = $news->read_data('a-title:0002');
 is($d, undef, "Remove data"); # Test 12
 
 #----------------------------------------------------------------------
@@ -345,7 +318,7 @@ my $rssfile = <<'EOQ';
 <rss version="0.91">
 <channel>
 <title>A title</title>
-<link>http://www.stsci.edu/a-title.html</link>
+<link>http://www.onsite.org/a-title.html</link>
 <description>The Content</description>
 <item>
 <title>New title</title>
@@ -356,7 +329,7 @@ my $rssfile = <<'EOQ';
 </rss>
 EOQ
 
-$data->write_rss('a-title');
-my $rss = $data->{wf}->reader("$data_dir/a-title.rss");
+$page->write_rss('a-title');
+my $rss = $news->{wf}->reader("$data_dir/a-title.rss");
 is($rss, $rssfile, "Rss file"); #test 13
 

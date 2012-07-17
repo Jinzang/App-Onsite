@@ -36,16 +36,6 @@ sub data {
 }
 
 #----------------------------------------------------------------------
-# Build data structure to render with the template
-
-sub distribute_data {
-    my ($self, $object, $data, @sources) = @_;
-
-    my $template = $self->parse(@sources);
-    return $template->distribute_data($object, $data);
-}
-
-#----------------------------------------------------------------------
 # Return list of all registered blocks in containing block
 
 sub info {

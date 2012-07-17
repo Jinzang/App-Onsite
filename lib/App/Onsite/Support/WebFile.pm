@@ -65,7 +65,6 @@ sub abs2rel {
     }
 
     push(@new_path, @file_path);
-    ##$filename = join('/', @new_path) || '.';
 	$filename = join('/', @new_path);
 
     return $filename;
@@ -222,6 +221,26 @@ sub is_absolute {
 
     my @path = split(/\//, $filename);
     return @path && $path[0] eq '';
+}
+
+#----------------------------------------------------------------------
+# Get the parent file of the specified file
+
+sub parent_file {
+    my ($self, $filename) = @_;
+    
+    my ($dir, $basename) = $self->split_filename($filename);
+    $dir = $self->abs2rel($dir);
+    
+    my ($root, $ext) = split(/\./, $basename);
+
+    ($dir, $basename) = $self->split_filename($dir)
+        if $dir && $root eq $self->{index_name};
+
+    $dir = $self->rel2abs($dir);
+    $basename = "$self->{index_name}.$ext";
+
+    return "$dir/$basename";
 }
 
 #----------------------------------------------------------------------
@@ -383,8 +402,8 @@ sub split_filename {
 
     my @dirs = split(/\//, $filename);
     my $basename = pop(@dirs);
-    $filename = join('/', @dirs);
-
+    
+    $filename = join('/', @dirs) || '';
     return ($filename, $basename);
 }
 

@@ -1,4 +1,4 @@
-#!/usr/bin/env perl 
+#!/usr/bin/env perl -T
 
 use strict;
 
@@ -14,8 +14,8 @@ sub filter_caps {
 
     my $newhash = {};
     while (my ($name, $value) = each %$hash) {
-	next if $name ne "START" && $name =~ /[A-Z]/;
-	$newhash->{$name} = $value;
+        next if $name ne "START" && $name =~ /[A-Z]/;
+        $newhash->{$name} = $value;
     }
 
     return $newhash;

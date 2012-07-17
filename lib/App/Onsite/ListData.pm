@@ -16,10 +16,6 @@ sub parameters {
     my ($pkg) = @_;
 
     my %parameters = (
-                    base_url => '',
-                    template_dir => '',
-                    lo => {DEFAULT => 'App::Onsite::Listops'},
-                    nt => {DEFAULT => 'App::Onsite::Support::NestedTemplate'},
 	);
 
     my %base_params = $pkg->SUPER::parameters();
@@ -41,64 +37,23 @@ sub add_data {
 }
 
 #----------------------------------------------------------------------
+# Filter obsolete records before writing
+
+sub build_secondary {
+    my ($self, $filename, $request) = @_;
+
+    my $records = $self->SUPER::build_secondary($filename, $request);
+    $records = $self->cull_data($records);
+    
+    return $records;
+}
+
+#----------------------------------------------------------------------
 # Remove obsolete records from list (stub)
 
 sub cull_data {
     my ($self, $records) = @_;
     return $records;
 }
-
-#----------------------------------------------------------------------
-# Get field information by reading template file
-
-sub field_info {
-    my ($self, $id) = @_;
-
-    my ($filename, $extra) = $self->id_to_filename($id);
-    my $block = $self->{nt}->match("secondary.any.data", $filename);
-
-    if (! $block) {
-        my $type = $self->get_type();
-        $filename = "$self->{template_dir}/${type}data.htm";
-        $block = $self->{nt}->match("secondary.$type.data", $filename);
-    }
-
-    die "Cannot get field info for $id\n" unless $block;
-    my $info = $block->info();
-
-    my @new_info = grep {$_->{NAME} ne 'id'} @$info;
-    return \@new_info;
-}
-
-#----------------------------------------------------------------------
-# Return the names of the subdata objects contained in the file
-
-sub get_subtypes {
-    my ($self, $id) = @_;
-
-    return [];
-}
-
-#----------------------------------------------------------------------
-# Update navigation links after a file is changed
-
-sub update_data {
-    my ($self, $id, $record) = @_;
-
-    return;
-}
-
-#----------------------------------------------------------------------
-# Filter obsolete records before writing
-
-sub write_secondary {
-    my ($self, $filename, $records) = @_;
-
-    my $new_records = $self->cull_data($records);
-    $self->SUPER::write_secondary($filename, $new_records);
-
-    return;
-}
-
 
 1;

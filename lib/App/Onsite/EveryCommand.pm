@@ -193,14 +193,6 @@ sub get_subtemplate {
 }
 
 #---------------------------------------------------------------------------
-# Get the template for building the form
-
-sub get_template {
-    my ($self) = @_;
-    return $self->{template};
-}
-
-#---------------------------------------------------------------------------
 # Supply text for missing fields in hash
 
 sub missing_text {

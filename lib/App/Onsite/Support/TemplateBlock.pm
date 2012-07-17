@@ -69,27 +69,6 @@ sub data {
 }
 
 #----------------------------------------------------------------------
-# Build data structure to render with the template
-
-sub distribute_data {
-    my ($self, $object, $data) = @_;
-
-    my $result;
-    foreach my $block (@{$self->{BLOCKS}}) {                
-        my $name = $block->{NAME};
-        my $cmd = "build_$name";
-
-        if ($object->can($cmd)) {
-            $result->{$name} = $object->$cmd($data);
-        } else {
-            $result->{$name} = $data;
-        }
-    }
-
-    return $result;
-}
-
-#----------------------------------------------------------------------
 # Test if template block has any sub-blocks
 
 sub has_blocks {
@@ -105,16 +84,16 @@ sub info {
     my ($self) = @_;
     return $self->{VALUE} unless $self->has_blocks();
     
-    my $info = [];
+    my @info;
     foreach my $block (@{$self->{BLOCKS}}) {
         my $item = $block->parse_args();
 		next unless defined $item;
 
 		$item->{NAME} = $block->{NAME};
-        push(@$info, $item);
+        push(@info, $item);
     }
 
-    return $info;
+    return \@info;
 }
 
 #----------------------------------------------------------------------
@@ -147,6 +126,7 @@ sub parse {
 
     my $value = '';
     my @blocks = ();
+
     my ($left, $right) = $self->{LEXER}->meta_split('block');
     my $marker = $left;
 
@@ -183,6 +163,8 @@ sub parse {
                 $block->parse($tokens);
 
                 # Add reference to it in containing block
+                # if it is not a repeat
+                
                 my $index = @blocks;
                 push(@blocks, $block);
                 $value .= $self->{LEXER}->meta_replace('macro', $index);
@@ -244,6 +226,9 @@ sub render {
 
 sub render_block {
     my ($self, $bin) = @_;
+
+    # If there is no data element whose name corresponds to the block name
+    # return the contents of the current block instead of substituting
 
     my $data = $bin->get($self->{NAME});
     return $self->unparse() unless defined $data;
@@ -328,9 +313,19 @@ sub render_macro {
     my ($self, $bin, $name) = @_;
 
     my $result;
+
+    # A number indicates this is a sub-block
+    # and it must be rendered by recursion
+    
     if ($name =~ /^\d+$/) {
-        my $block = $self->{BLOCKS}[$name];
-        $result = $block->render_block($bin) if defined $block;
+        # Don't render repeated sub-blocks
+
+        if ($name == 0 || $self->{BLOCKS}[$name]{NAME} ne
+                          $self->{BLOCKS}[$name-1]{NAME}) {
+
+            my $block = $self->{BLOCKS}[$name];
+            $result = $block->render_block($bin) if defined $block;
+        }
 
     } else {
         my $data = $bin->get($name);

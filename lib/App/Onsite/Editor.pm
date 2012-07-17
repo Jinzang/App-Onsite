@@ -21,7 +21,6 @@ sub parameters {
                     template_dir => '',
                     data_registry => '',
                     command_registry => '',
-                    default_type => 'page',
                     cmd => {},
                     data => {},
                     fm => {DEFAULT => 'App::Onsite::Form'},
@@ -76,14 +75,6 @@ sub build_commandlinks {
 
     my $links =  $self->{data}->command_links($id, \@commands);
     return {data => $links};
-}
-
-#----------------------------------------------------------------------
-# Build an empty data set for thr secondary block
-
-sub build_secondary {
-	my ($self, $request) = @_;
-    return '';
 }
 
 #----------------------------------------------------------------------
@@ -266,28 +257,28 @@ sub populate_object {
 # Render page with templates stored in response
 
 sub render {
-    my ($self, $request, $response, $subtemplate, $subsubtemplate) = @_;
+    my ($self, $request, $response, $subtemplate) = @_;
     
     # Get and parse templates
     
     my $template = $self->top_page();
     $subtemplate = join('/', $self->{template_dir}, $subtemplate);
-    $subsubtemplate = join('/', $self->{template_dir}, $subsubtemplate);
     
-    $template = $self->{nt}->parse($template, $subtemplate);
-    $subtemplate = $self->{nt}->parse($subtemplate, $subsubtemplate);
-
     # Assemble data to be rendered in template
     
     my $results = $response->{results} || {};
-    %$results = (%$request, %$results);
-    $results->{base_url} = $self->{base_url};
-    
-    $results = $self->{nt}->distribute_data($self, $results, $subtemplate);
-    
+       
+    my $data = {};
+    $data->{primary} = $results;
+    $data->{meta} = $results;
+    $data->{meta}{base_url} = $self->{base_url};
+    $data->{secondary} = '';
+    $data->{pagelinks} = '';
+    $data->{commandlinks} = $self->build_commandlinks($request);
+
     # Render data and return results
 
-    return $self->{nt}->render($results, $template, $subtemplate);
+    return $self->{nt}->render($data, $template, $subtemplate);
 }
 
 #----------------------------------------------------------------------
@@ -304,22 +295,19 @@ sub run {
         $response->{results} = $self->{fm}->create_form($request, $msg);
     }
 
-    my ($subtemplate, $subsubtemplate);
+    my $subtemplate;
     if ($response->{code} == 500 || $request->{debug}) {
         die $response->{msg} unless $self->{cmd};
         
         $response = $self->error($request, $response);
-        $subtemplate = $self->{cmd}->get_template();       
-        $subsubtemplate = 'error.htm';
+        $subtemplate = 'error.htm';
 
     } else {
-        $subtemplate = $self->{cmd}->get_template();       
-        $subsubtemplate = $self->{cmd}->get_subtemplate();       
+        $subtemplate = $self->{cmd}->get_subtemplate();       
     }
    
     if ($response->{code} == 200) {
-        $response->{results} = $self->render($request, $response,
-                                             $subtemplate, $subsubtemplate);
+        $response->{results} = $self->render($request, $response, $subtemplate);
     }
     
     return $response;

@@ -164,11 +164,11 @@ is_deeply($list, [$s], "Search data multiple terms"); # test 13
 # Browse data
 
 $d = $data->browse_data('test');
-is_deeply($d, [$r, $s], "Browse data"); # test 14
+is_deeply($d, [$s, $r], "Browse data"); # test 14
 
 #----------------------------------------------------------------------
 # Remove data
 
-$data->remove_data('test:0002');
+$data->remove_data('test:0002', $s);
 my $found = $data->check_id('test:0002') ? 1 : 0;
 is($found, 0, "Remove data"); # Test 15

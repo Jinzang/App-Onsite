@@ -73,6 +73,7 @@ sub list_escape {
 
     return \@escaped_list;
 }
+
 #----------------------------------------------------------------------
 # Retrieve an item from a list by id
 

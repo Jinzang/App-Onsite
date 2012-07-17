@@ -464,10 +464,8 @@ sub update_blogindex {
 #----------------------------------------------------------------------
 # Update indexes after a post has been changed
 
-sub update_data {
-    my ($self, $id, $data) = @_;
-
-    my ($filename, $extra) = $self->id_to_filename($id);
+sub update_files {
+    my ($self, $filename, $data) = @_;
 
     my $change = $self->update_postindex($filename, $data);
     $self->update_monthindex($filename) if $change;

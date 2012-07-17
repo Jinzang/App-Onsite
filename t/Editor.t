@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -T
+#!/usr/local/bin/perl
 use strict;
 
 use lib 't';
@@ -64,9 +64,7 @@ EXTENSION = html
 CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
-ADD_TEMPLATE = add_page.htm
-EDIT_TEMPLATE = edit_page.htm
-UPDATE_TEMPLATE = update_page.htm
+SUBTEMPLATE = add_page.htm
 COMMANDS = browse
 COMMANDS = add
 COMMANDS = edit
@@ -77,15 +75,12 @@ COMMANDS = view
 CLASS = App::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
-ADD_TEMPLATE = add_dir.htm
-EDIT_TEMPLATE = edit_dir.htm
-UPDATE_TEMPLATE = update_dir.htm
+SUBTEMPLATE = add_dir.htm
 EOQ
 
 my $command_registry = <<'EOQ';
         [every]
 CLASS = App::Onsite::EveryCommand
-TEMPLATE = show_form.htm
         [error]
 CLASS = App::Onsite::EveryCommand
 SUBTEMPLATE = error.htm
@@ -121,25 +116,10 @@ my $dir = <<'EOQ';
 <!-- end title --></title>
 <!-- end meta -->
 </head>
-<body bgcolor=\"#ffffff\">
+<body>
 <div id = "container">
-<div id="header">
-<ul>
-<!-- begin toplinks -->
-<!-- begin data -->
-<!-- set id [[]] -->
-<!-- set url [[http://www.stsci.edu/index.html]] -->
-<li><a href="http://www.stsci.edu/index.html"><!--begin title -->
-Home
-<!-- end title --></a></li>
-<!-- end data -->
-<!-- end toplinks -->
-</ul>
-
-</div>
 <div  id="content">
-<!-- begin primary -->
-<!-- begin dirdata -->
+<!-- begin primary type="dir" -->
 <h1><!-- begin title valid="&" -->
 A title
 <!-- end title --></h1>
@@ -149,7 +129,6 @@ The Content
 <div><!-- begin author -->
 An author
 <!-- end author --></div>
-<!-- end dirdata -->
 <!-- end primary -->
 <!-- begin secondary -->
 <!-- end secondary -->
@@ -190,11 +169,10 @@ my $page = <<'EOQ';
 <!-- end title --></title>
 <!-- end meta -->
 </head>
-<body bgcolor=\"#ffffff\">
+<body>
 <div id = "container">
 <div  id="content">
-<!-- begin primary -->
-<!-- begin pagedata -->
+<!-- begin primary type="page" -->
 <h1><!-- begin title valid="&" -->
 A title
 <!-- end title --></h1>
@@ -204,10 +182,8 @@ The Content
 <div><!-- begin author -->
 An author
 <!-- end author --></div>
-<!-- end pagedata -->
 <!-- end primary -->
-<!-- begin secondary -->
-<!-- begin listdata -->
+<!-- begin secondary type="list" -->
 <!-- begin data -->
 <!-- set id [[0001]] -->
 <h3><!-- begin title -->
@@ -220,7 +196,6 @@ The Content
 An author
 <!-- end author --></div>
 <!-- end data -->
-<!-- end listdata -->
 <!-- end secondary -->
 </div>
 <div id="sidebar">
@@ -251,48 +226,6 @@ A Title
 </html>
 EOQ
 
-my $edit_dir = <<'EOQ';
-<html>
-<head>
-<!-- begin meta -->
-<title><!-- begin title -->
-<!-- end title --></title>
-<!-- end meta -->
-</head>
-<body bgcolor=\"#ffffff\">
-<!-- begin primary -->
-<!-- begin any -->
-<!-- end any -->
-<!-- end primary -->
-<div id="sidebar">
-<!-- begin parentlinks -->
-<!-- end parentlinks -->
-</div>
-</body>
-</html>
-EOQ
-
-my $edit_page = <<'EOQ';
-<html>
-<head>
-<!-- begin meta -->
-<title><!-- begin title -->
-<!-- end title --></title>
-<!-- end meta -->
-</head>
-<body bgcolor=\"#ffffff\">
-<!-- begin primary -->
-<!-- begin any -->
-<!-- end any -->
-<!-- end primary -->
-<div id="sidebar">
-<!-- begin commandlinks -->
-<!-- end commandlinks -->
-</div>
-</body>
-</html>
-EOQ
-
 my $page_template = <<'EOQ';
 <html>
 <head>
@@ -301,16 +234,14 @@ my $page_template = <<'EOQ';
 <!-- end title --></title>
 <!-- end meta -->
 </head>
-<body bgcolor=\"#ffffff\">
-<!-- begin primary -->
-<!-- begin pagedata -->
+<body>
+<!-- begin primary type="page" -->
 <h1><!-- begin title valid="&" -->
 <!-- end title --></h1>
 <p><!-- begin body valid="&" -->
 <!-- end body --></p>
 <div><!-- begin author -->
 <!-- end author --></div>
-<!-- end pagedata -->
 <!-- end primary -->
 <div id="sidebar">
 <!-- begin pagelinks -->
@@ -344,16 +275,14 @@ my $dir_template = <<'EOQ';
 <!-- end title --></title>
 <!-- end meta -->
 </head>
-<body bgcolor=\"#ffffff\">
-<!-- begin primary -->
-<!-- begin dirdata -->
+<body>
+<!-- begin primary type="dir" -->
 <h1><!-- begin title valid="&" -->
 <!-- end title --></h1>
 <p><!-- begin body valid="&" -->
 <!-- end body --></p>
 <div><!-- begin author -->
 <!-- end author --></div>
-<!-- end dirdata -->
 <!-- end primary -->
 <div id="sidebar">
 <!-- begin parentlinks -->
@@ -375,44 +304,6 @@ my $dir_template = <<'EOQ';
 </ul>
 <!-- end commandlinks -->
 </div>
-</body>
-</html>
-EOQ
-
-my $update_page_template = <<'EOQ';
-<html>
-<head>
-</head>
-<body bgcolor=\"#ffffff\">
-<ul>
-<!-- begin pagelinks -->
-<!-- begin data -->
-<!-- set id [[]] -->
-<!-- set url [[]] -->
-<li><a href="{{url}}"><!--begin title -->
-<!-- end title --></a></li>
-<!-- end data -->
-<!-- end pagelinks -->
-</ul>
-</body>
-</html>
-EOQ
-
-my $update_dir_template = <<'EOQ';
-<html>
-<head>
-</head>
-<body bgcolor=\"#ffffff\">
-<ul>
-<!-- begin toplinks -->
-<!-- begin data -->
-<!-- set id [[]] -->
-<!-- set url [[]] -->
-<li><a href="{{url}}"><!--begin title -->
-<!-- end title --></a></li>
-<!-- end data -->
-<!-- end toplinks -->
-</ul>
 </body>
 </html>
 EOQ
@@ -458,36 +349,6 @@ my $error_template = <<'EOS';
 </div>
 </body></html>
 EOS
-
-my $show_form = <<'EOQ';
-<!DOCTYPE html> 
-<html lang="en">
-<head>
-<!-- begin meta -->
-<!-- end meta -->
-<link rel="stylesheet" type="text/css" href="style.css" title="style" />
-<link rel="stylesheet" type="text/css" href="mobile.css" title="mobile" />
-</head>
-<body>
-<div id="container">
-<div id="primary">
-<!-- begin primary -->
-<!-- end primary -->
-</div>
-<div id="secondary">
-<!-- begin secondary -->
-<!-- end secondary -->
-</div>
-<div id="navigation">
-<ul>
-<!-- begin commandlinks -->
-<!-- end commandlinks -->
-</ul>
-</div>
-</div>
-</body>
-</html>
-EOQ
 
 my $edit_form = <<'EOQ';
 <!DOCTYPE html> 
@@ -554,15 +415,7 @@ my $pagename = "$data_dir/a-title.html";
 $pagename = $wf->validate_filename($pagename, 'w');
 $wf->writer($pagename, $page);
 
-my $templatename = "$template_dir/edit_page.htm";
-$templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $edit_page);
-
-$templatename = "$template_dir/edit_dir.htm";
-$templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $edit_dir);
-
-$templatename = "$template_dir/add_page.htm";
+my $templatename = "$template_dir/add_page.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $page_template);
 
@@ -570,21 +423,9 @@ $templatename = "$template_dir/add_dir.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $dir_template);
 
-$templatename = "$template_dir/update_page.htm";
-$templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $update_page_template);
-
-$templatename = "$template_dir/update_dir.htm";
-$templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $update_dir_template);
-
 $templatename = "$template_dir/error.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $error_template);
-
-$templatename = "$template_dir/show_form.htm";
-$templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $show_form);
 
 $templatename = "$template_dir/edit.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
@@ -637,8 +478,6 @@ is($filename, "$params->{data_dir}/index.html", "top page"); # test 8
 
 #----------------------------------------------------------------------
 # Execute view command
-
-##$wf->relocate($data_dir);
 
 $request = {cmd => 'view', nonce => $params->{nonce}};
 $response = $con->execute($request);

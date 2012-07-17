@@ -44,6 +44,9 @@ sub cull_data {
 
     my $cutoff = time() - 86400 * $self->{max_news_age};
 
+    $records = $self->extract_from_data($records);
+    $records = [$records] unless ref $records eq 'ARRAY';
+
     my @new_records;
     foreach my $record (@$records) {
         my $delta = $record->{time} - $cutoff;
@@ -53,7 +56,7 @@ sub cull_data {
         push (@new_records, $record);
     }
 
-    return \@new_records;
+    return  {data => \@new_records};
 }
 
 #----------------------------------------------------------------------
@@ -68,9 +71,10 @@ sub extra_data {
 #----------------------------------------------------------------------
 # Create rss file
 
-sub update_data {
-    my ($self, $id, $record) = @_;
+sub update_files {
+    my ($self, $filename, $record) = @_;
 
+    my $id = $self->filename_to_id($filename);
     my ($parentid, $seq) = $self->{wf}->split_id($id);
     $self->write_rss($parentid);
 

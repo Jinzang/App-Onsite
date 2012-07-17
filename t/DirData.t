@@ -32,7 +32,7 @@ my $params = {
               template_dir => $template_dir,
               config_file => $config_file,
               script_url => 'test.cgi',
-              base_url => 'http://www.stsci.edu',
+              base_url => 'http://www.onsite.org',
               valid_write => [$data_dir, $template_dir],
               data_registry => $data_registry,
              };
@@ -65,10 +65,8 @@ EXTENSION = html
 CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
-ADD_TEMPLATE = add_page.htm
-EDIT_TEMPLATE = edit_page.htm
-UPDATE_TEMPLATE = update_page.htm
-COMMANDS = browse
+SUBTEMPLATE = add_page.htm
+OMMANDS = browse
 COMMANDS = add
 COMMANDS = edit
 COMMANDS = remove
@@ -78,9 +76,7 @@ COMMANDS = view
 CLASS = App::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
-ADD_TEMPLATE = add_dir.htm
-EDIT_TEMPLATE = edit_page.htm
-UPDATE_TEMPLATE = update_dir.htm
+SUBTEMPLATE = add_dir.htm
 EOQ
 
 my $dir = <<'EOQ';
@@ -91,25 +87,10 @@ my $dir = <<'EOQ';
 <!-- end title --></title>
 <!-- end meta -->
 </head>
-<body bgcolor=\"#ffffff\">
+<body>
 <div id = "container">
-<div id="header">
-<ul>
-<!-- begin toplinks -->
-<!-- begin data -->
-<!-- set id [[]] -->
-<!-- set url [[http://www.stsci.edu/index.html]] -->
-<li><a href="http://www.stsci.edu/index.html"><!--begin title -->
-Home
-<!-- end title --></a></li>
-<!-- end data -->
-<!-- end toplinks -->
-</ul>
-
-</div>
 <div  id="content">
-<!-- begin primary -->
-<!-- begin dirdata -->
+<!-- begin primary type="dir" -->
 <h1><!-- begin title -->
 A title
 <!-- end title --></h1>
@@ -119,7 +100,6 @@ The Content
 <div><!-- begin author -->
 An author
 <!-- end author --></div>
-<!-- end dirdata -->
 <!-- end primary -->
 <!-- begin secondary -->
 <!-- end secondary -->
@@ -129,44 +109,24 @@ An author
 <!-- begin parentlinks -->
 <!-- begin data -->
 <!-- set id [[]] -->
-<!-- set url [[http://www.stsci.edu/index.html]] -->
-<li><a href="http://www.stsci.edu/index.html"><!--begin title -->
-A Title
+<!-- set url [[http://www.onsite.org/index.html]] -->
+<li><a href="http://www.onsite.org/index.html"><!--begin title -->
+Home
 <!-- end title --></a></li>
 <!-- end data -->
 <!-- end parentlinks -->
 <!-- begin pagelinks -->
 <!-- end pagelinks -->
-<!-- begin commandlinks -->
+</ul>
 <ul>
+<!-- begin commandlinks -->
 <!-- begin data -->
 <li><a href="{{url}}"><!-- begin title -->
 <!--end title --></a><!-- set url [[]] --></li>
 <!-- end data -->
-</ul>
 <!-- end commandlinks -->
 </ul>
 </div>
-</div>
-</body>
-</html>
-EOQ
-
-my $edit_dir = <<'EOQ';
-<html>
-<head>
-<!-- begin meta -->
-<title>{{title}}</title>
-<!-- end meta -->
-</head>
-<body bgcolor=\"#ffffff\">
-<!-- begin primary -->
-<!-- begin any -->
-<!-- end any -->
-<!-- end primary -->
-<div id="sidebar">
-<!-- begin commandlinks -->
-<!-- end commandlinks -->
 </div>
 </body>
 </html>
@@ -181,55 +141,36 @@ my $dir_template = <<'EOQ';
 <!-- end meta -->
 </head>
 <body bgcolor=\"#ffffff\">
-<!-- begin primary -->
-<!-- begin dirdata -->
+<!-- begin primary type="dir" -->
 <h1><!-- begin title -->
 <!-- end title --></h1>
 <p><!-- begin body -->
 <!-- end body --></p>
 <div><!-- begin author -->
 <!-- end author --></div>
-<!-- end dirdata -->
 <!-- end primary -->
 <div id="sidebar">
+<ul>
 <!-- begin parentlinks -->
-<ul>
-<!-- begin data -->
-<!-- set url [[]] -->
-<li><a href="{{url}}"><!-- begin title -->
-<!--end title --></a></li>
-<!-- end data -->
-</ul>
-<!-- end parentlinks -->
-<!-- begin commandlinks -->
-<ul>
-<!-- begin data -->
-<!-- set url [[]] -->
-<li><a href="{{url}}"><!-- begin title -->
-<!--end title --></a></li>
-<!-- end data -->
-</ul>
-<!-- end commandlinks -->
-</div>
-</body>
-</html>
-EOQ
-
-my $update_template = <<'EOQ';
-<html>
-<head>
-</head>
-<body bgcolor=\"#ffffff\">
-<ul>
-<!-- begin toplinks -->
 <!-- begin data -->
 <!-- set id [[]] -->
 <!-- set url [[]] -->
-<li><a href="{{url}}"><!--begin title -->
-<!-- end title --></a></li>
+<li><a href="{{url}}"><!-- begin title -->
+<!--end title --></a></li>
 <!-- end data -->
-<!-- end toplinks -->
+<!-- end parentlinks -->
 </ul>
+
+<ul>
+<!-- begin commandlinks -->
+<!-- begin data -->
+<!-- set url [[]] -->
+<li><a href="{{url}}"><!-- begin title -->
+<!--end title --></a></li>
+<!-- end data -->
+<!-- end commandlinks -->
+</ul>
+</div>
 </body>
 </html>
 EOQ
@@ -255,17 +196,9 @@ my $indexname = "$data_dir/index.html";
 $indexname = $wf->validate_filename($indexname, 'w');
 $wf->writer($indexname, $dir);
 
-my $templatename = "$template_dir/edit_page.htm";
-$templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $edit_dir);
-
-$templatename = "$template_dir/add_dir.htm";
+my $templatename = "$template_dir/add_dir.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $dir_template);
-
-$templatename = "$template_dir/update_dir.htm";
-$templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $update_template);
 
 $config_file = $wf->validate_filename($config_file, 'w');
 $wf->writer($config_file, $config);

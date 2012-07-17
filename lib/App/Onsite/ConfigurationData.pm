@@ -97,13 +97,4 @@ sub write_primary {
 	return;
 }
 
-#----------------------------------------------------------------------
-# Update after configuration file change (no-op)
-
-sub update_data {
-	my ($self, $id, $records) = @_;
-
-	return;
-}
-
 1;

@@ -66,24 +66,6 @@ sub browse_data {
 }
 
 #----------------------------------------------------------------------
-# Construct command links for page
-
-sub build_parentlinks {
-    my ($self, $data, $sort) = @_;
-
-    my ($parentid, $seq) = $self->{wf}->split_id($data->{id});
-    my ($filename, $extra) = $self->id_to_filename($parentid);
-    
-    my $links = $self->read_records($filename, 'parentlinks');
-    my $link = $self->single_navigation_link($data);
-
-    $links = $self->{lo}->list_add($links, $link);
-    $links = $self->link_class($links, $link->{url});
-    
-    return {data => $links};
-}
-
-#----------------------------------------------------------------------
 # Change the filename to match request TODO: rewrite
 
 sub change_filename {
@@ -231,27 +213,23 @@ sub get_subtypes {
 }
 
 #----------------------------------------------------------------------
-# Return true if there is only one subtype
-
-sub has_one_subtype {
-    my ($self, $parentid) = @_;
-
-    my $subtypes = $self->get_subtypes($parentid);
-    return @$subtypes == 1;
-}
-
-#----------------------------------------------------------------------
 # Remove a directory
 
 sub remove_data {
     my ($self, $id, $request) = @_;
 
     if ($id) {
+        my ($parentid, $seq) = $self->{wf}->split_id($id);
+        my ($repository, $extra) = $self->id_to_filename($parentid);
+
+        my $data = {};
+        $request->{oldid} = $id;
+        $data->{pagetlinks} = $self->build_pagelinks($repository, $request);
+
         my $directory = $self->get_repository($id);
         $self->{wf}->remove_directory($directory);
 
-        $request->{oldid} = $id;
-        $self->update_data($id, $request);
+        $self->update_files($repository, $data);
 
     } else {
         my $filename = $self->id_to_filename('');
@@ -261,24 +239,31 @@ sub remove_data {
     return;
 }
 
-#----------------------------------------------------------------------
-# Build navigation links
+#---------------------------------------------------------------------------
+# Write a record to disk as a file
 
-sub update_links {
-    my ($self, $current_links, $data) = @_;
+sub write_primary {
+    my ($self, $filename, $request) = @_;
 
-    # Only update links if parent is top level
-
-    my $new_links;
-    my ($parentid, $seq) = $self->{wf}->split_id($data->{id});
-
-    if ($parentid) {
-        $new_links = $current_links;
-    } else {
-        $new_links = $self->SUPER::update_links($current_links, $data);       
+    my $data = {};
+    $data->{meta} = $self->build_meta($filename, $request);
+    $data->{primary} = $self->build_primary($filename, $request);
+    $data->{parentlinks} = $self->build_parentlinks($filename, $request);
+    $data->{commandlinks} = $self->build_commandlinks($filename, $request);
+    $self->write_file($filename, $data);
+ 
+    if ($data->{parentlinks}) {
+        my $parent_file = $self->{wf}->parent_file($filename);
+        
+        if ($filename ne $parent_file) {
+            my $update_data = {};
+            $update_data->{pagelinks} = $self->build_pagelinks($parent_file,
+                                                               $request);
+            $self->update_files($parent_file, $update_data);
+        }
     }
-
-   return $new_links;
+    
+    return;
 }
 
 1;
