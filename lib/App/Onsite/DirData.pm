@@ -66,6 +66,39 @@ sub browse_data {
 }
 
 #----------------------------------------------------------------------
+# Create a single link to the index file
+
+sub build_indexlink {
+    my ($self, $filename, $request) = @_;
+
+    my $links = [$self->single_navigation_link($request)];    
+    $links =  $self->link_class($links, $links->[0]{url});
+
+    return $links;
+}
+
+#----------------------------------------------------------------------
+# Set up data for parentlinks block
+
+sub build_parentlinks {
+    my ($self, $filename, $request) = @_;
+
+    my $links;
+    my $parent_file = $self->{wf}->parent_file($filename);
+
+    if ($filename eq $parent_file) {
+        $links = [];
+
+    } else {
+        # TODO: id field must be entire id
+        $request = $self->read_primary($parent_file);
+        $links = $self->build_links('parentlinks', $parent_file, $request); 
+    }
+    
+    return $links;
+}
+
+#----------------------------------------------------------------------
 # Change the filename to match request TODO: rewrite
 
 sub change_filename {
@@ -213,6 +246,15 @@ sub get_subtypes {
 }
 
 #----------------------------------------------------------------------
+# Return true if there is only one subtype
+
+sub has_one_subtype {
+    my ($self, $id) = @_;
+
+    return 0;
+}
+
+#----------------------------------------------------------------------
 # Remove a directory
 
 sub remove_data {
@@ -248,6 +290,7 @@ sub write_primary {
     my $data = {};
     $data->{meta} = $self->build_meta($filename, $request);
     $data->{primary} = $self->build_primary($filename, $request);
+    $data->{pagelinks} = $self->build_indexlink($filename, $request);
     $data->{parentlinks} = $self->build_parentlinks($filename, $request);
     $data->{commandlinks} = $self->build_commandlinks($filename, $request);
     $self->write_file($filename, $data);
@@ -257,8 +300,9 @@ sub write_primary {
         
         if ($filename ne $parent_file) {
             my $update_data = {};
-            $update_data->{pagelinks} = $self->build_pagelinks($parent_file,
-                                                               $request);
+            $update_data->{pagelinks} =
+                $self->build_pagelinks($parent_file, $request);
+
             $self->update_files($parent_file, $update_data);
         }
     }

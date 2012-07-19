@@ -72,7 +72,7 @@ sub extra_data {
 # Create rss file
 
 sub update_files {
-    my ($self, $filename, $record) = @_;
+    my ($self, $record, $filename) = @_;
 
     my $id = $self->filename_to_id($filename);
     my ($parentid, $seq) = $self->{wf}->split_id($id);

@@ -111,15 +111,6 @@ sub build_pagelinks {
 }
 
 #----------------------------------------------------------------------
-# Set up data for parentlinks block
-
-sub build_parentlinks {
-    my ($self, $filename, $request) = @_;
-    
-    return $self->build_links('parentlinks', $filename, $request);    
-}
-
-#----------------------------------------------------------------------
 # Set up data for primary block
 
 sub build_primary {
@@ -334,6 +325,23 @@ sub get_templates {
 }
 
 #----------------------------------------------------------------------
+# Return true if there is only one subtype
+
+sub has_one_subtype {
+    my ($self, $id) = @_;
+
+    my $test;
+    my ($filename, $extra) = $self->id_to_filename($id);
+
+    if (! $extra && -e $filename) {
+        my $item = $self->block_info('secondary', $filename);
+        $test = exists $item->{type};
+    }
+    
+    return $test;
+}
+
+#----------------------------------------------------------------------
 #  Get the type of a file given its id
 
 sub id_to_type {
@@ -505,7 +513,7 @@ sub single_navigation_link {
 # Update navigation links after a file is changed
 
 sub update_files {
-    my ($self, $filename, $data) = @_;
+    my ($self, $filename, $data, $skip) = @_;
 
     my $subfolders = 0;
     my ($repository, $basename) = $self->{wf}->split_filename($filename);    
@@ -514,7 +522,8 @@ sub update_files {
 
     while (my $file = &$visitor()) {
         next unless $self->valid_filename($file);
-       
+        next if $skip && $file eq $filename;
+
         my $url = $self->filename_to_url($file);
         $data =  $self->link_class($data, $url);
         $self->write_file($file, $data);
@@ -529,7 +538,8 @@ sub update_files {
 sub write_file {
     my ($self, $filename, $data) = @_;
     
-    my @templates = $self->get_templates($filename);
+   my @templates = $self->get_templates($filename);
+    
     my $output = $self->{nt}->render($data, @templates); 
     $self->{wf}->writer($filename, $output);
 
@@ -550,9 +560,10 @@ sub write_primary {
     $self->write_file($filename, $data);
  
     if ($data->{pagelinks}) {
+        my $skip = 1;
         my $update_data = {};
         $update_data->{pagelinks} = $data->{pagelinks};
-        $self->update_files($filename, $update_data);
+        $self->update_files( $filename, $update_data, $skip);
     }
     
     return;

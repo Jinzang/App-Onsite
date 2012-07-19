@@ -465,7 +465,7 @@ sub update_blogindex {
 # Update indexes after a post has been changed
 
 sub update_files {
-    my ($self, $filename, $data) = @_;
+    my ($self, $data, $filename) = @_;
 
     my $change = $self->update_postindex($filename, $data);
     $self->update_monthindex($filename) if $change;
@@ -557,12 +557,8 @@ sub update_records {
     my $subtemplate = $self->{edit_template};
     $subtemplate = "$self->{template_dir}/$subtemplate";
 
-    $self->write_file('secondary.any',
-                      $index_file,
-                      $subtemplate,
-                      $data);
-
-   return;
+    $self->write_file($index_file, $data);
+    return;
 }
 
 1;

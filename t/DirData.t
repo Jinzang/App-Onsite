@@ -107,6 +107,8 @@ An author
 <div id="sidebar">
 <ul>
 <!-- begin parentlinks -->
+<!-- end parentlinks -->
+<!-- begin pagelinks -->
 <!-- begin data -->
 <!-- set id [[]] -->
 <!-- set url [[http://www.onsite.org/index.html]] -->
@@ -114,8 +116,6 @@ An author
 Home
 <!-- end title --></a></li>
 <!-- end data -->
-<!-- end parentlinks -->
-<!-- begin pagelinks -->
 <!-- end pagelinks -->
 </ul>
 <ul>
@@ -159,6 +159,14 @@ my $dir_template = <<'EOQ';
 <!--end title --></a></li>
 <!-- end data -->
 <!-- end parentlinks -->
+<!-- begin pagelinks -->
+<!-- begin data -->
+<!-- set id [[]] -->
+<!-- set url [[]] -->
+<li><a href="{{url}}"><!-- begin title -->
+<!--end title --></a></li>
+<!-- end data -->
+<!-- end pagelinks -->
 </ul>
 
 <ul>
