@@ -376,6 +376,6 @@ is_deeply($d, $s, "Edit data"); # Test 20
 #----------------------------------------------------------------------
 # Remove data
 
-$data->remove_data('new-title');
+$data->remove_data('new-title', $e);
 my $found = -e $dirname2 ? 1 : 0;
 is($found, 0, "Remove data"); # Test 21

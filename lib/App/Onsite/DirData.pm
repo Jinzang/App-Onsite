@@ -265,6 +265,7 @@ sub remove_data {
         my ($repository, $extra) = $self->id_to_filename($parentid);
 
         my $data = {};
+        delete $request->{id};
         $request->{oldid} = $id;
         $data->{pagetlinks} = $self->build_pagelinks($repository, $request);
 

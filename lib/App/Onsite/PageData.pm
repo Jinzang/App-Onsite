@@ -482,6 +482,8 @@ sub remove_data {
     my ($filename, $extra) = $self->id_to_filename($id);
 
     my $data = {};
+    delete $request->{id};
+    $request->{oldid} = $id;
     $data->{pagelinks} = $self->build_pagelinks($filename, $request)
         unless $extra;
 
