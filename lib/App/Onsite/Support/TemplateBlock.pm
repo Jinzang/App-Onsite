@@ -239,12 +239,17 @@ sub render_block {
     if ($ref eq 'ARRAY') {
         # Take each element of the array, render, and concatenate the results
 
-        my @results;
-        foreach my $datum (@$data) {
-            push(@results, $self->render($datum));
+        if (@$data) {
+            my @results;
+            foreach my $datum (@$data) {
+                push(@results, $self->render($datum));
+            }
+            $result = join("\n", @results);
+
+        } else {
+            $result = $self->decorate();
         }
 
-        $result = join("\n", @results);
 
     } else {
         $result = $self->render($data);
@@ -390,7 +395,12 @@ sub decorate {
     my $begin = $self->{LEXER}->meta_replace('block', " $cmd $blockname$args");
     my $end = $self->{LEXER}->meta_replace('block', " end $blockname ");
 
-    $source = join("\n", $begin, $source, $end);
+    if (defined $source) {
+        $source = join("\n", $begin, $source, $end);
+    } else {
+        $source = join("\n", $begin, $end);        
+    }
+
     return $source;
 }
 
@@ -590,6 +600,22 @@ sub render_block {
 package App::Onsite::Support::WithTemplateBlock;
 
 use base qw(App::Onsite::Support::TemplateSubBlock);
+
+#----------------------------------------------------------------------
+# Surround source with blockname comments
+
+sub decorate {
+    my ($self, $source) = @_;
+
+    my $result;
+    if (defined $source) {
+        $result = $self->SUPER::decorate($source);
+    } else {
+        $result = '';
+    }
+    
+    return $result;
+}
 
 #----------------------------------------------------------------------
 # Bin holds the data used for interpolation
