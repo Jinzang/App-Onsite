@@ -125,14 +125,20 @@ sub build_primary {
 sub build_records {
     my ($self, $blockname, $filename, $request) = @_;
 
-    my $current_records = $self->read_records($blockname, $filename);
-    my $new_records = $self->update_records($current_records, $request);
-    return if $self->{lo}->list_same($current_records, $new_records);
-
-    my $item = $self->block_info($blockname, $filename);
-    my $sort_field = $item->{sort} || 'id';
+    my $new_records;
+    if (-e $filename) {
+        my $current_records = $self->read_records($blockname, $filename);
+        $new_records = $self->update_records($current_records, $request);
+        return if $self->{lo}->list_same($current_records, $new_records);
     
-    $new_records = $self->{lo}->list_sort($new_records, $sort_field);
+        my $item = $self->block_info($blockname, $filename);
+        my $sort_field = $item->{sort} || 'id';
+        
+        $new_records = $self->{lo}->list_sort($new_records, $sort_field);
+
+    } else {
+        $new_records = [$request];
+    }
     return {data => $new_records};       
 }
 
@@ -412,6 +418,7 @@ sub link_class {
 
 sub read_block {
     my ($self, $blockname, $filename) = @_;
+
 
     my $block = $self->{nt}->match($blockname, $filename);
     die "Can't read $blockname data from $filename\n" unless $block;

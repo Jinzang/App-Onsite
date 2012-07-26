@@ -420,20 +420,17 @@ sub sorted_files {
     my @augmented;
     
     if ($sort_field eq 'date') {
-        my @augmented;
         foreach (@unsorted) {
             push(@augmented, [-M, $_]);
         }
 				
     } elsif ($sort_field eq 'id') {
-        my @augmented;
         foreach (@unsorted) {
             my $basename = $self->get_basename($_);
             push(@augmented, [$basename, $_]);
         }
 
     } elsif ($sort_field eq 'ext') {
-        my @augmented;
         foreach (@unsorted) {
             my ($ext) = /\.([^\.]*)$/;
             $ext = '' unless defined $ext;
@@ -442,7 +439,7 @@ sub sorted_files {
     }
 
     if (@augmented) {
-        @augmented = sort {$a->[0] <=> $b->[0]
+        @augmented = sort {$a->[0] cmp $b->[0]
                    || $b->[1] cmp $a->[1]} @augmented;
         
         @sorted =  map {$_->[1]} @augmented;

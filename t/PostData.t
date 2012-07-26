@@ -72,9 +72,7 @@ EXTENSION = html
 CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
-ADD_TEMPLATE = add_page.htm
-EDIT_TEMPLATE = edit_page.htm
-UPDATE_TEMPLATE = update_page.htm
+SUBTEMPLATE = add_page.htm
 COMMANDS = browse
 COMMANDS = add
 COMMANDS = edit
@@ -85,29 +83,26 @@ COMMANDS = view
 CLASS = App::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
-ADD_TEMPLATE = add_dir.htm
-EDIT_TEMPLATE = edit_page.htm
-UPDATE_TEMPLATE = update_dir.htm
-        [blog]
-CLASS = App::Onsite::DirData
+SUBTEMPLATE = add_dir.htm
+       [blog]
+CLASS = App::Onsite::BlogData
 SUPER = dir
+SORT_FIELD = -id
         [post]
 CLASS = App::Onsite::PostData
 SUPER = blog
 INDEX_LENGTH = 2
 HAS_SUBFOLDERS = 1
-ADD_TEMPLATE = add_post.htm
-EDIT_TEMPLATE = edit_post.htm
-UPDATE_TEMPLATE = update_post.htm
-POSTINDEX_TEMPLATE = update_postindex.htm
-MONTHINDEX_TEMPLATE = update_monthindex.htm
-BLOGINDEX_TEMPLATE = update_blogindex.htm
+SUBTEMPLATE = add_post.htm
+MONTHINDEX = add_monthindex.htm
+YEARINDEX = add_yearindex.htm
+BLOGINDEX = add_blogindex.htm
 EOQ
 
 
 $wf->writer("$template_dir/$data_registry", $registry);
 
-my $blog = <<'EOQ';
+my $blog_file = <<'EOQ';
 <html>
 <head>
 <!-- begin meta -->
@@ -118,8 +113,7 @@ my $blog = <<'EOQ';
 <body>
 <div id = "container">
 <div  id="content">
-<!-- begin primary -->
-<!-- begin blogdata -->
+<!-- begin primary type="blog" -->
 <h1><!-- begin title -->
 My Very Fine Blog
 <!-- end title --></h1>
@@ -129,11 +123,8 @@ A blog for testing.
 <div><!-- begin author -->
 The Blogger.
 <!-- end author --></div>
-<!-- end blogdata -->
 <!-- end primary -->
-<!-- begin secondary -->
-<!-- begin postdata -->
-<!-- end postdata -->
+<!-- begin secondary type="post" -->
 <!-- end secondary -->
 </div>
 <div id="sidebar">
@@ -172,109 +163,9 @@ Blog
 </html>
 EOQ
 
-my $edit_post = <<'EOQ';
-<html>
-<head>
-<!-- begin meta -->
-<title>{{title}}</title>
-<!-- end meta -->
-</head>
-<body>
-<!-- begin primary -->
-<!-- begin any -->
-<!-- end any -->
-<!-- end primary -->
-<!-- begin secondary -->
-<!-- begin any -->
-<!-- end any -->
-<!-- end secondary -->
-<div id="sidebar">
-<!-- begin parentlinks -->
-<!-- end parentlinks -->
-<!-- begin pagelinks -->
-<!-- end pagelinks -->
-<!-- begin commandlinks -->
-<!-- end commandlinks -->
-</div>
-</body>
-</html>
-EOQ
-
-my $post_template = <<'EOQ';
-<html>
-<head>
-<!-- begin meta -->
-<title><!-- begin title -->
-<!-- end title --></title>
-<!-- end meta -->
-</head>
-<body>
-<!-- begin primary -->
-<!-- begin postdata -->
-<h1><!-- begin title -->
-<!-- end title --></h1>
-<p><!-- begin body -->
-<!-- end body --></p>
-<div><!-- begin author -->
-<!-- end author --></div>
-<!-- end postdata -->
-<!-- end primary -->
-<!-- begin secondary -->
-<!-- end secondary -->
-<div id="sidebar">
-<!-- begin parentlinks -->
-<ul>
-<!-- begin data -->
-<!-- set url [[]] -->
-<li><a href="{{url}}"><!-- begin title -->
-<!--end title --></a></li>
-<!-- end data -->
-</ul>
-<!-- end parentlinks -->
-<!-- begin commandlinks -->
-<ul>
-<!-- begin data -->
-<!-- set url [[]] -->
-<li><a href="{{url}}"><!-- begin title -->
-<!--end title --></a></li>
-<!-- end data -->
-</ul>
-<!-- end commandlinks -->
-</div>
-</body>
-</html>
-EOQ
-
-my $update_template = <<'EOQ';
-<html>
-<head>
-</head>
-<body>
-<ul>
-<!-- begin parentlinks -->
-<!-- begin data -->
-<li><a href="{{url}}"><!-- begin title -->
-<!--end title --></a><!-- set url [[]] --></li>
-<!-- end data -->
-<!-- end parentlinks -->
-</ul>
-</body>
-</html>
-EOQ
-
-# Write post as templates and posts
-
 my $indexname = "$blog_dir/index.html";
 $indexname = $wf->validate_filename($indexname, 'w');
-$wf->writer($indexname, $blog);
-
-my $templatename = "$template_dir/edit_post.htm";
-$templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $edit_post);
-
-$templatename = "$template_dir/update_post.htm";
-$templatename = $wf->validate_filename($templatename, 'w');
-$wf->writer($templatename, $update_template);
+$wf->writer($indexname, $blog_file);
 
 my $posttemplate = <<'EOQ';
 <html>
@@ -286,15 +177,13 @@ my $posttemplate = <<'EOQ';
 <body>
 <div id = "container">
 <div  id="content">
-<!-- begin primary -->
-<!-- begin postdata -->
+<!-- begin primary type="post" -->
 <h1><!-- begin title -->
 <!-- end title --></h1>
 <p><!-- begin body -->
 <!-- end body --></p>
 <div><!-- begin author -->
 <!-- end author --></div>
-<!-- end postdata -->
 <!-- end primary -->
 <!-- begin secondary -->
 <!-- end secondary -->
@@ -307,6 +196,8 @@ my $posttemplate = <<'EOQ';
 <!--end title --></a><!-- set url [[]] --></li>
 <!-- end data -->
 <!-- end parentlinks -->
+<!-- begin pagelinks -->
+<!-- end pagelinks -->
 </ul>
 <ul>
 <!-- begin commandlinks -->
@@ -333,12 +224,10 @@ my $monthtemplate = <<'EOQ';
 <div id = "container">
 <div  id="content">
 <!-- begin primary -->
-<!-- begin postdata -->
-<h1>{{title}}</h1>
-<!-- end postdata -->
+<h1><!-- begin title -->
+<!-- end title --></h1>
 <!-- end primary -->
 <!-- begin secondary -->
-<!-- begin postdata -->
 <!-- begin data -->
 <h2><!-- begin title -->
 <!-- end title --></h2>
@@ -347,7 +236,6 @@ my $monthtemplate = <<'EOQ';
 <!-- end summary -->
 <a href="{{url}}">More</a></p>
 <!-- end data -->
-<!-- end postdata -->
 <!-- end secondary -->
 </div>
 <div id="sidebar">
@@ -358,6 +246,8 @@ my $monthtemplate = <<'EOQ';
 <!--end title --></a><!-- set url [[]] --></li>
 <!-- end data -->
 <!-- end parentlinks -->
+<!-- begin pagelinks -->
+<!-- end pagelinks -->
 </ul>
 </div>
 </div>
@@ -376,19 +266,16 @@ my $yeartemplate = <<'EOQ';
 <div id = "container">
 <div  id="content">
 <!-- begin primary -->
-<!-- begin postdata -->
-<h1>{{title}}</h1>
-<!-- end postdata -->
+<h1><!-- begin title -->
+<!-- end title --></h1>
 <!-- end primary -->
 <!-- begin secondary -->
-<!-- begin postdata -->
 <ul>
 <!-- begin data -->
 <!-- set id [[]] -->
 <li><a href="{{url}}">{{title}}</a></li>
 <!-- end data -->
 </ul>
-<!-- end postdata -->
 <!-- end secondary -->
 </div>
 <div id="sidebar">
@@ -418,8 +305,7 @@ my $blogtemplate = <<'EOQ';
 <div  id="content">
 <!-- begin primary -->
 <!-- end primary -->
-<!-- begin secondary -->
-<!-- begin postdata sort="-id" -->
+<!-- begin secondary sort="-id" -->
 <!-- begin data -->
 <h1><!-- begin title -->
 <!-- end title --></h1>
@@ -429,7 +315,6 @@ my $blogtemplate = <<'EOQ';
 <div><!-- begin author -->
 <!-- end author --> <a href="{{url}}">Link</a></div>
 <!-- end data -->
-<!-- end postdata -->
 <!-- end secondary -->
 </div>
 <div id="sidebar">
@@ -479,19 +364,19 @@ EOQ
 
 # Write templates to script directory
 
-$templatename = "$params->{template_dir}/add_post.htm";
+my $templatename = "$params->{template_dir}/add_post.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $posttemplate);
 
-$templatename = "$params->{template_dir}/update_postindex.htm";
+$templatename = "$params->{template_dir}/add_monthindex.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $monthtemplate);
 
-$templatename = "$params->{template_dir}/update_monthindex.htm";
+$templatename = "$params->{template_dir}/add_yearindex.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $yeartemplate);
 
-$templatename = "$params->{template_dir}/update_blogindex.htm";
+$templatename = "$params->{template_dir}/add_blogindex.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $blogtemplate);
 
@@ -505,6 +390,7 @@ $wf->writer($templatename, $rsstemplate);
 BEGIN {use_ok("App::Onsite::PostData");} # test 1
 
 my $reg = App::Onsite::Support::RegistryFile->new(%$params);
+my $blog = $reg->create_subobject($params, $data_registry, 'blog');
 my $data = $reg->create_subobject($params, $data_registry, 'post');
 
 isa_ok($data, "App::Onsite::PostData"); # test 2
@@ -550,7 +436,7 @@ foreach my $path (@paths) {
     push(@kinds, $data->get_kind_file($path));
 }
 
-is_deeply(\@kinds, [qw(postindex monthindex blogindex)],
+is_deeply(\@kinds, [qw(monthindex yearindex blogindex)],
           "Kind of archive"); # test 5
 
 #----------------------------------------------------------------------
@@ -591,7 +477,6 @@ $d->{title} = 'A title';
 
 %$r = %$d;
 $r->{id} = $postid;
-$r->{count} = 0;
 $r->{url} = join('/', $params->{base_url}, $relname);
 
 $data->add_data('blog', $d);
@@ -620,7 +505,6 @@ is ($test, 0, "Doesn't have id");  # test 12
 
 my $s;
 $d->{id} = $postid;
-$d->{count} = 0;
 $d->{url} = join('/', $params->{base_url}, $relname);
 delete $d->{date}{second};
 %$s = %$d;
@@ -661,35 +545,32 @@ is_deeply($d, $s, "Add data"); # Test 14
 #----------------------------------------------------------------------
 # Browse data
 
-my $results = $data->browse_data('blog');
-delete $results->[0]{date}{second};
-delete $results->[1]{date}{second};
-
+my $results = $blog->browse_data('blog');
+delete $_->{date}{second} foreach @$results;
 is_deeply($results, [$s, $r], "Browse data"); # test 15
 
 #----------------------------------------------------------------------
 # Search data
 
-my $list = $data->search_data({author => 'author'}, 'blog');
-delete $list->[0]{date}{second};
-delete $list->[1]{date}{second};
+my $list = $blog->search_data({author => 'author'}, 'blog');
+delete $_->{date}{second} foreach @$list;
 is_deeply($list, [$s, $r], "Search data"); # test 16
 
-$list = $data->search_data({author => 'author'}, 'blog', 1);
-delete $list->[0]{date}{second};
+$list = $blog->search_data({author => 'author'}, 'blog', 1);
+delete $_->{date}{second} foreach @$list;
 is_deeply($list, [$s], "Search data with limit"); # test 17
 
-$list = $data->search_data({author => 'An'}, 'blog');
-delete $list->[0]{date}{second};
+$list = $blog->search_data({author => 'An'}, 'blog');
+delete $_->{date}{second} foreach @$list;
 is_deeply($list, [$r], "Search data single term"); # test 18
 
-$list = $data->search_data({body =>'New', title => 'New'}, 'blog');
-delete $list->[0]{date}{second};
+$list = $blog->search_data({body =>'New', title => 'New'}, 'blog');
+delete $_->{date}{second} foreach @$list;
 is_deeply($list, [$s], "Search data multiple terms"); # test 19
 
 #----------------------------------------------------------------------
 # Remove data
 
-$data->remove_data($postid2);
+$data->remove_data($postid2, $s);
 my $found = -e $postname2 ? 1 : 0;
 is($found, 0, "Remove data"); # test 20

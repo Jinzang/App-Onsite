@@ -602,7 +602,7 @@ sub search_data {
         }
     }
 
-    return $self->{lo}->list_sort(\@list);
+    return \@list;
 
 }
 

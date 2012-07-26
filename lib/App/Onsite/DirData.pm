@@ -54,7 +54,6 @@ sub browse_data {
     my @list;
     my $subfolders = 0;
 
-
     my $get_next = $self->get_browsable($parentid);
 
     while (defined(my $data = &$get_next)) {
@@ -200,9 +199,19 @@ sub get_browsable {
 
 sub get_next {
     my ($self, $parentid, $subfolders) = @_;
+   
+    my $obj;
+    if ($self->has_one_subtype($parentid)) {
+        my $subtypes = $self->get_subtypes($parentid);
+        
+        $obj = $self->{reg}->create_subobject($self,
+                                              $self->{data_registry},
+                                              $subtypes->[0]);
+    } else {
+        $obj = $self;
+    }
 
     my $dir = $self->get_repository($parentid);
-    my $extension = $self->{extension};    
 
     my $visitor = $self->{wf}->visitor($dir,
                                        $self->{has_subfolders},
@@ -216,20 +225,19 @@ sub get_next {
     	    $filename = &$visitor();
             return unless defined $filename;
 
-            ($ext) = $filename =~ /\.([^\.]*)$/;
-    	    last if defined $ext && $extension eq $ext;
+            last if $obj->valid_filename($filename);
         }
 
-        my $data = $self->read_primary($filename);
-        $data->{id} = $self->filename_to_id($filename);
-        $data = $self->extra_data($data);        
-
+        my $data = $obj->read_primary($filename);
+        $data->{id} = $obj->filename_to_id($filename);
+        $data = $obj->extra_data($data);
+        
         return $data;
    };
 }
 
 #---------------------------------------------------------------------------
-# Get subtypes to be added to file (stub)
+# Get subtypes to be added to file
 
 sub get_subtypes {
     my ($self, $parentid) = @_;
