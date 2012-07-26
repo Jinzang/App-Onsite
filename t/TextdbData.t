@@ -149,7 +149,7 @@ is_deeply ($d, $i, "Field info"); # Test 9
 # Search data
 
 my $list = $data->search_data({author => 'author'}, 'test');
-is_deeply($list, [$r, $s], "Search data"); # test 10
+is_deeply($list, [$s, $r], "Search data"); # test 10
 
 $list = $data->search_data({author => 'author'}, 'test', 1);
 is_deeply($list, [$s], "Search data with limit"); # test 11

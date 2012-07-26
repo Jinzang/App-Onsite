@@ -215,7 +215,7 @@ is_deeply($hash, $r, "Write nested directories"); # test 18
 # Test file visitor
 
 my $files = [];
-my $visitor = $wf->visitor($data_dir, 1, 'date');
+my $visitor = $wf->visitor($data_dir, 1, 'id');
 while (my $file = &$visitor()) {
     push(@$files, $file);
 }
