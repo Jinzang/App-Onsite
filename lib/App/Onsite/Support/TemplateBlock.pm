@@ -247,7 +247,7 @@ sub render_block {
             $result = join("\n", @results);
 
         } else {
-            $result = $self->decorate();
+            $result = $self->render();
         }
 
 
@@ -604,12 +604,12 @@ use base qw(App::Onsite::Support::TemplateSubBlock);
 #----------------------------------------------------------------------
 # Surround source with blockname comments
 
-sub decorate {
+sub render {
     my ($self, $source) = @_;
 
     my $result;
     if (defined $source) {
-        $result = $self->SUPER::decorate($source);
+        $result = $self->SUPER::render($source);
     } else {
         $result = '';
     }
