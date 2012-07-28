@@ -671,26 +671,6 @@ sub summarize {
 }
 
 #----------------------------------------------------------------------
-# Update a list of records
-
-sub update_records {
-    my ($self, $current_records, $record) = @_;
-    my $new_records;
-    
-    if (exists $record->{id}) {
-        $new_records = $self->{lo}->list_add($current_records,
-                                             $record);
-    }
-    
-    if (exists $record->{oldid}) {
-        $new_records = $self->{lo}->list_delete($current_records,
-                                                $record->{oldid});
-    }
-
-    return $new_records;
-}
-
-#----------------------------------------------------------------------
 # Return boolean result indicating if this is a valid filename
 
 sub valid_filename {

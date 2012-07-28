@@ -148,7 +148,7 @@ sub write_secondary {
     my ($parentid, $seq) = $self->{wf}->split_id($request->{id});
     $request->{id} = $seq;
 
-    $records = $self->update_records($records, $request);
+    $records = $self->{lo}->list_change($records, $request);
     $records = $self->{lo}->list_sort($records);
 
 	# Add info record to output

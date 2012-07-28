@@ -128,7 +128,7 @@ sub build_records {
     my $new_records;
     if (-e $filename) {
         my $current_records = $self->read_records($blockname, $filename);
-        $new_records = $self->update_records($current_records, $request);
+        $new_records = $self->{lo}->list_change($current_records, $request);
         return if $self->{lo}->list_same($current_records, $new_records);
     
         my $item = $self->block_info($blockname, $filename);

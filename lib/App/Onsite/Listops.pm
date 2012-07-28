@@ -30,6 +30,19 @@ sub list_add {
 }
 
 #----------------------------------------------------------------------
+# Change a list by adding a record, deleting a record, or both
+
+sub list_change {
+    my ($self, $list, $data) = @_;
+
+    my $new_list = $self->list_add($list, $data) if exists $data->{id};
+    $new_list = $self->list_delete($list, $data->{oldid})
+                if exists $data->{oldid};
+
+    return $new_list;
+}
+
+#----------------------------------------------------------------------
 # Delete an object from a list, if present
 
 sub list_delete {
