@@ -514,8 +514,9 @@ sub read_data {
 sub read_primary {
     my ($self, $filename) = @_;
 
+    my $id = $self->filename_to_id($filename);
     my $title = ucfirst($self->get_type) . ' Data';
-    return {title => $title, summary => $title};
+    return {title => $title, summary => $title, id => $id};
 }
 
 #----------------------------------------------------------------------

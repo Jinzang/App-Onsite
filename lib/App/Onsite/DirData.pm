@@ -186,7 +186,6 @@ sub get_browsable {
         # at least as far as browse_data is concerned
 
         my $data = $obj->read_primary($filename);
-        $data->{id} = $self->filename_to_id($filename);
         $data = $obj->extra_data($data);        
 
         return $data;
@@ -228,7 +227,6 @@ sub get_next {
         }
 
         my $data = $obj->read_primary($filename);
-        $data->{id} = $obj->filename_to_id($filename);
         $data = $obj->extra_data($data);
         
         return $data;
