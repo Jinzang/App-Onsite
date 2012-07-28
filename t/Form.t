@@ -95,13 +95,12 @@ is_deeply($form->{buttons}, $buttons, "get_buttons"); # test 7
 my $response = {code => 400, url=> $params->{base_url}, msg => 'Invalid type'};
 $form->{error} = $response->{msg};
 
-my $result_form = {error => $form->{error}, title => 'Onsite Editor',
-                   form => {visible => $form->{visible}, hidden => $form->{hidden},
-                             buttons => $form->{buttons}, url => $form->{url},
-                              encoding => $form->{encoding}
-                            }
-                  };
-               
+my $result_form = {};
+
+%$result_form = (%$request, error => $form->{error}, title => 'Onsite Editor');
+delete $form->{error};
+$result_form->{form} = $form;
+
 my $results = $con->create_form($request, $response->{msg});
 is_deeply($results, $result_form, "create_form"); # test 8
 

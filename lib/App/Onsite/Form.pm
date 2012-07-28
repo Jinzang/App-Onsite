@@ -3,7 +3,7 @@ use warnings;
 use integer;
 
 #----------------------------------------------------------------------
-# Simple website editor
+# Generate form to get data for editor
 
 package App::Onsite::Form;
 
@@ -32,6 +32,7 @@ sub create_form {
     my ($self, $request, $msg) = @_;
 
     my $results = {};
+    %$results = %$request;
     $results->{error} = $msg || '';
     $results->{title} = $self->{form_title};
 
