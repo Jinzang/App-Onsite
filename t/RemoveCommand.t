@@ -1,9 +1,9 @@
-#!/usr/local/bin/perl -T
+#!/usr/local/bin/perl
 use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 6;
+use Test::More tests => 8;
 
 use Cwd qw(abs_path);
 use App::Onsite::Support::WebFile;
@@ -279,20 +279,30 @@ my $data = {
     script_url => $params->{script_url},
 };
 
-my $test = $con->check($data);
+my $request = {};
+%$request = %$data;
+my $test = $con->check($request);
 my $response = {code => 200, msg => 'OK', protocol => 'text/html',
                 url => "$params->{base_url}/a-title.html"};
 
-is_deeply($test, $response, "check"); # test 4
+is_deeply($test, $response, "check valid data"); # test 4
 
-$data->{id} = 'foobar';
+$request = {id => 'a-title', cmd => 'remove'};
+$test = $con->check($request);
+$response = {code => 400, msg => '', protocol => 'text/html',
+                url => "$params->{base_url}/a-title.html"};
 
-$test = $con->check($data);
+is_deeply($test, $response, "check with no nonce"); # test 5
+ok(exists $request->{summary}, "remove data has summary"); # test 6
+
+%$request = %$data;
+$request->{id} = 'foobar';
+$test = $con->check($request);
 
 $response = {code => 404, msg => "File Not Found", protocol => 'text/html',
                 url => $params->{base_url}};
 
-is_deeply($test, $response, "Check with bad id"); # test 5
+is_deeply($test, $response, "Check with bad id"); # test 7
 
 #----------------------------------------------------------------------
 # Remove
@@ -300,4 +310,4 @@ is_deeply($test, $response, "Check with bad id"); # test 5
 my $id = 'a-title';
 $con->run({cmd => 'remove', id => $id, nonce => $params->{nonce}});
 my $found = -e "$data_dir/$id.html" ? 1 : 0;
-is($found, 0, "Remove"); # Test 6
+is($found, 0, "Remove"); # Test 8
