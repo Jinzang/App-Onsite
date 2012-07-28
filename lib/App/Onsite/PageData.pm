@@ -432,7 +432,10 @@ sub read_block {
 sub read_primary {
     my ($self, $filename) = @_;
 
-    return $self->read_block('primary', $filename);
+    my $record = $self->read_block('primary', $filename);
+    $record->{id} = $self->filename_to_id($filename);
+    
+    return $record;
 }
 
 #----------------------------------------------------------------------
@@ -506,12 +509,18 @@ sub remove_data {
 sub single_navigation_link {
     my ($self, $data) = @_;
 
-    my $id = $data->{id};
-    my ($parentid, $seq) = $self->{wf}->split_id($id);
+    my $id_field;
+    if (exists $data->{id}) {
+        $id_field = 'id'
+    } elsif (exists $data->{oldid}) {
+        $id_field = 'oldid'
+    } else {
+        die "id not defined"
+    }
     
     my $link = {};
-    $link->{id} = $seq ;
-    $link->{url} = $self->id_to_url($id);
+    $link->{$id_field} = $data->{$id_field};
+    $link->{url} = $self->id_to_url($data->{$id_field});
     $link->{title} = $data->{title} if exists $data->{title};
     $link->{summary} = $data->{summary} if exists $data->{summary};
 

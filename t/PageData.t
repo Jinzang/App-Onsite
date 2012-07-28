@@ -256,6 +256,7 @@ is_deeply($links, {data => $elinks}, "Page command links"); # test 4
 my $r = {title => "A title",
       body => "The Content",
       author => 'An author',
+      id => 'a-title',
      };
 
 my $d = $data->read_primary($pagename);

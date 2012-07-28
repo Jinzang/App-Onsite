@@ -678,12 +678,13 @@ sub update_records {
     my $new_records;
     
     if (exists $record->{id}) {
-        $new_records = $self->{lo}->list_add($current_records, $record);
+        $new_records = $self->{lo}->list_add($current_records,
+                                             $record);
     }
     
     if (exists $record->{oldid}) {
-        my ($parentid, $seq) = $self->{wf}->split_id($record->{oldid});
-        $new_records = $self->{lo}->list_delete($current_records, $seq);
+        $new_records = $self->{lo}->list_delete($current_records,
+                                                $record->{oldid});
     }
 
     return $new_records;

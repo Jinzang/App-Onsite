@@ -89,7 +89,6 @@ sub build_parentlinks {
         $links = [];
 
     } else {
-        # TODO: id field must be entire id
         $request = $self->read_primary($parent_file);
         $links = $self->build_links('parentlinks', $parent_file, $request); 
     }

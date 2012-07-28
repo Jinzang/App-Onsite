@@ -3,7 +3,6 @@ Errorin building parent and page links for subdirectory
 Error in remove form, summary not displayed
 Error when adding to page
 Revise code to render empty list
-Put full id in links
 Finish UserData as subtype of TextData
 Rewrite clean subs in Verify classes
 Finish pod documentation
