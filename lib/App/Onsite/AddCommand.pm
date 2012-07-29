@@ -85,7 +85,7 @@ sub check_subtype {
 
 
     my $subtypes = $self->{data}->get_subtypes($request->{id});
-    if (! exists $request->{subtype} && @$subtypes == 1) {
+    if ($self->{data}->has_one_subtype($request->{id})) {
         $request->{subtype} = $subtypes->[0];
     }
 
