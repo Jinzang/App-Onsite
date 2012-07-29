@@ -97,6 +97,40 @@ sub info {
 }
 
 #----------------------------------------------------------------------
+# Create a new template with only fields named by keys in mask
+
+sub mask_template {
+	my ($self, $mask) = @_;
+
+    my @new_blocks;
+	my $template = $self->copy();
+    my $new_value = $template->{VALUE};
+    
+    my $jblock = 0;    
+    foreach my $iblock (0 .. $#{$template->{BLOCKS}}) {
+        my $name = $template->{BLOCKS}[$iblock]{NAME};
+        my $imacro = quotemeta($self->{LEXER}->meta_replace('macro', $iblock));
+        
+        if (exists $mask->{$name}) {
+            if ($iblock != $jblock) {
+                my $jmacro = $self->{LEXER}->meta_replace('macro', $jblock);
+                $new_value =~ s/$imacro/$jmacro/;
+            }
+
+            push(@new_blocks, $template->{BLOCKS}[$iblock]);
+            $jblock ++;
+
+        } else {
+            $new_value =~ s/$imacro//;
+        }
+    }
+
+    $template->{BLOCKS} = \@new_blocks;
+    $template->{VALUE} = $new_value;
+	return $template;
+}
+
+#----------------------------------------------------------------------
 # Find matching block name in template
 
 sub match {

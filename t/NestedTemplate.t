@@ -4,7 +4,7 @@ use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 26;
+use Test::More tests => 27;
 
 #----------------------------------------------------------------------
 # Remove internal entries from hash
@@ -808,3 +808,40 @@ $d = {
 
 is_deeply($s, $d, "Partial data render"); # test 26
 
+#----------------------------------------------------------------------
+# Test mask template
+
+$t = <<'END';
+<html>
+<head>
+<!-- begin header id="header" -->
+<title>{{title}}</title>
+<!-- end header -->
+</head>
+<body bgcolor=\"#ffffff\">
+<div id = "container">
+<div  id="content">
+<!-- begin content id="content" -->
+<p>Cogito ergo sum</p>
+<!-- end content -->
+</div>
+<div id="sidebar">
+<!-- begin sidebar id="sidebar" -->
+<p>Side comment</p>
+<!-- end sidebar -->
+</div>
+</div>
+</body>
+</html>
+END
+
+$r = {
+    header =>'<title>{{title}}</title>',
+    sidebar => "<p>Side comment</p>",
+};
+
+my $mask = {header => 1, sidebar => 1};
+$code = $n->mask_template($mask, $t);
+$d = $n->data($code);
+
+is_deeply($d, $r, "Mask template"); # test 27

@@ -61,6 +61,16 @@ sub is_template {
 }
 
 #----------------------------------------------------------------------
+# Create a new template onlt containing blocks in a mask
+
+sub mask_template {
+    my ($self, $mask, @sources) = @_;
+    
+    my $template = $self->parse(@sources);
+    return $template->mask_template($mask);
+}
+
+#----------------------------------------------------------------------
 # Match a block in the template by its name
 
 sub match {
@@ -68,7 +78,6 @@ sub match {
 
     my $template = $self->parse(@sources);
     return $template->match($names);
-
 }
 
 #----------------------------------------------------------------------
