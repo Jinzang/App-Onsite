@@ -61,7 +61,7 @@ sub is_template {
 }
 
 #----------------------------------------------------------------------
-# Create a new template onlt containing blocks in a mask
+# Create a new template only containing blocks in a mask
 
 sub mask_template {
     my ($self, $mask, @sources) = @_;
