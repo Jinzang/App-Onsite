@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/local/bin/perl -T
 use strict;
 
 use lib 't';
@@ -221,16 +221,14 @@ my $page_template = <<'EOQ';
 <!-- end title --></title>
 <!-- end meta -->
 </head>
-<body bgcolor=\"#ffffff\">
-<!-- begin primary -->
-<!-- begin pagedata -->
+<body>
+<!-- begin primary type="page" -->
 <h1><!-- begin title valid="&" -->
 <!-- end title --></h1>
 <p><!-- begin body valid="&" -->
 <!-- end body --></p>
 <div><!-- begin author -->
 <!-- end author --></div>
-<!-- end pagedata -->
 <!-- end primary -->
 <div id="sidebar">
 <!-- begin pagelinks -->

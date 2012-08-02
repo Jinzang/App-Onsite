@@ -183,9 +183,8 @@ my $subpage_template = <<'EOQ';
 <html>
 <head>
 </head>
-<body bgcolor=\"#ffffff\">
-<!-- begin secondary -->
-<!-- begin listdata -->
+<body>
+<!-- begin secondary  type="list" -->
 <!-- begin data -->
 <!-- set id [[]] -->
 <h3><!-- begin title -->
@@ -195,7 +194,6 @@ my $subpage_template = <<'EOQ';
 <div><!-- begin author -->
 <!-- end author --></div>
 <!-- end data -->
-<!-- end listdata -->
 <!-- end secondary -->
 <div id="sidebar">
 </div>

@@ -113,8 +113,7 @@ Home
 
 </div>
 <div  id="content">
-<!-- begin primary -->
-<!-- begin dirdata -->
+<!-- begin primary type="dir" -->
 <h1><!-- begin title valid="&" -->
 A title
 <!-- end title --></h1>
@@ -124,7 +123,6 @@ The Content
 <div><!-- begin author -->
 An author
 <!-- end author --></div>
-<!-- end dirdata -->
 <!-- end primary -->
 <!-- begin secondary -->
 <!-- end secondary -->
