@@ -252,9 +252,7 @@ sub field_info {
     my ($filename, $extra) = $self->id_to_filename($id);
     my $blockname = $extra ? 'secondary.data' : 'primary';
     
-    my @templates = $self->get_templates($filename);
-    my $template = pop(@templates);
-    
+    my $template = "$self->{template_dir}/$self->{subtemplate}";    
     my $block = $self->{nt}->match($blockname, $template);
 
     die "Cannot get field info for $id\n" unless $block;
@@ -310,24 +308,20 @@ sub get_subtypes {
 # Get the names of the templates used to render the data
 
 sub get_templates {
-    my ($self, $filename) = @_;
+    my ($self, $filename, $data) = @_;
     
-    my @templates;
+    my $subtemplate = "$self->{template_dir}/$self->{subtemplate}";
+    $subtemplate = $self->{nt}->mask_template($data, $subtemplate);
+    
+    my $template;
     if (-e $filename) {
-        push(@templates, $filename);
-
+        $template = $filename;
     } else {
-        my $id = $self->filename_to_id($filename);
-        my ($parentid, $seq) = $self->{wf}->split_id($id);
-        
-        my ($template, $extra) = $self->id_to_filename($parentid);
-        push(@templates, $template);
-        
-        my $subtemplate = "$self->{template_dir}/$self->{subtemplate}";
-        push(@templates, $subtemplate);
+        $template = $self->{wf}->parent_file($filename);
     }
-    
-    return @templates;
+
+    $template = $self->{nt}->parse($template, $subtemplate);
+    return $template;
 }
 
 #----------------------------------------------------------------------
@@ -550,15 +544,15 @@ sub update_files {
     return;
 }
 
-#---------------------------------------------------------------------------
+#--------------s-------------------------------------------------------------
 # Write a list of records to disk as a file
 
 sub write_file {
     my ($self, $filename, $data) = @_;
     
-   my @templates = $self->get_templates($filename);
+   my $template = $self->get_templates($filename, $data);
     
-    my $output = $self->{nt}->render($data, @templates); 
+    my $output = $self->{nt}->render($data, $template); 
     $self->{wf}->writer($filename, $output);
 
     return;

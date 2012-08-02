@@ -48,7 +48,7 @@ sub get_subtypes {
 sub has_one_subtype {
     my ($self, $id) = @_;
 
-    return  $self->App::Onsite::PageData::has_one_subtype($id);
+    return 1;
 }
 
 1;

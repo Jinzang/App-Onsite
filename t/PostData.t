@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -T
+#!/usr/local/bin/perl
 use strict;
 
 use lib 't';
@@ -151,7 +151,7 @@ Blog
 <!-- begin commandlinks -->
 <ul>
 <!-- begin data -->
-<li><a href="{{url}}"><!-- begin title -->
+<li><a href="{{url}"><!-- begin title -->
 <!--end title --></a><!-- set url [[]] --></li>
 <!-- end data -->
 </ul>
@@ -192,11 +192,21 @@ my $posttemplate = <<'EOQ';
 <ul>
 <!-- begin parentlinks -->
 <!-- begin data -->
-<li><a href="{{url}}"><!-- begin title -->
-<!--end title --></a><!-- set url [[]] --></li>
+<!-- set id [[]] -->
+<!-- set url [[http://www.stsci.edu/]] -->
+<li><a href="http://www.stsci.edu/"><!--begin title -->
+Home
+<!-- end title --></a></li>
 <!-- end data -->
 <!-- end parentlinks -->
 <!-- begin pagelinks -->
+<!-- begin data -->
+<!-- set id [[]] -->
+<!-- set url [[http://www.stsci.edu/blog/index.html]] -->
+<li><a href="http://www.stsci.edu/blog/index.html"><!--begin title -->
+Blog
+<!-- end title --></a></li>
+<!-- end data -->
 <!-- end pagelinks -->
 </ul>
 <ul>
@@ -242,6 +252,8 @@ my $monthtemplate = <<'EOQ';
 <ul>
 <!-- begin parentlinks -->
 <!-- begin data -->
+<!-- set id [[]] -->
+<!-- set url [[]] -->
 <li><a href="{{url}}"><!-- begin title -->
 <!--end title --></a><!-- set url [[]] --></li>
 <!-- end data -->
@@ -282,6 +294,8 @@ my $yeartemplate = <<'EOQ';
 <ul>
 <!-- begin parentlinks -->
 <!-- begin data -->
+<!-- set id [[]] -->
+<!-- set url [[]] -->
 <li><a href="{{url}}"><!-- begin title -->
 <!--end title --></a><!-- set url [[]] --></li>
 <!-- end data -->
@@ -321,6 +335,8 @@ my $blogtemplate = <<'EOQ';
 <ul>
 <!-- begin pagelinks -->
 <!-- begin data -->
+<!-- set id [[]] -->
+<!-- set url [[]] -->
 <li><a href="{{url}}"><!-- begin title -->
 <!--end title --></a><!-- set url [[]] --></li>
 <!-- end data -->
@@ -329,10 +345,8 @@ my $blogtemplate = <<'EOQ';
 <ul>
 <!-- begin commandlinks -->
 <!-- begin data -->
-<!-- begin data -->
 <li><a href="{{url}}"><!-- begin title -->
 <!--end title --></a><!-- set url [[]] --></li>
-<!-- end data -->
 <!-- end data -->
 <!-- end commandlinks -->
 </ul>

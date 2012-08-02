@@ -264,27 +264,24 @@ sub get_kind_file {
 # Get the names of the templates used to render the data
 
 sub get_templates {
-    my ($self, $filename) = @_;
+    my ($self, $filename, $data) = @_;
+           
+    my $kind_template = $self->get_kind_file($filename);
+    $kind_template = 'subtemplate' if $kind_template eq 'post';
+        
+    my $subtemplate = "$self->{template_dir}/$self->{$kind_template}";
+    $subtemplate = $self->{nt}->mask_template($data, $subtemplate);
     
-    my @templates;
+    my $template;
     if (-e $filename) {
-        push(@templates, $filename);
-
+        $template = $filename;
     } else {
-        my $id = $self->filename_to_id($filename);
-        my ($parentid, $seq) = $self->{wf}->split_id($id);
-        
-        my ($template, $extra) = $self->id_to_filename($parentid);
-        push(@templates, $template);
-        
-        my $kind_template = $self->get_kind_file($filename);
-        $kind_template = 'subtemplate' if $kind_template eq 'post';
-        
-        my $subtemplate = "$self->{template_dir}/$self->{$kind_template}";
-        push(@templates, $subtemplate);
+        my @index_files = $self->get_index_files($filename);
+        $template = pop(@index_files);
     }
-    
-    return @templates;
+
+    $template = $self->{nt}->parse($template, $subtemplate);
+    return $template;
 }
 
 #----------------------------------------------------------------------
@@ -313,11 +310,11 @@ sub id_to_filename {
 
         my @path = ($repository);
         push(@path, "y$info->{year}") unless $info->{year} =~ /^0+$/;
-        push(@path, "m$info->{monthnum}") unless $info->{month} =~ /^0+$/;
+        push(@path, "m$info->{monthnum}") unless $info->{monthnum} =~ /^0+$/;
 
         my $path = $info->{post} =~ /^0+$/ ? $self->{index_name}
-                                           : "post$info->{post}.";
-        $path .= $self->{extension};
+                                           : "post$info->{post}";
+        $path .= ".$self->{extension}";
 
         $filename = join('/', @path, $path);
     }
@@ -478,10 +475,7 @@ sub valid_filename {
     my ($self, $filename) = @_;
 
     my ($repository, $basename) = $self->{wf}->split_filename($filename);
-    my ($root, $ext) = split(/\./, $basename);
-    $ext ||= '';
-
-    return $root ne $self->{index_name} && $ext eq $self->{extension};
+    return $basename =~ /^post\d+\.$self->{extension}$/;
 }
 
 #---------------------------------------------------------------------------
