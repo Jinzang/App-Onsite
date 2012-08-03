@@ -58,7 +58,7 @@ EXTENSION = html
 CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
-SUBTEMPLATE = add_page.htm
+SUBTEMPLATE = page.htm
 COMMANDS = browse
 COMMANDS = add
 COMMANDS = edit
@@ -211,7 +211,7 @@ my $pagename = "$data_dir/a-title.html";
 $pagename = $wf->validate_filename($pagename, 'w');
 $wf->writer($pagename, $page);
 
-my $templatename = "$template_dir/add_page.htm";
+my $templatename = "$template_dir/page.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $page_template);
 

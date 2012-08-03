@@ -44,7 +44,6 @@ my $wf = App::Onsite::Support::WebFile->new(%$params);
 my $command_registry_file = <<'EOQ';
         [every]
 CLASS = App::Onsite::EveryCommand
-TEMPLATE = show_form.htm
          [add]
 CLASS = App::Onsite::AddCommand
 SUBTEMPLATE = add.htm
@@ -76,7 +75,7 @@ EXTENSION = html
 CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
-SUBTEMPLATE = add_page.htm
+SUBTEMPLATE = page.htm
 COMMANDS = browse
 COMMANDS = add
 COMMANDS = edit
@@ -87,7 +86,7 @@ COMMANDS = view
 CLASS = App::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
-ADD_TEMPLATE = add_dir.htm
+ADD_TEMPLATE = dir.htm
 EDIT_TEMPLATE = edit_dir.htm
 UPDATE_TEMPLATE = update_dir.htm
 EOQ
@@ -205,7 +204,7 @@ my $page_template = <<'EOQ';
 </html>
 EOQ
 
-my $templatename = "$template_dir/add_page.htm";
+my $templatename = "$template_dir/page.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $page_template);
 
@@ -249,7 +248,7 @@ my $dir_template = <<'EOQ';
 </html>
 EOQ
 
-$templatename = "$template_dir/add_dir.htm";
+$templatename = "$template_dir/dir.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $dir_template);
 

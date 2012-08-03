@@ -1,6 +1,5 @@
         [every]
 CLASS = App::Onsite::EveryCommand
-TEMPLATE = show_form.htm
         [cancel]
 CLASS = App::Onsite::CancelCommand
         [add]

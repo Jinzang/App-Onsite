@@ -66,7 +66,7 @@ EXTENSION = html
 CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
-SUBTEMPLATE = add_page.htm
+SUBTEMPLATE = page.htm
 COMMANDS = browse
 COMMANDS = add
 COMMANDS = edit
@@ -81,7 +81,7 @@ COMMANDS = remove
 COMMANDS = view
         [news]
 CLASS = App::Onsite::NewsData
-SUBTEMPLATE = add_news.htm
+SUBTEMPLATE = news.htm
 SUPER = page
 PLURAL = news
 INDEX_LENGTH = 6
@@ -203,7 +203,7 @@ my $pagename = "$data_dir/a-title.html";
 $pagename = $wf->validate_filename($pagename, 'w');
 $wf->writer($pagename, $pagefile);
 
-my $templatename = "$template_dir/add_news.htm";
+my $templatename = "$template_dir/news.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $news_template);
 

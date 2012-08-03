@@ -65,7 +65,7 @@ EXTENSION = html
 CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
-SUBTEMPLATE = add_page.htm
+SUBTEMPLATE = page.htm
 OMMANDS = browse
 COMMANDS = add
 COMMANDS = edit
@@ -76,7 +76,7 @@ COMMANDS = view
 CLASS = App::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
-SUBTEMPLATE = add_dir.htm
+SUBTEMPLATE = dir.htm
 EOQ
 
 my $dir = <<'EOQ';
@@ -204,7 +204,7 @@ my $indexname = "$data_dir/index.html";
 $indexname = $wf->validate_filename($indexname, 'w');
 $wf->writer($indexname, $dir);
 
-my $templatename = "$template_dir/add_dir.htm";
+my $templatename = "$template_dir/dir.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $dir_template);
 

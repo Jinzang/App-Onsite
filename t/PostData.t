@@ -72,7 +72,7 @@ EXTENSION = html
 CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
-SUBTEMPLATE = add_page.htm
+SUBTEMPLATE = page.htm
 COMMANDS = browse
 COMMANDS = add
 COMMANDS = edit
@@ -83,7 +83,7 @@ COMMANDS = view
 CLASS = App::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
-SUBTEMPLATE = add_dir.htm
+SUBTEMPLATE = dir.htm
        [blog]
 CLASS = App::Onsite::BlogData
 SUPER = dir

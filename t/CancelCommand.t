@@ -69,7 +69,7 @@ EXTENSION = html
 CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
-ADD_TEMPLATE = add_page.htm
+ADD_TEMPLATE = page.htm
 EDIT_TEMPLATE = edit_page.htm
 UPDATE_TEMPLATE = update_page.htm
 COMMANDS = browse
@@ -82,7 +82,7 @@ COMMANDS = view
 CLASS = App::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
-ADD_TEMPLATE = add_dir.htm
+ADD_TEMPLATE = dir.htm
 EDIT_TEMPLATE = edit_dir.htm
 UPDATE_TEMPLATE = update_dir.htm
 EOQ
