@@ -184,13 +184,12 @@ my $page_template = <<'EOQ';
 <!-- end primary -->
 <div id="sidebar">
 <!-- begin pagelinks -->
-<ul>
 <!-- begin data -->
+<!-- set id [[]] -->
 <!-- set url [[]] -->
-<li><a href="{{url}}"><!-- begin title -->
-<!--end title --></a></li>
+<li><a href={{url}}"><!--begin title -->
+<!-- end title --></a></li>
 <!-- end data -->
-</ul>
 <!-- end pagelinks -->
 <!-- begin commandlinks -->
 <ul>
@@ -229,13 +228,12 @@ my $dir_template = <<'EOQ';
 <!-- end primary -->
 <div id="sidebar">
 <!-- begin parentlinks -->
-<ul>
 <!-- begin data -->
+<!-- set id [[]] -->
 <!-- set url [[]] -->
-<li><a href="{{url}}"><!-- begin title -->
-<!--end title --></a></li>
+<li><a href="{{url}}"><!--begin title -->
+<!-- end title --></a></li>
 <!-- end data -->
-</ul>
 <!-- end parentlinks -->
 <!-- begin commandlinks -->
 <ul>
