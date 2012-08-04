@@ -3,7 +3,7 @@ use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 8;
+use Test::More tests => 9;
 
 use Cwd qw(abs_path);
 use App::Onsite::Support::WebFile;
@@ -24,7 +24,7 @@ my $command_registry = 'command.reg';
 BEGIN {use_ok("App::Onsite::RemoveCommand");} # test 1
 
 my $params = {
-              base_url => 'http://wwww.onsite.org',
+              base_url => 'http://www.onsite.org',
               script_url => 'http://www.onsite.org/test.cgi',
               data_dir => $data_dir,
               template_dir => "$template_dir",
@@ -116,6 +116,8 @@ An author
 <div id="sidebar">
 <ul>
 <!-- begin parentlinks -->
+<!-- end parentlinks -->
+<!-- begin pagelinks -->
 <!-- begin data -->
 <!-- set id [[]] -->
 <!-- set url [[http://www.onsite.org/index.html]] -->
@@ -123,8 +125,13 @@ An author
 A Title
 <!-- end title --></a></li>
 <!-- end data -->
-<!-- end parentlinks -->
-<!-- begin pagelinks -->
+<!-- begin data -->
+<!-- set id [[a-title]] -->
+<!-- set url [[http://www.onsite.org/a-title.html]] -->
+<li><a href="http://www.onsite.org/a-title.html"><!--begin title -->
+A Title
+<!-- end title --></a></li>
+<!-- end data -->
 <!-- end pagelinks -->
 <!-- begin commandlinks -->
 <ul>
@@ -184,6 +191,13 @@ An author
 <!-- end parentlinks -->
 <!-- begin pagelinks -->
 <!-- begin data -->
+<!-- set id [[]] -->
+<!-- set url [[http://www.onsite.org/index.html]] -->
+<li><a href="http://www.onsite.org/index.html"><!--begin title -->
+A Title
+<!-- end title --></a></li>
+<!-- end data -->
+<!-- begin data -->
 <!-- set id [[a-title]] -->
 <!-- set url [[http://www.onsite.org/a-title.html]] -->
 <li><a href="http://www.onsite.org/a-title.html"><!--begin title -->
@@ -235,6 +249,7 @@ my $page_template = <<'EOQ';
 <!-- begin pagelinks -->
 <ul>
 <!-- begin data -->
+<!-- set id [[]] -->
 <!-- set url [[]] -->
 <li><a href="{{url}}"><!-- begin title -->
 <!--end title --></a></li>
@@ -311,3 +326,13 @@ my $id = 'a-title';
 $con->run({cmd => 'remove', id => $id, nonce => $params->{nonce}});
 my $found = -e "$data_dir/$id.html" ? 1 : 0;
 is($found, 0, "Remove"); # Test 8
+
+my $d = $con->{data}{nt}->match('pagelinks', $indexname)->data();
+
+my $r = {data => {
+        title => 'A Title',
+        url => "$params->{base_url}/index.html",
+        id => '',    
+    }};
+
+is_deeply($d, $r, "page links"); # Test 8

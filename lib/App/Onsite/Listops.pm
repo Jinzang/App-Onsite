@@ -35,12 +35,13 @@ sub list_add {
 sub list_change {
     my ($self, $list, $data) = @_;
 
-    my $new_list;
-    $new_list = $self->list_add($list, $data) if exists $data->{id};
-    $new_list = $self->list_delete($list, $data->{oldid})
+    my $new_list = exists $data->{id}
+                 ? $self->list_add($list, $data)
+                 : $list;
+
+    $new_list = $self->list_delete($new_list, $data->{oldid})
                 if exists $data->{oldid};
 
-    die "No id in record" unless defined $new_list;
     return $new_list;
 }
 

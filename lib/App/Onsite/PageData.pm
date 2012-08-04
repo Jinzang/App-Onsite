@@ -391,7 +391,7 @@ sub link_class {
 
     } elsif ($ref eq 'HASH') {
         if (exists $data->{url}) {
-            if ($data->{url} eq $url) {
+            if (defined $url && $url eq $data->{url}) {
                 $data->{class} = 'current';
             } else {
                 $data->{class} = 'local';
@@ -503,18 +503,13 @@ sub remove_data {
 sub single_navigation_link {
     my ($self, $data) = @_;
 
-    my $id_field;
-    if (exists $data->{id}) {
-        $id_field = 'id'
-    } elsif (exists $data->{oldid}) {
-        $id_field = 'oldid'
-    } else {
-        die "id not defined"
-    }
-    
     my $link = {};
-    $link->{$id_field} = $data->{$id_field};
-    $link->{url} = $self->id_to_url($data->{$id_field});
+    if (exists $data->{id}) {
+        $link->{id} = $data->{id};
+        $link->{url} = $self->id_to_url($data->{id});
+    }
+
+    $link->{oldid} = $data->{oldid} if exists $data->{oldid};
     $link->{title} = $data->{title} if exists $data->{title};
     $link->{summary} = $data->{summary} if exists $data->{summary};
 

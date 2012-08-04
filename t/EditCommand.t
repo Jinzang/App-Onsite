@@ -3,7 +3,7 @@ use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 6;
+use Test::More tests => 7;
 
 use Cwd qw(abs_path);
 use App::Onsite::Support::WebFile;
@@ -234,6 +234,7 @@ my $page_template = <<'EOQ';
 <!-- begin pagelinks -->
 <ul>
 <!-- begin data -->
+<!-- set id [[]] -->
 <!-- set url [[]] -->
 <li><a href="{{url}}"><!-- begin title -->
 <!--end title --></a></li>
@@ -323,3 +324,13 @@ my $r = {
 
 is_deeply($d, $r, "Edit"); # Test 6
 
+$d = $con->{data}{nt}->match('pagelinks',
+                             "$params->{data_dir}/new-title.html")->data();
+
+$r = {data => {
+        title => $data->{title},
+        url => "$params->{base_url}/new-title.html",
+        id => 'new-title',    
+    }};
+
+is_deeply($d, $r, "page links"); # Test 7
