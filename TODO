@@ -1,7 +1,10 @@
-Errorin building parent and page links for subdirectory
+Adding newsdata to page throws error: "Cannot get field info for "
+Link to news page still there after page removed
+Browse edit links do not have id
+Types to add to dir does not include news
 Finish UserData as subtype of TextData
 Rewrite clean subs in Verify classes
+Write bundle.pl / unbundle.pl scripts
 Finish pod documentation
 Finish directory rename code
 Support atom publishing protocol
-Write bundle.pl / unbundle.pl scripts
