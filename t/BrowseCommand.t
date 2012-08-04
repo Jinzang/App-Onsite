@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -T
+#!/usr/local/bin/perl
 use strict;
 
 use lib 't';
@@ -27,7 +27,8 @@ BEGIN {use_ok("App::Onsite::BrowseCommand");} # test 1
 my $params = {
               items => 10,
               nonce => '01234567',
-              base_url => '',
+              base_url => 'http://wwww.onsite.org',
+              script_url => 'http://www.onsite.org/test.cgi',
               data_dir => $data_dir,
               template_dir => "$template_dir",
               command_registry => $command_registry,
