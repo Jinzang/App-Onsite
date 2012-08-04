@@ -65,18 +65,6 @@ sub browse_data {
 }
 
 #----------------------------------------------------------------------
-# Create a single link to the index file
-
-sub build_indexlink {
-    my ($self, $filename, $request) = @_;
-
-    my $links = [$self->single_navigation_link($request)];    
-    $links =  $self->link_class($links, $links->[0]{url});
-
-    return $links;
-}
-
-#----------------------------------------------------------------------
 # Set up data for parentlinks block
 
 sub build_parentlinks {
@@ -296,7 +284,7 @@ sub write_primary {
     my $data = {};
     $data->{meta} = $self->build_meta($filename, $request);
     $data->{primary} = $self->build_primary($filename, $request);
-    $data->{pagelinks} = $self->build_indexlink($filename, $request);
+    $data->{pagelinks} = $self->build_pagelinks($filename, $request);
     $data->{parentlinks} = $self->build_parentlinks($filename, $request);
     $data->{commandlinks} = $self->build_commandlinks($filename, $request);
     $self->write_file($filename, $data);
