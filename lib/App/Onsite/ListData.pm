@@ -59,17 +59,14 @@ sub cull_data {
 #----------------------------------------------------------------------
 # Get field information by reading template file
 
-sub field_info {
+sub get_block_info {
     my ($self, $id) = @_;
    
     my $template = "$self->{template_dir}/$self->{subtemplate}";    
     my $block = $self->{nt}->match('secondary.data', $template);
 
     die "Cannot get field info from subtemplate\n" unless $block;
-    my $info = $block->info();
-
-    my @new_info = grep {$_->{NAME} ne 'id'} @$info;
-    return \@new_info;
+    return $block->info();
 }
 
 1;
