@@ -677,7 +677,6 @@ sub new {
 
 #----------------------------------------------------------------------
 # Get the named value or the default value
-# TODO: simplify, simplify
 
 sub get {
     my ($self, $name) = @_;
