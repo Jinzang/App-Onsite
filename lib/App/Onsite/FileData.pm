@@ -247,7 +247,8 @@ sub extra_data {
 
 sub field_info {
     my ($self, $id) = @_;
-
+    die "Can't get field info without id\n" unless defined $id;
+    
 	my @field_info;
     my $hash;
 

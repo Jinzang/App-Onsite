@@ -249,13 +249,18 @@ sub extract_from_data {
 sub field_info {
     my ($self, $id) = @_;
 
-    my ($filename, $extra) = $self->id_to_filename($id);
-    my $blockname = $extra ? 'secondary.data' : 'primary';
+    my $blockname;
+    if (defined $id) {
+        my ($filename, $extra) = $self->id_to_filename($id);
+        $blockname = $extra ? 'secondary.data' : 'primary';
+    } else {
+        $blockname = 'primary';
+    }
     
     my $template = "$self->{template_dir}/$self->{subtemplate}";    
     my $block = $self->{nt}->match($blockname, $template);
 
-    die "Cannot get field info for $id\n" unless $block;
+    die "Cannot get field info from subtemplate\n" unless $block;
     my $info = $block->info();
 
     my @new_info = grep {$_->{NAME} ne 'id'} @$info;
