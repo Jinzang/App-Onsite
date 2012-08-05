@@ -84,6 +84,8 @@ sub read_primary {
 	my ($self, $filename) = @_;
 
 	my %record = $self->{cf}->read_file($filename);
+    $record{id} = $self->filename_to_id($filename);
+  
 	return \%record;
 }
 
