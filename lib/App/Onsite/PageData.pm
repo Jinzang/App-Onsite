@@ -8,6 +8,7 @@ use integer;
 package App::Onsite::PageData;
 
 use base qw(App::Onsite::FileData);
+use Data::Dumper;
 
 #----------------------------------------------------------------------
 # Set default values
@@ -124,16 +125,14 @@ sub build_primary {
 
 sub build_records {
     my ($self, $blockname, $filename, $request) = @_;
-
+   
     my $new_records;
     if (-e $filename) {
         my $current_records = $self->read_records($blockname, $filename);
         $new_records = $self->{lo}->list_change($current_records, $request);
-        return if $self->{lo}->list_same($current_records, $new_records);
     
         my $item = $self->block_info($blockname, $filename);
-        my $sort_field = $item->{sort} || 'id';
-        
+        my $sort_field = $item->{sort} || 'id';        
         $new_records = $self->{lo}->list_sort($new_records, $sort_field);
 
     } else {
@@ -165,6 +164,17 @@ sub change_filename {
     $self->{wf}->rename_file($filename, $newname) if $filename ne $newname;
 
     return $id;
+}
+
+#----------------------------------------------------------------------
+# Dump variables to file, for debugging
+
+sub dump {
+    my ($self, $filename, @args) = @_;
+
+    my $output = Dumper(@args);
+    $self->{wf}->writer($filename, $output);   
+    return;
 }
 
 #----------------------------------------------------------------------
@@ -566,8 +576,7 @@ sub update_files {
 sub write_file {
     my ($self, $filename, $data) = @_;
     
-   my $template = $self->get_templates($filename, $data);
-    
+    my $template = $self->get_templates($filename, $data);
     my $output = $self->{nt}->render($data, $template); 
     $self->{wf}->writer($filename, $output);
 
