@@ -111,7 +111,7 @@ sub mask_template {
         my $name = $template->{BLOCKS}[$iblock]{NAME};
         my $imacro = quotemeta($self->{LEXER}->meta_replace('macro', $iblock));
         
-        if (exists $mask->{$name}) {
+        if (exists $mask->{$name} && defined $mask->{$name}) {
             if ($iblock != $jblock) {
                 my $jmacro = $self->{LEXER}->meta_replace('macro', $jblock);
                 $new_value =~ s/$imacro/$jmacro/;
