@@ -244,7 +244,7 @@ sub get_subtypes {
 sub has_one_subtype {
     my ($self, $id) = @_;
 
-    return 0;
+    return;
 }
 
 #----------------------------------------------------------------------

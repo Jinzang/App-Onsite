@@ -48,7 +48,7 @@ sub get_subtypes {
 sub has_one_subtype {
     my ($self, $id) = @_;
 
-    return 1;
+    return $self->App::Onsite::FileData::has_one_subtype($id);
 }
 
 1;

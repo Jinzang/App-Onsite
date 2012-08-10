@@ -1,5 +1,4 @@
 Adding news redirects to home page
-Plurals formed incorrectly for news command
 Types to add to dir does not include news
 Finish UserData as subtype of TextData
 Rewrite clean subs in Verify classes

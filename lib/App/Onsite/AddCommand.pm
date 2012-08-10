@@ -83,15 +83,16 @@ sub check {
 sub check_subtype {
     my ($self, $request) = @_;
 
-
-    my $subtypes = $self->{data}->get_subtypes($request->{id});
-    if ($self->{data}->has_one_subtype($request->{id})) {
-        $request->{subtype} = $subtypes->[0];
+    if (! exists $request->{subtype}) {
+        my $subtype = $self->{data}->has_one_subtype($request->{id});
+        $request->{subtype} = $subtype if defined $subtype;
     }
 
     my $msg = '';
     my $code = 400;
     if (exists $request->{subtype}) {
+        my $subtypes = $self->{data}->get_subtypes($request->{id});
+
         foreach my $subtype (@$subtypes) {
             if ($request->{subtype} eq $subtype) {
                 $code = 200;

@@ -100,7 +100,7 @@ sub check_command {
        return $self->can('write_secondary') && @$subtypes > 0;
         
     } elsif ($self->is_parent_command($cmd)) {
-        return $self->has_one_subtype($id);
+        return $self->has_one_subtype($id) ? 1 : undef;
 
     } elsif ($cmd eq 'edit' || $cmd eq 'remove') {
         my ($filename, $extra) = $self->id_to_filename($id);
@@ -169,12 +169,11 @@ sub command_links {
         my $query = {cmd => $cmd, id => $id};  
 
         if ($cmd eq 'add' || $self->is_parent_command($cmd)) {
-            if ($self->has_one_subtype($id)) {
-                my $subtypes = $self->get_subtypes($id);
-                $query->{type} = $subtypes->[0];
-                
-            }           
-            $query->{subtype} = $query->{type} if $cmd eq 'add';
+            my $type =$self->has_one_subtype($id);
+            if ($type) {
+                $query->{type} = $type;
+                $query->{subtype} = $type if $cmd eq 'add';
+            }
 
         } else {
             $query->{type} = $self->get_type();
@@ -201,13 +200,24 @@ sub command_title {
             my $type = $args->{type};
 
             if ($self->is_parent_command($args->{cmd})) {
-                if ($self->{plural}) {
-                    $type = $self->{plural};
+                my $object;
+                if ($type eq $self->get_type()) {
+                    $object = $self;
+
+                } else {
+                    $object =
+                        $self->{reg}->create_subobject($self,
+                                                       $self->{data_registry},
+                                                       $type);
+                }
+ 
+                if ($object->{plural}) {
+                    $type = $object->{plural};
                 } else {
                     $type .= 's';
                 }
             }
-        
+       
             push(@words, ucfirst($type));
         }
 
@@ -400,8 +410,11 @@ sub get_type {
 sub has_one_subtype {
     my ($self, $id) = @_;
 
+    my $subtype;
     my $subtypes = $self->get_subtypes($id);
-    return @$subtypes == 1;    
+    
+    $subtype = $subtypes->[0] if @$subtypes == 1;
+    return $subtype;
 }
 
 #----------------------------------------------------------------------

@@ -362,15 +362,15 @@ sub get_templates {
 sub has_one_subtype {
     my ($self, $id) = @_;
 
-    my $test;
+    my $subtype;
     my ($filename, $extra) = $self->id_to_filename($id);
 
     if (! $extra && -e $filename) {
         my $item = $self->block_info('secondary', $filename);
-        $test = exists $item->{type};
+        $subtype = $item->{type} if exists $item->{type};
     }
     
-    return $test;
+    return $subtype;
 }
 
 #----------------------------------------------------------------------

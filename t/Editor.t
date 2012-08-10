@@ -76,6 +76,12 @@ CLASS = App::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
 SUBTEMPLATE = dir.htm
+        [list]
+CLASS = App::Onsite::ListData
+SUBTEMPLATE = list.htm
+COMMANDS = edit
+COMMANDS = remove
+COMMANDS = view
 EOQ
 
 my $command_registry = <<'EOQ';
