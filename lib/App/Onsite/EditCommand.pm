@@ -34,7 +34,7 @@ sub check {
 
     # Check if id exists
     my $id = $request->{id};
-    return $self->set_response($id, 404) unless $self->{data}->check_id($id, 'w');
+    return $self->set_response($id, 404) unless $self->{data}->check_id($id, 'r');
 
     # Check for data and read if no data in request
 
