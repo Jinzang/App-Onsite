@@ -566,6 +566,7 @@ sub remove_data {
         delete $request->{id};
         
         $self->write_secondary($filename, $request);
+        $request->{id} = $id;
 
     } elsif ($self->can('write_primary')) {
         $self->{wf}->remove_file($filename);
@@ -710,6 +711,7 @@ sub write_data {
         $request->{id} = $seq;
         
         $self->write_secondary($filename, $request);
+        $request->{id} = $id;
 
     } elsif ($self->can('write_primary')) {
         $id = $self->change_filename($id, $filename, $request);
