@@ -43,7 +43,7 @@ sub build_secondary {
     my ($self, $filename, $request) = @_;
 
     my $records = $self->SUPER::build_secondary($filename, $request);
-    $records = $self->cull_data($records);
+    $records = $self->cull_data($records) if defined $records;
     
     return $records;
 }
@@ -59,14 +59,20 @@ sub cull_data {
 #----------------------------------------------------------------------
 # Get field information by reading template file
 
-sub get_block_info {
-    my ($self, $id) = @_;
+sub template_info {
+    my ($self) = @_;
    
     my $template = "$self->{template_dir}/$self->{subtemplate}";    
     my $block = $self->{nt}->match('secondary.data', $template);
 
     die "Cannot get field info from subtemplate\n" unless $block;
-    return $block->info();
+
+    my $info = $block->info();
+    foreach my $item (@$info) {
+        $item = $self->extra_info($item);
+    }
+    
+    return $info;
 }
 
 1;

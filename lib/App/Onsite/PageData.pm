@@ -130,6 +130,7 @@ sub build_records {
     if (-e $filename) {
         my $current_records = $self->read_records($blockname, $filename);
         $new_records = $self->{lo}->list_change($current_records, $request);
+        $self->dump($filename, $current_records, $new_records);
         return if $self->{lo}->list_same($current_records, $new_records);
     
         my $item = $self->block_info($blockname, $filename);
@@ -174,7 +175,9 @@ sub dump {
     my ($self, $filename, @args) = @_;
 
     my $output = Dumper(@args);
-    $self->{wf}->writer($filename, $output);   
+    my $logfile = $filename;
+    $logfile =~ s/[^\/]+$/onsite.log/;
+     $self->{wf}->writer($logfile, $output);   
     return;
 }
 
@@ -235,6 +238,18 @@ sub extra_data {
 }
 
 #----------------------------------------------------------------------
+# Add extra info to info read from file
+
+sub extra_info {
+    my ($self, $info) = @_;
+
+    $info->{hidden} = exists $info->{style} &&
+                      $info->{style} =~ /type=hidden/;
+
+    return $info;
+}
+
+#----------------------------------------------------------------------
 # Extract an array element from a hash with a single key
 
 sub extract_from_data {
@@ -260,14 +275,12 @@ sub extract_from_data {
 sub field_info {
     my ($self, $id) = @_;
 
-    my $info = $self->get_block_info($id);
+    my $info = $self->template_info();
 
     my @new_info;
-    foreach  my $field (@$info) {
-        next if $field->{NAME} eq 'id';
-        next if exists $field->{style} && $field->{style} =~ /type=hidden/;
-
-        push(@new_info, $field);
+    foreach  my $item (@$info) {
+        next if $item->{NAME} eq 'id';
+        push(@new_info, $item);
     }
 
     return \@new_info;
@@ -292,27 +305,6 @@ sub filename_to_url {
     }
 
     return $url;
-}
-
-#----------------------------------------------------------------------
-# Get field information by reading template file
-
-sub get_block_info {
-    my ($self, $id) = @_;
-
-    my $blockname;
-    if (defined $id) {
-        my ($filename, $extra) = $self->id_to_filename($id);
-        $blockname = $extra ? 'secondary.data' : 'primary';
-    } else {
-        $blockname = 'primary';
-    }
-    
-    my $template = "$self->{template_dir}/$self->{subtemplate}";    
-    my $block = $self->{nt}->match($blockname, $template);
-
-    die "Cannot get field info from subtemplate\n" unless $block;
-    return $block->info();
 }
 
 #----------------------------------------------------------------------
@@ -549,6 +541,25 @@ sub single_navigation_link {
 }
 
 #----------------------------------------------------------------------
+# Get field information by reading template file
+
+sub template_info {
+    my ($self) = @_;
+
+    my $template = "$self->{template_dir}/$self->{subtemplate}";    
+    my $block = $self->{nt}->match('primary', $template);
+
+    die "Cannot get field info from subtemplate\n" unless $block;
+
+    my $info = $block->info();
+    foreach my $item (@$info) {
+        $item = $self->extra_info($item);
+    }
+    
+    return $info;
+}
+
+#----------------------------------------------------------------------
 # Update navigation links after a file is changed
 
 sub update_files {
@@ -639,6 +650,7 @@ sub write_secondary {
 
     my $data ={};
     $data->{secondary} = $self->build_secondary($filename, $request);
+    # TODO: command links update
     $self->write_file($filename, $data);
 
     return;

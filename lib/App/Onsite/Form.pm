@@ -72,10 +72,10 @@ sub get_command {
     $command{url} = $request->{script_url};
     $command{encoding} = 'application/x-www-form-urlencoded';
 
-    foreach my $info (@{$field_info}) {
-        my $validator = App::Onsite::FieldValidator->new(%$info);
+    foreach my $item (@{$field_info}) {
+        my $validator = App::Onsite::FieldValidator->new(%$item);
         $command{encoding} = 'multipart/form-data'
-            if $validator->field_type($info->{style}) eq 'file';
+            if $validator->field_type($item->{style}) eq 'file';
     }
 
     return \%command;
@@ -111,11 +111,8 @@ sub get_hidden_fields {
     my @hidden_fields = ('subtype', 'id');
 
  
-    foreach my $info (@$field_info) {
-        my $validator = App::Onsite::FieldValidator->new(%$info);
-
-        push(@hidden_fields, $info->{NAME})
-            if $validator->field_type($info->{style}) eq 'hidden';
+    foreach my $item (@$field_info) {
+        push(@hidden_fields, $item->{NAME}) if $item->{hidden};
     }
 
     foreach my $name (@hidden_fields) {
@@ -141,17 +138,19 @@ sub get_visible_fields {
     my @fields;
     my $field_info = $request->{field_info};
 
-    foreach my $info (@$field_info) {
-        my $validator = App::Onsite::FieldValidator->new(%$info);
-        next if $validator->field_type($info->{style}) eq 'hidden';
+    foreach my $item (@$field_info) {
+        next if $item->{hidden};
 
     	my %field;
-    	my $name = $info->{NAME};
+    	my $name = $item->{NAME};
         my $value = exists $request->{$name} ? $request->{$name} : '';
 
-        $field{title} = $info->{title} || ucfirst($name);
+        $field{title} = $item->{title} || ucfirst($name);
+        $field{field} = $self->get_field($name, $value, $item);
+
+        my $validator = App::Onsite::FieldValidator->new(%$item);
         $field{class} = $validator->{required} ? 'required' : 'optional';
-        $field{field} = $self->get_field($name, $value, $info);
+
         push(@fields, \%field);
     }
 

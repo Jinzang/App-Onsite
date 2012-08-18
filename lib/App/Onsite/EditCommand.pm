@@ -36,16 +36,13 @@ sub check {
     my $id = $request->{id};
     return $self->set_response($id, 404) unless $self->{data}->check_id($id, 'r');
 
-    # Check for data and read if no data in request
+    # Read data into request where it is missing
 
     $request->{field_info} = $self->{data}->field_info($id);
+
     $request = $self->clean_data($request);
-
-    if (! $self->any_data($request)) {
-        my $data = $self->{data}->read_data($id);
-        %$request = (%$request, %$data);
-    }
-
+    $request = $self->supplement_data($request);
+    
     # Validate data
 
     my $response;
@@ -69,6 +66,29 @@ sub run {
 
     $self->{data}->edit_data($request->{id}, $request);
 	return $self->set_response($request->{id}, 302);
+}
+
+#----------------------------------------------------------------------
+# Supplement data from record in file
+
+sub supplement_data {
+    my ($self, $request) = @_;
+    
+    my $data = $self->{data}->read_data($request->{id});
+    
+    if ($self->any_data($request)) {
+        foreach my $item (@{$request->{field_info}}) {
+            next unless exists $item->{style};
+
+            my $field = $item->{NAME};
+            $request->{$field} = $data->{$field} if $item->{hidden};
+        }
+        
+    } else {
+        %$request = (%$request, %$data);
+    }
+    
+    return $request;
 }
 
 1;
