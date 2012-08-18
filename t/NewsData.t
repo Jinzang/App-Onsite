@@ -121,9 +121,9 @@ A title
 <p><!-- begin body -->
 The Content
 <!-- end body --></p>
-<div><!-- begin weburl -->
+<div><!-- begin link -->
 http://www.website.com/
-<!-- end weburl --></div>
+<!-- end link --></div>
 <!-- end data -->
 <!-- end secondary -->
 </div>
@@ -161,8 +161,8 @@ my $news_template = <<'EOQ';
 <!-- end title --></h3>
 <p><!-- begin body -->
 <!-- end body --></p>
-<div><!-- begin weburl -->
-<!-- end weburl --></div>
+<div><!-- begin link -->
+<!-- end link --></div>
 <!-- end data -->
 <!-- end secondary -->
 <div id="sidebar">
@@ -185,7 +185,7 @@ my $rsstemplate = <<'EOQ';
 <!-- with rss_items -->
 <item>
 <title>{{title}}</title>
-<link>{{weburl}}</link>
+<link>{{link}}</link>
 <description>{{body}}</description>
 </item>
 <!-- end rss_items -->
@@ -229,7 +229,7 @@ $page->{wf}->relocate($data_dir);
 
 my $r = {
          id => 'a-title:0001',
-         weburl => 'http://www.website.com/',
+         link => 'http://www.website.com/',
          title => "A title",
          body => "The Content",
          summary => "The Content",
@@ -293,7 +293,7 @@ is_deeply($list, [$s], "Search data multiple terms"); # test 10
 
 $d->{id} = 'a-title:0001';
 $d->{time} = 2265810786;
-$d->{weburl} = 'http://www.website.net/';
+$d->{link} = 'http://www.website.net/';
 %$s = %$d;
 
 $news->edit_data('a-title:0001', $d);
