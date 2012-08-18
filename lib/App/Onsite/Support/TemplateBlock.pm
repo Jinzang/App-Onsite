@@ -439,6 +439,22 @@ sub decorate {
 }
 
 #----------------------------------------------------------------------
+# Render source only if defined
+
+sub render {
+    my ($self, $source) = @_;
+
+    my $result;
+    if (defined $source) {
+        $result = $self->SUPER::render($source);
+    } else {
+        $result = '';
+    }
+    
+    return $result;
+}
+
+#----------------------------------------------------------------------
 # Recreate the source file from the parsed version
 
 sub unparse {
@@ -634,22 +650,6 @@ sub render_block {
 package App::Onsite::Support::WithTemplateBlock;
 
 use base qw(App::Onsite::Support::TemplateSubBlock);
-
-#----------------------------------------------------------------------
-# Surround source with blockname comments
-
-sub render {
-    my ($self, $source) = @_;
-
-    my $result;
-    if (defined $source) {
-        $result = $self->SUPER::render($source);
-    } else {
-        $result = '';
-    }
-    
-    return $result;
-}
 
 #----------------------------------------------------------------------
 # Bin holds the data used for interpolation
