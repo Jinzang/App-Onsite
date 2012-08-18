@@ -1,4 +1,3 @@
-Types to add to dir does not include news
 Finish UserData as subtype of TextData
 Rewrite clean subs in Verify classes
 Write bundle.pl / unbundle.pl scripts

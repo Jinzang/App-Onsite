@@ -50,6 +50,7 @@ COMMANDS = view
         [news]
 CLASS = App::Onsite::NewsData
 SUPER = page
+SUPER = dir
 PLURAL = news
 INDEX_LENGTH = 6
 SUBTEMPLATE = news.htm
