@@ -1,3 +1,5 @@
+Fix bug in navigation links after editing subdirectory
+Update command links when adding first secondary data
 Finish UserData as subtype of TextData
 Rewrite clean subs in Verify classes
 Write bundle.pl / unbundle.pl scripts

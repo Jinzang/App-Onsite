@@ -650,7 +650,7 @@ sub write_secondary {
 
     my $data ={};
     $data->{secondary} = $self->build_secondary($filename, $request);
-    # TODO: command links update
+
     $self->write_file($filename, $data);
 
     return;

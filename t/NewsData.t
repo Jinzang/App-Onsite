@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -T
+#!/usr/local/bin/perl
 use strict;
 
 use lib 't';
@@ -141,7 +141,6 @@ http://www.website.com/
 <!-- end data -->
 </ul>
 <!-- end commandlinks -->
-</ul>
 </div>
 </div>
 </body>
@@ -166,7 +165,6 @@ my $news_template = <<'EOQ';
 <!-- end data -->
 <!-- end secondary -->
 <div id="sidebar">
-</div>
 </body>
 </html>
 EOQ
