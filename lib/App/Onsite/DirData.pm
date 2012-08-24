@@ -43,6 +43,20 @@ sub add_data {
 }
 
 #----------------------------------------------------------------------
+# Build navigation links
+
+sub build_links {
+    my ($self, $blockname, $filename, $request) = @_;
+
+    my $link = $self->single_navigation_link($request);
+    my $links = $self->build_records($blockname, $filename, $link);
+    return unless $links;
+    
+    $links =  $self->link_class($links, $link->{url});
+    return $links;
+}
+
+#----------------------------------------------------------------------
 # Retrieve all records
 
 sub browse_data {

@@ -130,7 +130,6 @@ sub build_records {
     if (-e $filename) {
         my $current_records = $self->read_records($blockname, $filename);
         $new_records = $self->{lo}->list_change($current_records, $request);
-        $self->dump($filename, $current_records, $new_records);
         return if $self->{lo}->list_same($current_records, $new_records);
     
         my $item = $self->block_info($blockname, $filename);
