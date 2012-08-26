@@ -48,11 +48,10 @@ sub add_data {
 sub build_links {
     my ($self, $blockname, $filename, $request) = @_;
 
-    my $link = $self->single_navigation_link($request);
-    my $links = $self->build_records($blockname, $filename, $link);
+    my $links = $self->build_records($blockname, $filename, $request);
     return unless $links;
     
-    $links =  $self->link_class($links, $link->{url});
+    $links =  $self->link_class($links, $request->{url});
     return $links;
 }
 

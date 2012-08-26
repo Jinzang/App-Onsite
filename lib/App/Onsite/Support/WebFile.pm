@@ -467,37 +467,6 @@ sub split_id {
 }
 
 #----------------------------------------------------------------------
-# Summarize the body of an article
-
-sub summarize {
-    my ($self, $text) = @_;
-
-    $text =~ s/<!--.*?-->/ /gs;
-    $text =~ s/<[^>]*>/ /gs;
-    $text =~ s/&nbsp;/ /g;
-    $text =~ tr/\t\r\n / /s;
-
-    $text =~ s/&/&amp;/g;
-    $text =~ s/</&lt;/g;
-    $text =~ s/>/&gt;/g;
-
-    my $summary;
-    if (length($text) <= $self->{summary_length})  {
-        $text =~ s/^\s+//;
-        $text =~ s/\s+$//;
-        $summary = $text;
-
-    } else {
-        $summary = substr ($text, 0, $self->{summary_length});
-        $summary =~ s/^\S*\s+//g;
-        $summary =~ s/\s+\S*$//g;
-        $summary =~ s/([^\?\!\.])$/$1 .../;
-    }
-
-    return $summary;
-}
-
-#----------------------------------------------------------------------
 # True if variable is tainted
 
 sub taint_check {

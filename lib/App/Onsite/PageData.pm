@@ -81,12 +81,10 @@ sub build_links {
     my ($self, $blockname, $filename, $request) = @_;
 
     $filename = $self->{wf}->parent_file($filename) unless -e $filename;
-    my $link = $self->single_navigation_link($request);
-
-    my $links = $self->build_records($blockname, $filename, $link);
+    my $links = $self->build_records($blockname, $filename, $request);
     return unless $links;
     
-    $links =  $self->link_class($links, $link->{url});
+    $links =  $self->link_class($links, $request->{url});
     return $links;
 }
 
@@ -289,7 +287,7 @@ sub field_info {
 # Construct a url from a filename
 
 sub filename_to_url {
-    my ($self, $filename) = @_;
+    my ($self, $filename, $extra) = @_;
 
     my $path = $self->{wf}->abs2rel($filename);
 
@@ -303,6 +301,7 @@ sub filename_to_url {
         $url .= $path;
     }
 
+    $url .= "#$extra" if $extra;
     return $url;
 }
 
@@ -394,8 +393,7 @@ sub id_to_url {
     my ($self, $id) = @_;
     
     my ($filename, $extra) = $self->id_to_filename($id);
-    my $url = $self->filename_to_url($filename);
-    $url .= "#$extra" if $extra;
+    my $url = $self->filename_to_url($filename, $extra);
     
     return $url;
 }
@@ -521,25 +519,6 @@ sub remove_data {
 }
 
 #----------------------------------------------------------------------
-# Build data fields used in links
-
-sub single_navigation_link {
-    my ($self, $data) = @_;
-
-    my $link = {};
-    if (exists $data->{id}) {
-        $link->{id} = $data->{id};
-        $link->{url} = $self->id_to_url($data->{id});
-    }
-
-    $link->{oldid} = $data->{oldid} if exists $data->{oldid};
-    $link->{title} = $data->{title} if exists $data->{title};
-    $link->{summary} = $data->{summary} if exists $data->{summary};
-
-    return $link;
-}
-
-#----------------------------------------------------------------------
 # Get field information by reading template file
 
 sub template_info {
@@ -631,7 +610,7 @@ sub write_rss {
     my $records = $self->read_secondary($filename);
     $records = $self->escape_data($records);
     
-    my $template = "$self->{template_dir}/rss.htm";
+    my $template = join('/', $self->{template_dir}, $self->{rsstemplate});
     $filename =~ s/\.[^\.]*$/\.rss/;
 
     my $data = {channel => $channel, rss_items => $records};

@@ -124,10 +124,12 @@ sub extra_data {
 
     $data = $self->SUPER::extra_data($data);
 
-    my ($filename, $extra) = $self->id_to_filename($data->{id});
-    my $modtime = $self->{wf}->get_modtime($filename);
-    $data->{date} = $self->create_date($modtime);
-
+    unless (exists $self->{date}) {
+        my ($filename, $extra) = $self->id_to_filename($data->{id});
+        my $modtime = $self->{wf}->get_modtime($filename);
+        $data->{date} = $self->create_date($modtime);
+    }
+    
     return $data;
 }
 

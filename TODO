@@ -1,5 +1,5 @@
-Fix bug in navigation links after editing subdirectory
-Update command links when adding first secondary data
+Navigation link not removed when deleting subdirectory
+Update command links when adding first secondary data item
 Finish UserData as subtype of TextData
 Rewrite clean subs in Verify classes
 Write bundle.pl / unbundle.pl scripts

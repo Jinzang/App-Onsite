@@ -67,6 +67,7 @@ CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id
 SUBTEMPLATE = page.htm
+RSSTEMPLATE = rss.xml
 COMMANDS = browse
 COMMANDS = add
 COMMANDS = edit
@@ -205,7 +206,7 @@ my $templatename = "$template_dir/news.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $news_template);
 
-$templatename = "$template_dir/rss.htm";
+$templatename = "$template_dir/rss.xml";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $rsstemplate);
 

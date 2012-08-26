@@ -708,6 +708,7 @@ sub write_data {
 
     if ($extra) {
         my ($parentid, $seq) = $self->{wf}->split_id($id);
+        $request = $self->extra_data($request);
         $request->{id} = $seq;
         
         $self->write_secondary($filename, $request);
@@ -722,6 +723,7 @@ sub write_data {
             $request->{id} = $id;
         }
 
+        $request = $self->extra_data($request);
         $self->write_primary($filename, $request);
 
     } else {
