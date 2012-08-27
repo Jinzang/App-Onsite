@@ -1,8 +1,9 @@
-Navigation link not removed when deleting subdirectory
-Update command links when adding first secondary data item
-Finish UserData as subtype of TextData
+Update install script to call add_data
+Finish coding UserData class
 Rewrite clean subs in Verify classes
+Write UploadCommand and DownloadCommand classes
+Update command links when adding first secondary data item
+Finish directory rename code
 Write bundle.pl / unbundle.pl scripts
 Finish pod documentation
-Finish directory rename code
 Support atom publishing protocol
