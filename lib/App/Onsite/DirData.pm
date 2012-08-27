@@ -273,12 +273,13 @@ sub remove_data {
         my $data = {};
         delete $request->{id};
         $request->{oldid} = $id;
-        $data->{pagetlinks} = $self->build_pagelinks($repository, $request);
+        $data->{pagelinks} = $self->build_pagelinks($repository, $request);
 
         my $directory = $self->get_repository($id);
         $self->{wf}->remove_directory($directory);
 
-        $self->update_files($repository, $data);
+        my $skip = 0;
+        $self->update_files($repository, $data, $skip);
 
     } else {
         my $filename = $self->id_to_filename('');
