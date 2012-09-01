@@ -376,6 +376,22 @@ sub info_from_seq {
 }
 
 #----------------------------------------------------------------------
+# Remove a post
+
+sub remove_data {
+    my ($self, $id, $request) = @_;
+
+    delete $request->{id};
+    $request->{oldid} = $id;
+
+    $self->App::Onsite::FileData::remove_data($id, $request);
+    my ($filename, $extra) = $self->id_to_filename($id);
+    $self->update_files($filename, $request);
+
+    return;    
+}
+
+#----------------------------------------------------------------------
 # Construct a title from an archive directory name
 
 sub title_from_filename {
@@ -489,6 +505,7 @@ sub write_primary {
     my $data = {};
     $data->{meta} = $self->build_meta($filename, $request);
     $data->{primary} = $self->build_primary($filename, $request);
+    $data->{secondary} = '';
     $data->{pagelinks} = '';
     $data->{parentlinks} = $self->build_parentlinks($filename, $request);
     $data->{commandlinks} = $self->build_commandlinks($filename, $request);
