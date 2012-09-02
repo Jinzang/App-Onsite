@@ -1,7 +1,7 @@
-Not redirected to parent page after remove
 Update install script to call add_data
 Finish coding UserData class
 Rewrite clean subs in Verify classes
+Improve default template
 Write UploadCommand and DownloadCommand classes
 Update command links when adding first secondary data item
 Finish directory rename code

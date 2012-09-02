@@ -115,9 +115,9 @@ sub run {
                                                    $self->{data_registry},
                                                    $request->{subtype});
 
-    $subobject->add_data($request->{id}, $request);
-
-    return $self->set_response($request->{id}, 302);
+    my $id = $request->{id};
+    $subobject->add_data($id, $request);
+    return $self->set_response($id, 302);
 }
 
 1;

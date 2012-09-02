@@ -55,8 +55,9 @@ sub check {
 sub run {
     my ($self, $request) = @_;
 
-    $self->{data}->remove_data($request->{id}, $request);
-	return $self->set_response($request->{id}, 302);
+    my $id = $request->{id};
+    $self->{data}->remove_data($id, $request);
+	return $self->set_response($id, 302);
 }
 
 1;
