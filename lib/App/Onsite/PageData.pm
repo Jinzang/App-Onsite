@@ -297,7 +297,7 @@ sub filename_to_url {
 
     } else {
         $url = $self->{base_url};
-        $url .= '/' unless $url =~ /\/$/;
+        $url .= '/' if $url && $url !~ /\/$/;
         $url .= $path;
     }
 
