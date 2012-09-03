@@ -162,9 +162,60 @@ my $page_template = <<'EOQ';
 <!-- end author --></div>
 <!-- end primary -->
 <div id="sidebar">
+<ul>
 <!-- begin pagelinks -->
+<!-- begin data -->
+<!-- set id [[]] -->
+<!-- set url [[]] -->
+<li><a href="{{url}}"><!-- begin title -->
+<!--end title --></a></li>
+<!-- end data -->
+</ul>
+<!-- end pagelinks -->
+<!-- begin commandlinks -->
 <ul>
 <!-- begin data -->
+<!-- set url [[]] -->
+<li><a href="{{url}}"><!-- begin title -->
+<!--end title --></a></li>
+<!-- end data -->
+</ul>
+<!-- end commandlinks -->
+</div>
+</body>
+</html>
+EOQ
+
+my $dir_template = <<'EOQ';
+<html>
+<head>
+<!-- begin meta -->
+<title><!-- begin title -->
+<!-- end title --></title>
+<!-- end meta -->
+</head>
+<body>
+<!-- begin primary type="dir" -->
+<h1><!-- begin title valid="&" -->
+<!-- end title --></h1>
+<p><!-- begin body valid="&" -->
+<!-- end body --></p>
+<div><!-- begin author -->
+<!-- end author --></div>
+<!-- end primary -->
+<div id="sidebar">
+<ul>
+<!-- begin parentlinks -->
+<!-- begin data -->
+<!-- set id [[]] -->
+<!-- set url [[]] -->
+<li><a href="{{url}}"><!-- begin title -->
+<!--end title --></a></li>
+<!-- end data -->
+<!-- end parentlinks -->
+<!-- begin pagelinks -->
+<!-- begin data -->
+<!-- set id [[]] -->
 <!-- set url [[]] -->
 <li><a href="{{url}}"><!-- begin title -->
 <!--end title --></a></li>
@@ -188,6 +239,10 @@ EOQ
 my $templatename = "$template_dir/page.htm";
 $templatename = $wf->validate_filename($templatename, 'w');
 $wf->writer($templatename, $page_template);
+
+$templatename = "$template_dir/dir.htm";
+$templatename = $wf->validate_filename($templatename, 'w');
+$wf->writer($templatename, $dir_template);
 
 #----------------------------------------------------------------------
 # Create object

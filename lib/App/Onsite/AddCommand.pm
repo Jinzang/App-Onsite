@@ -117,6 +117,10 @@ sub run {
 
     my $id = $request->{id};
     $subobject->add_data($id, $request);
+
+    my $data = $self->{data}->read_data($id);
+    $self->{data}->write_data($id, $data);
+
     return $self->set_response($id, 302);
 }
 
