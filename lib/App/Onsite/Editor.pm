@@ -33,6 +33,23 @@ sub parameters {
 }
 
 #----------------------------------------------------------------------
+# Update a file as if it were edited with no changes
+
+sub auto_update {
+    my ($self, $id) = @_;
+    
+    my $type = $self->id_to_type($id);
+    my $obj = $self->{reg}->create_subobject($self->{configuration},
+                                             $self->{data_registry},
+                                             $type);
+
+    my $data = $obj->read_data($id);
+    $obj->write_data($id, $data);
+    
+    return;
+}
+
+#----------------------------------------------------------------------
 # Execute the application, return a message if it fails
 
 sub batch {

@@ -24,15 +24,21 @@ chdir $dir or die "Cannot cd to $dir";
 
 # Get target directory from command line
 
-my $target = shift(@ARGV) || rel2abs('../test');
+my $target = rel2abs(shift(@ARGV) || '../test');
 $target =~ s/\/$//;
+
+my $templates = rel2abs('../templates');
 
 # Set reasonable defaults for parameters that aren't set above
 
 my %defaults = (
-                data_dir => rel2abs($target),
+                base_url => '',
+                script_url => 'editor.cgi',
+                data_dir => $target,
                 config_file => "$target/editor.cfg",
-                template_dir => rel2abs('../templates'),
+                template_dir => $templates,
+                valid_read => [$templates],
+                valid_write => [$target],
                 data_registry => 'data.reg',
                 command_registry => 'command.reg',
                );
@@ -133,6 +139,13 @@ sub copy_site {
         } else {
             copy_file($input, $output);
             $permissions = $parameters{permissions};
+        }
+
+        if ($file eq 'index.html') {
+            eval "use lib '$library'";
+            eval "require App::Onsite::Editor";
+            my $editor = App::Onsite::Editor->new(%parameters);
+            $editor->auto_update('');
         }
 
         set_group($output, $parameters{group});
