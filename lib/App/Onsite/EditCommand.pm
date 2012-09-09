@@ -52,7 +52,12 @@ sub check {
 
     } else {
         $response = $self->check_nonce($id, $request->{nonce});
-        $response = $self->check_fields($request) if $response->{code} == 200;
+        
+        $response = $self->check_authorization($request)
+            if $response->{code} == 200;
+            
+        $response = $self->check_fields($request)
+            if $response->{code} == 200;
     }
     
     return $response;

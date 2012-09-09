@@ -48,6 +48,9 @@ sub check {
         return $response;
     }
 
+    $response = $self->check_authorization($request);
+    return $response if $response->{code} != 200;
+
     # Create child object to get its field information
     my $child = $self->{reg}->create_subobject($self->{data},
                                                $self->{data_registry},

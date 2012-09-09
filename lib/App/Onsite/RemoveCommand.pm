@@ -34,13 +34,18 @@ sub check {
 
     # Check if id exists
     my $id = $request->{id};
-    return $self->set_response($id, 404) unless $self->{data}->check_id($id, 'r');
+    return $self->set_response($id, 404)
+        unless $self->{data}->check_id($id, 'r');
 
+    my $response = $self->check_authorization($request);
+    return $response if $response->{code} != 200;
+    
     $request->{field_info} = $self->{data}->field_info($id);
 
     # Check for nonce
 
-    my $response = $self->check_nonce($id, $request->{nonce});
+    $response = $self->check_nonce($id, $request->{nonce});
+    
     if ($response->{code} != 200) {
         my $data = $self->{data}->read_data($id);
         %$request = (%$request, %$data);

@@ -582,7 +582,7 @@ sub visitor {
 }
 
 #----------------------------------------------------------------------
-# Write file to disk
+# Write file to disk after validating the filename
 
 sub writer {
     my ($self, $filename, $output, $binmode) = @_;
@@ -597,7 +597,20 @@ sub writer {
     # Check filename and make absolute
     $filename = $self->validate_filename($filename, 'w');
 
+    # After validation, write the file
+    $self->write_wo_validation($filename, $output, $binmode);
+    
+    return;
+}
+
+#----------------------------------------------------------------------
+# Write file to disk after validation
+
+sub write_wo_validation{
+    my ($self, $filename, $output, $binmode) = @_;
+
     # Invalidate cache, if any
+    $filename = $self->untaint_filename($filename);
     $self->{cache}->free($filename);
     
     # Write file

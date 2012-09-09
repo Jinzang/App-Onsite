@@ -36,6 +36,46 @@ sub field_info {
     return \@field_info;
 }
 
+#---------------------------------------------------------------------------
+# Get fields from info block
+
+sub get_fields {
+    my ($self, $info) = @_;
+    
+	my %fields = (id => 1);
+	foreach my $key (sort keys %$info) {
+		my ($name, $attribute) = split(/\./, $key, 2);
+        $fields{$name} = 1;
+	}
+
+    return \%fields;
+}
+
+#---------------------------------------------------------------------------
+# Return type as subtype of parent
+
+sub get_subtypes {
+    my ($self, $id) = @_;
+
+    my @subtypes;    
+    my ($filename, $extra) = $self->id_to_type($id);
+
+    push(@subtypes, $self->get_type()) unless $extra;
+    return \@subtypes;
+}
+
+#----------------------------------------------------------------------
+# Return true if there is only one subtype
+
+sub has_one_subtype {
+    my ($self, $id) = @_;
+    
+    my ($filename, $extra) = $self->id_to_type($id);
+    return $self->get_type() unless $extra;
+    
+    return;
+}
+
 #----------------------------------------------------------------------
 # Get the type of a file given its id
 
@@ -110,6 +150,18 @@ sub read_info {
 	return $info;
 }
 
+#----------------------------------------------------------------------
+# Read data from file (stub)
+
+sub read_primary {
+    my ($self, $filename) = @_;
+
+    my $utype = ucfirst($self->get_type());
+    my $title = "$utype Data";
+    
+    return {title => $title, summary => $title, id => 'user'};
+}
+
 #---------------------------------------------------------------------------
 # Read info, which is in first record of file
 
@@ -144,23 +196,24 @@ sub write_secondary {
 			$info->{"$field.valid"} = '';
 		}
 	}
-
-    my ($parentid, $seq) = $self->{wf}->split_id($request->{id});
-    $request->{id} = $seq;
-
+    
     $records = $self->{lo}->list_change($records, $request);
     $records = $self->{lo}->list_sort($records);
 
 	# Add info record to output
 	unshift(@$records, $info);
 
+    my $count = 0;
     my $output = '';
+    my $fields = $self->get_fields($info);
+
     foreach my $record (@$records) {
         while (my ($name, $value) = each %$record) {
-            $output .= "$name|$value\n";
+            $output .= "$name|$value\n" if $count == 0 || $fields->{$name};
         }
 
         $output .= "\|\|\n";
+        $count ++;
     }
 
     $self->{wf}->writer($filename, $output);
