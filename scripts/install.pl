@@ -6,6 +6,8 @@ use IO::Dir;
 use IO::File;
 use Data::Dumper;
 
+use constant EDITOR => 'editor.cgi';
+
 # Values for script parameters
 # You can change the values or add new ones
 
@@ -33,14 +35,14 @@ my $templates = rel2abs('../templates');
 
 my %defaults = (
                 base_url => '',
-                script_url => 'editor.cgi',
+                script_url => '*.cgi',
                 data_dir => $target,
-                config_file => "$target/editor.cfg",
+                config_file => "$target/*.cfg",
                 template_dir => $templates,
                 valid_read => [$templates],
                 valid_write => [$target],
-                data_registry => 'data.reg',
-                command_registry => 'command.reg',
+                data_registry => '*_data.reg',
+                command_registry => '*_commands.reg',
                );
 
 %parameters = (%defaults, %parameters);
@@ -68,6 +70,25 @@ sub all_files {
 
     $dd->close;
     return @files;
+}
+
+#----------------------------------------------------------------------
+# Create a copy of the .htaccess file
+
+sub copy_access {
+    my ($input, $output) = @_;
+    
+    my $in = IO::File->new($input, 'r') or die "Can't read $input";
+    my $out = IO::File->new($output, 'w') or die "Can't write $output";
+    
+    my $password = $output;
+    $password =~ s/htaccess$/htpasswd/;
+    
+    my $text = do {local $/; <$in>};
+    $text =~ s/AuthUserFile\s+(\S+)/AuthUserFile $password/;
+    print $out $text;
+    
+    return;
 }
 
 #----------------------------------------------------------------------
@@ -107,6 +128,9 @@ sub copy_script {
     }
     
     # Set parameters
+
+    %parameters = update_parameters($input, %parameters);
+    
     if ($text =~ /my \$parameters/) {
         my $dumper = Data::Dumper->new([\%parameters], ['parameters']);
         my $parameters = $dumper->Dump();    
@@ -136,6 +160,10 @@ sub copy_site {
             copy_script($input, $output, $library, %parameters);
             $permissions = ($parameters{permissions} & 0775) | 0111;
 
+        } elsif ($input =~/\.htaccess$/) {
+            copy_access($input, $output);
+            $permissions = $parameters{permissions} & 0775;
+            
         } else {
             copy_file($input, $output);
             $permissions = $parameters{permissions};
@@ -144,6 +172,10 @@ sub copy_site {
         if ($file eq 'index.html') {
             eval "use lib '$library'";
             eval "require App::Onsite::Editor";
+            
+            my $editor_file = join('/', "$source", EDITOR);
+            my %parameters = update_parameters($editor_file, %parameters);
+            
             my $editor = App::Onsite::Editor->new(%parameters);
             $editor->auto_update('');
         }
@@ -214,4 +246,20 @@ sub set_group  {
 
     my $status = chown(-1, $gid, $filename);
     return;
+}
+
+#----------------------------------------------------------------------
+# Update parameters by substituting for wild card
+
+sub update_parameters {
+    my ($filename, %parameters) = @_;
+
+    my ($basename) = $filename =~ /(\w+)\.\w+$/;
+    
+    while (my ($name, $value) = each %parameters) {
+        $value =~ s/\*/$basename/;
+        $parameters{$name} = $value;        
+    }
+
+    return %parameters;
 }

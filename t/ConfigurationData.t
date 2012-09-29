@@ -114,6 +114,7 @@ my $r = {expires => 600,
          title => 'Editor Configuration',
          summary => 'Make changes to the editor configuration',
          summary_length => 300,
+         type => 'configuration',
          id => 'editor'};
 
 my $d = $data->read_data('editor');

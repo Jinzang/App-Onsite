@@ -280,6 +280,7 @@ $r = {title => "A title",
       author => "An author",
       summary => "The Content",
       id => '',
+      type => 'dir',
       url => "$params->{base_url}/index.html",
      };
 

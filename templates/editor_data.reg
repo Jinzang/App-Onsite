@@ -20,6 +20,13 @@ CLASS = App::Onsite::DumperData
 		[textdb]
 EXTENSION = data
 CLASS = App::Onsite::TextdbData
+COMMANDS = browse
+COMMANDS = add
+COMMANDS = edit
+COMMANDS = remove
+DEFAULT_COMMAND = browse
+		[user]
+CLASS = App::Onsite::UserData
         [configuration]
 EXTENSION = cfg
 SUMMARY_FIELD = data

@@ -143,7 +143,8 @@ sub list_same {
         # We only check for fields in the first list
 
         foreach my $field (keys %{$list1->[$i]}) {
-            return unless $list1->[$i]{$field} eq $list2->[$i]{$field};
+            return unless exists $list2->[$i]{$field} &&
+                $list1->[$i]{$field} eq $list2->[$i]{$field};
         }
     }
 

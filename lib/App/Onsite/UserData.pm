@@ -75,22 +75,11 @@ sub check_data {
 }
 
 #----------------------------------------------------------------------
-# Edit user password
-
-sub edit_data {
-    my ($self, $id, $request) = @_;
-
-    $request->{password} = $self->encrypt($request->{password});
-    $self->write_data($id, $request);
-
-    return;
-}
-
-#----------------------------------------------------------------------
 # Encrypt password
 
 sub encrypt {
 	my ($self, $plain, $salt) = @_;
+    return unless defined $plain;
 
 	$salt = join '', ('.', '/', 0..9, 'A'..'Z', 'a'..'z')[rand 64, rand 64]
 		unless defined $salt;
@@ -104,9 +93,10 @@ sub encrypt {
 sub extra_data {
     my ($self, $data) = @_;
 
-    $data->{summary} = $data->{user}; 
+    $data->{summary} = "Change name or password of $data->{user}"; 
 	$data->{password2} = $data->{password};
-
+    $data = $self->SUPER::extra_data($data);
+    
     return $data;
 }
 
@@ -181,6 +171,7 @@ sub update_password_file {
 sub write_secondary {
     my ($self, $filename, $request) = @_;
 
+    $request->{password} = $self->encrypt($request->{password});
     $self->SUPER::write_secondary($filename, $request);
     $self->update_password_file($filename);
     

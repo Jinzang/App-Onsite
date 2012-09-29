@@ -1,0 +1,52 @@
+        [file]
+ID_FIELD = title
+SORT_FIELD = id
+SUMMARY_FIELD = body
+INDEX_NAME = index
+ID_LENGTH = 63
+INDEX_LENGTH = 4
+HAS_SUBFOLDERS = 0
+DEFAULT_COMMAND = search
+PARENT_COMMANDS = search
+COMMANDS = search
+		[page]
+EXTENSION = html
+CLASS = App::Onsite::PageData
+SUPER = dir
+SORT_FIELD = id
+SUBTEMPLATE = page.htm
+RSSTEMPLATE = rss.xml
+COMMANDS = search
+COMMANDS = view
+        [dir]
+CLASS = App::Onsite::DirData
+SUPER = dir
+HAS_SUBFOLDERS = 1
+SUBTEMPLATE = dir.htm
+        [list]
+CLASS = App::Onsite::ListData
+SUBTEMPLATE = list.htm
+COMMANDS = edit
+COMMANDS = remove
+COMMANDS = view
+        [news]
+CLASS = App::Onsite::NewsData
+SUPER = page
+SUPER = dir
+PLURAL = news
+INDEX_LENGTH = 6
+SUBTEMPLATE = news.htm
+        [blog]
+CLASS = App::Onsite::BlogData
+SUPER = dir
+SORT_FIELD = -id
+SUBTEMPLATE = blog.htm
+        [post]
+CLASS = App::Onsite::PostData
+SUPER = blog
+INDEX_LENGTH = 2
+HAS_SUBFOLDERS = 1
+SUBTEMPLATE = post.htm
+MONTHINDEX = monthindex.htm
+YEARINDEX = yearindex.htm
+BLOGINDEX = blogindex.htm

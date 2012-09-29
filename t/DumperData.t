@@ -117,6 +117,7 @@ my $r = {title => "A title",
          body => "The Content",
          author => "An author",
          summary => "The Content",
+         type => 'dumper',
          id => 'a-title',
         };
 

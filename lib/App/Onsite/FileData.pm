@@ -249,6 +249,7 @@ sub extra_data {
     	$data->{summary} = $self->summarize($data->{$summary_field});
     }
 
+    $data->{type} = $self->id_to_type($data->{id});
     return $data;
 }
 

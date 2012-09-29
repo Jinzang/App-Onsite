@@ -491,6 +491,7 @@ $d->{author} = 'An author';
 $d->{title} = 'A title';
 
 %$r = %$d;
+$r->{type} = 'post';
 $r->{id} = $postid;
 $r->{url} = join('/', $params->{base_url}, $relname);
 
@@ -500,6 +501,7 @@ delete $d->{date}{second};
 
 $r->{summary} = $d->{summary};
 $r->{date} = $d->{date};
+$r->{type} = 'post';
 
 is_deeply($d, $r, "Add data"); # Test 10
 

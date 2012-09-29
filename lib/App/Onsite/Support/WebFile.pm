@@ -403,8 +403,8 @@ sub split_filename {
     my @dirs = split(/\//, $filename);
     my $basename = pop(@dirs);
     
-    $filename = join('/', @dirs) || '';
-    return ($filename, $basename);
+    my $dir = join('/', @dirs) || '';
+    return ($dir, $basename);
 }
 
 #----------------------------------------------------------------------

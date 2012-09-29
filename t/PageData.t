@@ -282,7 +282,7 @@ my $hash = {id => 'a-title', body => $text};
 $hash = $data->extra_data($hash);
 
 is_deeply([sort keys %$hash],
-          [qw(body id summary url)],
+          [qw(body id summary type url)],
           "Page extra data"); # test 8
 
 #----------------------------------------------------------------------
@@ -292,8 +292,8 @@ my $get_next = $data->get_next('a-title');
 $hash = &$get_next();
 my @keys = sort keys %$hash;
 
-is_deeply(\@keys, [qw(author body id
-                   summary title url)], "File visitor"); # test 9
+is_deeply(\@keys, [qw(author body id summary 
+                   title type url)], "File visitor"); # test 9
 
 #----------------------------------------------------------------------
 # Check id
@@ -321,6 +321,7 @@ $r = {title => "A title",
       author => "An author",
       summary => "The Content",
       id => 'a-title',
+      type => 'page',
       url => "$params->{base_url}/a-title.html",
      };
 
@@ -355,6 +356,7 @@ $r = {title => "A title",
       summary => "The Content",
       author => "An author",
       id => 'a-title:0001',
+      type => 'list',
       url => 'http://www.onsite.org/a-title.html#0001',
      };
 
@@ -371,6 +373,7 @@ $d->{summary} =~ s/The/New/;
 $d->{author} =~ s/An/New/;
 
 %$s = %$d;
+$s->{type} = 'page',
 $s->{id} = 'new-title';
 $s->{url}= 'http://www.onsite.org/new-title.html';
 

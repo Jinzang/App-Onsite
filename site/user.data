@@ -1,0 +1,8 @@
+user.valid|&
+password.valid|&/^\S{4,}$/
+password.style|type=password
+||
+id|0001
+user|admin
+password|ggn.GHOpzn0C6
+||

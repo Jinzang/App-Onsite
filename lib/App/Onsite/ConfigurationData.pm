@@ -31,7 +31,8 @@ sub extra_data {
     my $id = $data->{id};
     $data->{title} = ucfirst("$id Configuration");
     $data->{summary} = "Make changes to the $id configuration";
-
+    $self->SUPER::extra_data($data);
+    
     return $data;
 }
 

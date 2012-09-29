@@ -231,6 +231,7 @@ my $r = {
          link => 'http://www.website.com/',
          title => "A title",
          body => "The Content",
+         type => 'news',
          summary => "The Content",
         };
 

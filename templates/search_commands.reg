@@ -1,0 +1,9 @@
+        [every]
+CLASS = App::Onsite::EveryCommand
+        [cancel]
+CLASS = App::Onsite::CancelCommand
+        [search]
+CLASS = App::Onsite::SearchCommand
+SUBTEMPLATE = public_search.htm
+        [view]
+CLASS = App::Onsite::ViewCommand

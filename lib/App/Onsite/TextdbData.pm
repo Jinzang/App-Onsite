@@ -10,6 +10,41 @@ package App::Onsite::TextdbData;
 use base qw(App::Onsite::FileData);
 
 #----------------------------------------------------------------------
+# Construct command links for page from page id
+
+sub command_links {
+	my ($self, $id, $commands) = @_;
+    
+    my @links;
+    $commands ||= $self->{commands};
+    my ($parentid, $seq) = $self->{wf}->split_id($id);
+    
+    foreach my $cmd (@$commands) {
+        next unless $self->check_command($id, $cmd);
+        
+        my $query = {cmd => $cmd};  
+
+        if ($cmd eq 'add' || $self->is_parent_command($cmd)) {
+            $query->{id} = $parentid;
+            my $type =$self->has_one_subtype($id);
+            if ($type) {
+                $query->{type} = $type;
+                $query->{subtype} = $type if $cmd eq 'add';
+            }
+
+        } else {
+            $query->{id} = $id;
+            $query->{type} = $self->get_type();
+        }
+        
+        my $link = $self->single_command_link($query);
+        push (@links, $link);
+    }
+ 
+    return \@links;
+}
+
+#----------------------------------------------------------------------
 # Get field information from first record of file
 
 sub field_info {
@@ -29,7 +64,7 @@ sub field_info {
 	}
 
     my @field_info;
-	foreach my $field (sort keys %field_info) {
+	foreach my $field (reverse sort keys %field_info) {
 		push(@field_info, $field_info{$field});
 	}
 
@@ -86,7 +121,7 @@ sub id_to_type {
     my $basename = $self->{wf}-> get_basename($filename);
 
     my $type = $basename;
-    $type =~ s/\.[^\.]$//;
+    $type =~ s/\.[^\.]*$//;
     
     return $type;
 }
@@ -151,15 +186,19 @@ sub read_info {
 }
 
 #----------------------------------------------------------------------
-# Read data from file (stub)
+# Create a fake data record for the primary
 
 sub read_primary {
     my ($self, $filename) = @_;
 
-    my $utype = ucfirst($self->get_type());
-    my $title = "$utype Data";
+    my $id = $self->filename_to_id($filename);
+    my $type = $self->id_to_type($id);
     
-    return {title => $title, summary => $title, id => 'user'};
+    my $utype = ucfirst($type);
+    my $title = "$utype Data";
+    my $summary =  "Make changes to the $type data";
+    
+    return {title => $title, summary => $summary, id => $id};
 }
 
 #---------------------------------------------------------------------------

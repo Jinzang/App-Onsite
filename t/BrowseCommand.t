@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/local/bin/perl -T
 use strict;
 
 use lib 't';
@@ -285,8 +285,8 @@ for my $count (qw(First Second Third)) {
     $add->run($request);
     my $data = $con->{data}->read_data($id);
 
-    $data->{itemlink} = {title => 'Edit', 
-    url => "$params->{script_url}?cmd=edit&id=$data->{id}"};
+    $data->{itemlink} = {title => 'Editor', 
+    url => "$params->{script_url}?id=$data->{id}"};
 
     push (@data, $data);
 }

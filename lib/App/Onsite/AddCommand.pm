@@ -56,7 +56,7 @@ sub check {
                                                $self->{data_registry},
                                                $request->{subtype});
 
-    $request->{field_info} = $child->field_info();
+    $request->{field_info} = $child->field_info($request->{id});
 
     # Clean the request data
     $request = $self->clean_data($request);
@@ -121,6 +121,7 @@ sub run {
     my $id = $request->{id};
     $subobject->add_data($id, $request);
 
+    $id = $request->{id};
     my $data = $self->{data}->read_data($id);
     $self->{data}->write_data($id, $data);
 

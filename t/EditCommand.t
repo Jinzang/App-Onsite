@@ -319,6 +319,7 @@ my $r = {
           summary => $data->{body},
           title => $data->{title},
           url => "$params->{base_url}/new-title.html",
+          type => 'page',
           id => 'new-title',
 };
 

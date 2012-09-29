@@ -35,9 +35,26 @@ sub run {
 
     my $id = $request->{id};
     my $limit = $self->page_limit($request);
-
     my $results = $self->{data}->browse_data($id, $limit);    
-    $results = $self->create_links($results, 'edit');
+
+    my $first_type;
+    foreach my $result (@$results) {
+        my $second_type = $result->{type};
+        if ($first_type) {
+            if ($first_type ne $second_type) {
+                undef $first_type;
+                last;
+            }
+
+        } else {
+            $first_type = $second_type;
+        }
+    }
+    
+    my $cmd;
+    $cmd = 'edit' if defined $first_type;
+
+    $results = $self->create_links($results, $cmd);
     $results = $self->missing_text($results);
     $results = $self->paginate($request, $results);
     $results->{title} = $self->form_title($request);

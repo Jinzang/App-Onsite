@@ -109,6 +109,7 @@ my $r = {title => "A title",
          summary => "The Content",
          author => "An author",
          id => 'test:0001',
+         type => 'test',
         };
 
 my $d = $data->read_data('test:0001');
@@ -138,9 +139,9 @@ is_deeply($d, $s, "Write data"); # Test 8
 
 $d = $data->field_info('test:0001');
 my $i = [
-    {NAME => 'author', valid => 'string'},
-    {NAME => 'body', valid => '&html'},
     {NAME => 'title', valid => '&string'},
+    {NAME => 'body', valid => '&html'},
+    {NAME => 'author', valid => 'string'},
 ];
 
 is_deeply ($d, $i, "Field info"); # Test 9

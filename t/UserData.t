@@ -8,6 +8,25 @@ use Test::More tests => 11;
 use Cwd qw(abs_path);
 use App::Onsite::Support::WebFile;
 
+sub nopass {
+   my %hash;
+    foreach my $arg (@_) {
+        foreach my $key (keys %$arg) {
+            $hash{$key} = $arg->{$key} unless $key =~ /^pass/;
+        }
+    }   
+    return \%hash;
+}
+
+sub nopass_list {
+    my ($oldlist) = @_;   
+    my @list;
+    foreach my $item (@$oldlist) {
+        push(@list, nopass($item));
+    }   
+    return \@list;
+}
+
 #----------------------------------------------------------------------
 # Initialize test directory
 
@@ -105,7 +124,8 @@ is ($test, 0, "Doesn't have id");  # test 5
 my $r = {
          id => 'user:0001',
          user => 'admin',
-         summary => "admin",
+         type => 'user',
+         summary => "Change name or password of admin",
          password => '7DwegeKwuWUYI',
          password2 => '7DwegeKwuWUYI',
         };
@@ -113,6 +133,7 @@ my $r = {
 my $d = $data->read_data('user:0001');
 
 is_deeply($d, $r, "Read data"); # Test 6
+$r = nopass($r);
 
 #----------------------------------------------------------------------
 # Write data
@@ -120,29 +141,35 @@ is_deeply($d, $r, "Read data"); # Test 6
 my $s = {
          id => 'user:0002',
          user => "editor",
-         password => "oLVba8E8/uKtc",
-         password2 => "oLVba8E8/uKtc",
+         password => "editor",
+         password2 => "editor",
         };
 
 $data->write_data('user:0002', $s);
 $d = $data->read_data('user:0002');
+$d = nopass($d);
 
-$s->{summary} = $s->{user};
+$s = nopass($r, $s);
+$s->{summary} =~ s/admin/editor/;
+
 is_deeply($d, $s, "Write data"); # Test 7
 
 #----------------------------------------------------------------------
 # Search data
 
 my $list = $data->search_data({user => 'admin'}, 'user');
+$list = nopass_list($list);
 is_deeply($list, [$r], "Search data"); # test 8
 
 $list = $data->search_data({user => 'editor'}, 'user', 1);
+$list = nopass_list($list);
 is_deeply($list, [$s], "Search data with limit"); # test 9
 
 #----------------------------------------------------------------------
 # Browse data
 
 $d = $data->browse_data('user');
+$d = nopass_list($d);
 is_deeply($d, [$s, $r], "Browse data"); # test 10
 
 #----------------------------------------------------------------------

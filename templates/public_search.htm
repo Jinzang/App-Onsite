@@ -16,23 +16,27 @@
 
 <p class="error">{{error}}</p>
 
+<!-- if data -->
 <!-- with data -->
 <h3 class="title">{{title}}</h3>
 <p class="summary">{{summary}}<br />
 <!-- with itemlink -->
-<a href="{{url}}">Go</a>
+<a href="{{url}}">{{title}}</a>
 <!-- end itemlink --></p>
-
+<!-- end data -->
+<!-- end data -->
+<!-- unless data -->
+<p>Nothing matched.</p>
 <!-- end data -->
 
 <!-- if paginglinks -->
 <p><!-- with paginglinks -->
 <!-- with data -->
-<a href="{{url}}">{{title}}</a>&nbsp;&nbsp;
+<a href="{{url}}"><!-- with title -->
+<!-- end title --></a>&nbsp;&nbsp;
 <!-- end data -->
 <!-- end paginglinks --></p>
 <!-- end paginglinks -->
-
 <!-- end primary -->
 </div>
 <div id="navigation">
