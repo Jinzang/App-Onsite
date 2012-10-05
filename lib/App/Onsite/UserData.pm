@@ -30,14 +30,7 @@ sub authorize {
 	my($self, $cmd, $request) = @_;
 
     $request->{remote_user} = $ENV{REMOTE_USER};
-	return unless exists $request->{remote_user};
-
-	return 1 if $request->{remote_user} eq $request->{user};
-
-	my $top = $self->top_user($request->{id});
-	return 1 if $request->{remote_user} eq $top->{user};
-
-	return;
+	return exists $request->{remote_user};
 }
 
 #----------------------------------------------------------------------
