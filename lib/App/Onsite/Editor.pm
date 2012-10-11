@@ -33,6 +33,24 @@ sub parameters {
 }
 
 #----------------------------------------------------------------------
+# Add the temporary directory to list of valid directories to read from
+
+sub add_valid_directory {
+    my ($self, $request) = @_;
+
+    if (exists $request->{filename}) {
+        my ($directory, $basename) =
+            $self->{wf}->split_filename($request->{filename});
+        
+        my @directories = @{$self->{configuration}{valid_read}};
+        push(@directories, $directory);
+        $self->{configuration}{valid_read} = \@directories;
+    }
+
+    return;
+}
+
+#----------------------------------------------------------------------
 # Update a file as if it were edited with no changes
 
 sub auto_update {
@@ -101,6 +119,10 @@ sub construct_objects {
     my ($self, $request) = @_;
     $request->{id} = '' unless exists $request->{id};
 
+    # Add temporary directory to list of valid directories
+    
+    $self->add_valid_directory($request);
+    
     # Construct data object
     
     my $type = $self->id_to_type($request->{id});

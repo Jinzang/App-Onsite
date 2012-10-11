@@ -145,6 +145,26 @@ sub check_command {
 }
 
 #----------------------------------------------------------------------
+# Copy a new version of a file
+
+sub copy_data {
+    my ($self, $id, $request) = @_;
+
+    my $subfolders = 1;
+    my ($repository, $basename) = $self->{wf}->split_filename($filename);    
+
+    my $input_filename = $request->{filename};
+    my $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
+
+    while (my $file = &$visitor()) {
+        next unless $self->valid_filename($file);
+        $self->copy_file($input_filename, $file);
+    }
+
+    return;
+}
+
+#----------------------------------------------------------------------
 # Return a closure that returns a browsable file with each call
 
 sub get_browsable {

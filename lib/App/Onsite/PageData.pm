@@ -166,6 +166,34 @@ sub change_filename {
 }
 
 #----------------------------------------------------------------------
+# Copy a new version of a file
+
+sub copy_data {
+    my ($self, $id, $request) = @_;
+    
+    my ($output_filename, $extra) = $self->id_to_filename($id);
+    die "Con't copy into subobject" if $extra;
+
+    $self->copy_file($request->{filename}, $output_filename);
+    return;
+}
+
+#----------------------------------------------------------------------
+# Copy a new version of a file
+
+sub copy_file {
+    my ($self, $input_filename, $output_filename) = @_;
+    
+    my $template = $self->{nt}->subtemplate($input_filename,
+                                            $output_filename);
+    
+    my $output = $self->{nt}->unparse($template);
+    $self->{wf}->writer($output_filename, $output);
+
+    return;
+}
+
+#----------------------------------------------------------------------
 # Dump variables to file, for debugging
 
 sub dump {
@@ -558,6 +586,21 @@ sub update_files {
     }
 
     return;
+}
+
+#----------------------------------------------------------------------
+# Validate uploaded file
+
+sub validate_file {
+    my ($self, $request) = @_;
+    
+    my $new_filename = $request->{filename};
+    my ($old_filename, $extra) = $self->{wf}->id_to_filename($request->{id});
+    
+    my $new_blocks = $self->{nt}->data($new_filename);
+    my $old_blocks = $self->{nt}->data($old_filename);
+    
+    return $self->{lo}->list_same($old_blocks, $new_blocks);
 }
 
 #--------------s-------------------------------------------------------------

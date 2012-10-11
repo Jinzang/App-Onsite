@@ -144,6 +144,11 @@ sub request {
         $request{$field} = \@array;
     }
 
+    # Get full path to temporary file
+    
+    $request{filename} = $self->{cgi}->tmpFileName($request{filename})
+                            if exists $request{filename};
+    
     return \%request;
 }
 

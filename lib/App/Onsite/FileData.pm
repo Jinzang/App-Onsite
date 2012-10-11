@@ -229,6 +229,19 @@ sub command_title {
 }
 
 #----------------------------------------------------------------------
+# Copy a new version of a file
+
+sub copy_data {
+    my ($self, $id, $request) = @_;
+    
+    my ($output_filename, $extra) = $self->id_to_filename($id);
+    die "Con't copy into subobject" if $extra;
+    
+    $self->{wf}->copy_data($request->{filename}, $output_filename);
+    return;
+}
+
+#----------------------------------------------------------------------
 # Edit a file
 
 sub edit_data {
@@ -685,6 +698,15 @@ sub summarize {
     }
 
     return $summary;
+}
+
+#----------------------------------------------------------------------
+# Validate uploaded file (stub)
+
+sub validate_file {
+    my ($self, $request) = @_;
+    
+    return 1;
 }
 
 #----------------------------------------------------------------------

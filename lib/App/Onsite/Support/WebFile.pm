@@ -10,6 +10,7 @@ package App::Onsite::Support::WebFile;
 use Cwd;
 use IO::Dir;
 use IO::File;
+use File::Copy;
 use Digest::MD5 qw(md5_hex);
 
 use base qw(App::Onsite::Support::ConfiguredObject);
@@ -100,6 +101,19 @@ sub base_dir {
     }
 
     return $base_dir;
+}
+
+#----------------------------------------------------------------------
+# Copy file
+
+sub copy_file {
+    my ($self, $input_file, $output_file) = @_;
+    
+    $input_file = $self->validate_filename($input_file, 'r');
+    $output_file = $self->validate_filename($output_file, 'w');
+    copy($input_file, $output_file) or die "Copy failed: $!";
+    
+    return;
 }
 
 #----------------------------------------------------------------------
@@ -604,7 +618,7 @@ sub writer {
 }
 
 #----------------------------------------------------------------------
-# Write file to disk after validation
+# Write file to disk without filename validation
 
 sub write_wo_validation{
     my ($self, $filename, $output, $binmode) = @_;

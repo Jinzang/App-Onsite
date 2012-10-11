@@ -139,6 +139,16 @@ sub check_nonce {
 }
 
 #----------------------------------------------------------------------
+# Check if id refers to a complete file
+
+sub check_primary {
+    my ($self, $id) = @_;
+
+    my ($filename, $extra) = $self->{wf}->id_to_filename($id);
+    return ! defined $extra;    
+}
+
+#----------------------------------------------------------------------
 # Put input in canonical form and delete empty fields
 
 sub clean_data {

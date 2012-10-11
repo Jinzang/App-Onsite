@@ -1,8 +1,8 @@
-Write blog conversion script
+Write ImportCommand and ExportCommand classes
+FWrite blog conversion script
 Rewrite clean subs in Verify classes
 Improve default template
-Write ImportCommand and ExportCommand classes
-Finish directory rename code
+inish directory rename code
 Write bundle.pl / unbundle.pl scripts
 Finish pod documentation
 Support atom publishing protocol
