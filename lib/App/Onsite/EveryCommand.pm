@@ -144,8 +144,8 @@ sub check_nonce {
 sub check_primary {
     my ($self, $id) = @_;
 
-    my ($filename, $extra) = $self->{wf}->id_to_filename($id);
-    return ! defined $extra;    
+    my ($filename, $extra) = $self->{data}->id_to_filename($id);
+    return ! $extra;    
 }
 
 #----------------------------------------------------------------------

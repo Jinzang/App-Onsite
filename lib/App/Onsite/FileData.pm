@@ -109,6 +109,14 @@ sub check_command {
         } else {
             return $self->can('write_primary');
         }
+
+    } elsif ($cmd eq 'import' || $cmd eq 'export') {
+        my ($filename, $extra) = $self->id_to_filename($id);
+        if ($extra) {
+            return;
+        } else {
+            return $self->can('write_primary');
+        }       
     }
 
     return 1;
@@ -706,7 +714,7 @@ sub summarize {
 sub validate_file {
     my ($self, $request) = @_;
     
-    return 1;
+    return;
 }
 
 #----------------------------------------------------------------------

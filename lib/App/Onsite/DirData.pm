@@ -151,9 +151,9 @@ sub copy_data {
     my ($self, $id, $request) = @_;
 
     my $subfolders = 1;
-    my ($repository, $basename) = $self->{wf}->split_filename($filename);    
-
     my $input_filename = $request->{filename};
+    my ($repository, $basename) = $self->{wf}->split_filename($input_filename);    
+
     my $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
 
     while (my $file = &$visitor()) {

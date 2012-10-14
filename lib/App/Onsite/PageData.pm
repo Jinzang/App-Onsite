@@ -184,8 +184,8 @@ sub copy_data {
 sub copy_file {
     my ($self, $input_filename, $output_filename) = @_;
     
-    my $template = $self->{nt}->subtemplate($input_filename,
-                                            $output_filename);
+    my $template = $self->{nt}->parse($input_filename,
+                                      $output_filename);
     
     my $output = $self->{nt}->unparse($template);
     $self->{wf}->writer($output_filename, $output);
@@ -595,12 +595,17 @@ sub validate_file {
     my ($self, $request) = @_;
     
     my $new_filename = $request->{filename};
-    my ($old_filename, $extra) = $self->{wf}->id_to_filename($request->{id});
+    my ($old_filename, $extra) = $self->id_to_filename($request->{id});
     
     my $new_blocks = $self->{nt}->data($new_filename);
     my $old_blocks = $self->{nt}->data($old_filename);
     
-    return $self->{lo}->list_same($old_blocks, $new_blocks);
+    my @missing;
+    for my $field (sort keys %$old_blocks) {
+        push(@missing, $field) if ! exists $new_blocks->{$field};
+    }
+
+    return @missing;
 }
 
 #--------------s-------------------------------------------------------------

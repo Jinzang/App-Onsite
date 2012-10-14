@@ -56,8 +56,13 @@ sub check {
     $response = $self->validate_data($request)
         if $response->{code} == 200;
 
-    $response = $self->{data}->validate_file($request)
-        if $response->{code} == 200;
+    if ($response->{code} == 200) {
+        my @missing = $self->{data}->validate_file($request);
+        if (@missing) {
+            my $msg = "Missing blocks in file: " . join(',', @missing);
+            $response = $self->set_response($id, 400, $msg);
+        }
+    }
 
     return $response;
 }
@@ -72,6 +77,7 @@ sub filename_info {
     $item->{NAME} = 'filename';
     $item->{title} = 'Choose file';
     $item->{style} = 'type=file';
+    $item->{valid} = '&';
     
     return [$item];
 }
@@ -82,7 +88,7 @@ sub filename_info {
 sub run {
     my ($self, $request) = @_;
 
-    $self->{data}->copy_file($request->{id}, $request);
+    $self->{data}->copy_data($request->{id}, $request);
 	return $self->set_response($request->{id}, 302);
 }
 
@@ -94,9 +100,8 @@ sub validate_data {
 
     my @missing;
     my $filename = $request->{'filename'};
-    # TODO bypass validate_filename
     my $data = $self->{data}->read_primary($filename);
-    my $info = $self->read_info($request->{id});
+    my $info = $self->{data}->field_info($request->{id});
 
     foreach my $item (@$info) {
         my $name = $item->{NAME};
@@ -109,7 +114,7 @@ sub validate_data {
         $response = $self->set_response($request->{id}, 400, $msg);
 
     } else {        
-        $self->set_response($request->{id}, 200);
+        $response = $self->set_response($request->{id}, 200);
     }
 
     return $response;
