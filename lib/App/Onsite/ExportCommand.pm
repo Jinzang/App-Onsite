@@ -48,6 +48,12 @@ sub check {
     # Check for nonce
 
     $response = $self->check_nonce($id, $request->{nonce});
+
+    if ($response->{code} != 200) {
+        my $data = $self->{data}->read_data($id);
+        %$request = (%$request, %$data);
+    }
+
     return $response;
 }
 

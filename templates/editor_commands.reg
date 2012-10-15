@@ -11,7 +11,13 @@ SUBTEMPLATE = browse.htm
         [edit]
 CLASS = App::Onsite::EditCommand
 SUBTEMPLATE = edit.htm
-        [remove]
+        [export]
+CLASS = App::Onsite::ExportCommand
+SUBTEMPLATE = export.htm
+        [import]
+CLASS = App::Onsite::ImportCommand
+SUBTEMPLATE = import.htm
+         [remove]
 CLASS = App::Onsite::RemoveCommand
 SUBTEMPLATE = remove.htm
         [search]
