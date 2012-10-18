@@ -64,8 +64,14 @@ sub run {
     my ($self, $request) = @_;
 
 	my $response = $self->set_response($request->{id}, 200);
-    $response->{protocol} = EXPORT_PROTOCOL;
     
+    my ($filename, $extra) = $self->{data}->id_to_filename($request->{id});
+    my @path = split(/\//, $filename);
+    $filename = pop(@path);
+
+    $response->{protocol} = EXPORT_PROTOCOL;
+    $response->{Content_Disposition} = "attachment; filename=$filename";
+
     return $response;
 }
 

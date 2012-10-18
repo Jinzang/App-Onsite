@@ -216,7 +216,11 @@ is_deeply($test, $response, "Check with bad id"); # test 6
 my $id = 'a-title';
 $test = $con->run({cmd => 'export', id => $id, nonce => $params->{nonce}});
 
-$response = {code => 200, msg => "OK", protocol => 'application/octet-stream',
-                url => "$params->{base_url}/a-title.html"};
+$response = {code => 200,
+             msg => "OK",
+             protocol => 'application/octet-stream',
+             url => "$params->{base_url}/a-title.html",
+             Content_Disposition => "attachment; filename=a-title.html",
+            };
 
 is_deeply($test, $response, "Run export"); # Test 7

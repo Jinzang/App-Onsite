@@ -109,6 +109,30 @@ sub populate_object {
 }
 
 #----------------------------------------------------------------------
+# Print extra header lines
+
+sub print_extra_headers {
+    my ($self, $response) = @_;
+    
+    my %normal_field = (code => 1,
+                        url => 1,
+                        protocol => 1,
+                        msg => 1,
+                        results => 1);
+
+    foreach my $field (keys %$response) {
+        next if $normal_field{$field};
+        
+        my $header = $field;
+        $header =~ s/_/-/g;
+        $header .= ": " . $response->{$field};
+        $self->{io}->print("$header\n");
+    }
+    
+    return;
+}
+
+#----------------------------------------------------------------------
 # Default renderer
 
 sub render {
@@ -179,7 +203,10 @@ sub run {
         $self->{io}->print("Location: $response->{url}\n\n");
 
     } else {
-        $self->{io}->print("Content-type: $response->{protocol}\n\n");
+        $self->{io}->print("Content-type: $response->{protocol}\n");
+        $self->print_extra_headers($response);
+        $self->{io}->print("\n");
+
         $self->{io}->print($response->{results});
     }
 
