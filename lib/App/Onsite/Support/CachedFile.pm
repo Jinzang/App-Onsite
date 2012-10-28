@@ -5,7 +5,7 @@ use integer;
 package App::Onsite::Support::CachedFile;
 
 use base qw(App::Onsite::Support::ConfiguredObject);
-use Cwd qw(abs_path);
+use Digest::MD5 qw(md5_hex);
 
 # Singleton, for obvious reasons
 my $singleton;
@@ -35,21 +35,16 @@ sub create_object {
 # Fetch the parsed representation from the cache if available
 
 sub fetch {
-    my ($self, $filename) = @_;
+    my ($self, $key) = @_;
 
     my $data;
-    $filename = abs_path($filename);
-
-    if (exists $self->{cache}{$filename}) {
-        if (-e $filename) {
-            if (time() < $self->{cache}{$filename}{TIME} + $self->{expires}) {
-                $data = $self->{cache}{$filename}{DATA};
-            } else {
-                delete $self->{cache}{$filename};
-            }
-
+    my $hash = md5_hex($key);
+    
+    if (exists $self->{cache}{$hash}) {
+        if (time() < $self->{cache}{$hash}{TIME} + $self->{expires}) {
+            $data = $self->{cache}{$hash}{DATA};
         } else {
-            delete $self->{cache}{$filename};
+            delete $self->{cache}{$hash};
         }
     }
 
@@ -70,10 +65,10 @@ sub flush {
 # Free the cache item when no longer valid
 
 sub free {
-    my ($self, $filename) = @_;
+    my ($self, $key) = @_;
 
-    $filename = abs_path($filename);
-    delete $self->{cache}{$filename};
+    my $hash = md5_hex($key);
+    delete $self->{cache}{$hash};
 
     return;
 }
@@ -82,13 +77,10 @@ sub free {
 # Save the parsed version of the file to the cache
 
 sub save {
-    my ($self, $filename, $data) = @_;
+    my ($self, $key, $data) = @_;
 
-    $filename = abs_path($filename);
-
-    if (-e $filename) {
-        $self->{cache}{$filename} = {DATA => $data, TIME => time()};
-    }
+    my $hash = md5_hex($key);
+    $self->{cache}{$hash} = {DATA => $data, TIME => time()};
 
     return;
 }

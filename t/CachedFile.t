@@ -3,7 +3,7 @@ use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 18;
+use Test::More tests => 16;
 
 use IO::File;
 use Cwd qw(abs_path);
@@ -49,11 +49,7 @@ foreach my $filename (qw(one three)) {
     $cache->save($filename, $value);
 
     my $newvalue = $cache->fetch($filename);
-    is($newvalue, $value, "Cache save and fetch"); # test 4 & 6
-
-    my $newname = abs_path($filename);
-    $newvalue = $cache->fetch($newname);
-    is($newvalue, $value, "Fetch absolute name"); # test 5 & 7
+    is($newvalue, $value, "Cache save and fetch"); # test 4 & 5
 }
 
 #----------------------------------------------------------------------
@@ -61,7 +57,7 @@ foreach my $filename (qw(one three)) {
 
 foreach my $filename (qw(two four five)) {
     my $value = $cache->fetch($filename);
-    is($value, undef, "Fetch value not in cache"); # test 8-10
+    is($value, undef, "Fetch value not in cache"); # test 6-8
 }
 
 #----------------------------------------------------------------------
@@ -70,7 +66,7 @@ foreach my $filename (qw(two four five)) {
 foreach my $filename (qw(three four)) {
     $cache->free($filename);
     my $value = $cache->fetch($filename);
-    is($value, undef, "Fetch value not in cache"); # test 11 & 12
+    is($value, undef, "Fetch value not in cache"); # test 9 & 10
 }
 
 #----------------------------------------------------------------------
@@ -78,14 +74,14 @@ foreach my $filename (qw(three four)) {
 
 sleep 2;
 my $value = $cache->fetch("one");
-is($value, undef, "Invalid cache"); # test 13
+is($value, undef, "Invalid cache"); # test 11
 
 #----------------------------------------------------------------------
 # Flush the cache
 
 $cache->flush;
 $value = $cache->fetch("one");
-is($value, undef, "Flushed cache"); # test 14
+is($value, undef, "Flushed cache"); # test 12
 
 #----------------------------------------------------------------------
 # Backstop cache
@@ -107,5 +103,5 @@ foreach my $filename (qw(one two three four)) {
     chomp $value;
 
     my $newvalue = $cache->fetch($filename) || $value;
-    is($newvalue, $value, "Backstop cache"); # test 15-18
+    is($newvalue, $value, "Backstop cache"); # test 13-16
 }
