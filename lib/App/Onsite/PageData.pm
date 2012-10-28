@@ -8,7 +8,6 @@ use integer;
 package App::Onsite::PageData;
 
 use base qw(App::Onsite::FileData);
-use Data::Dumper;
 
 #----------------------------------------------------------------------
 # Set default values
@@ -477,7 +476,7 @@ sub read_primary {
 
     my $record = $self->read_block('primary', $filename);
     $record->{id} = $self->filename_to_id($filename);
-    
+   
     return $record;
 }
 

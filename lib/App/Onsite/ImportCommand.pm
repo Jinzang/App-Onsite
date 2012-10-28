@@ -8,6 +8,7 @@ use integer;
 package App::Onsite::ImportCommand;
 
 use base qw(App::Onsite::EveryCommand);
+use Data::Dumper;
 
 #----------------------------------------------------------------------
 # Set default values
@@ -99,8 +100,7 @@ sub validate_data {
     my ($self, $request) = @_;
 
     my @missing;
-    my $filename = $request->{'filename'};
-    my $data = $self->{data}->read_primary($filename);
+    my $data = $self->{data}->read_primary($request->{'filename'});
     my $info = $self->{data}->field_info($request->{id});
 
     foreach my $item (@$info) {
