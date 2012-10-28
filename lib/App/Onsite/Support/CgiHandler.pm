@@ -9,6 +9,7 @@ use integer;
 
 package App::Onsite::Support::CgiHandler;
 
+use CGI qw(:cgi);
 use Data::Dumper;
 use File::Spec::Functions qw(rel2abs);
 use base qw(App::Onsite::Support::ConfiguredObject);
@@ -50,7 +51,6 @@ sub parameters {
                     data_dir => '',
 					detail_errors => 0,
                     io => {DEFAULT => 'App::Onsite::Support::IO'},
-                    cgi => {DEFAULT => 'CGI'},
                     handler => {},
 	);
 
@@ -156,9 +156,8 @@ sub render {
 sub request {
     my ($self) = @_;
 
-    # @args is an optional hash containg request parameters
-    # that is used for debugging
-    my %request = $self->{cgi}->Vars();
+    my $cgi = CGI->new;
+    my %request = $cgi->Vars();
 
     # Split request parameters when they are arrays
 
@@ -168,10 +167,12 @@ sub request {
         $request{$field} = \@array;
     }
 
-    # Get full path to temporary file
-    
-    $request{filename} = $self->{cgi}->tmpFileName($request{filename})
-                            if exists $request{filename};
+    # Get file descriptor for filename    
+ 
+    if ($request{filename}) {
+        my $fd = $cgi->upload('filename');
+        $request{filename} = $fd->handle;
+    }
     
     return \%request;
 }
