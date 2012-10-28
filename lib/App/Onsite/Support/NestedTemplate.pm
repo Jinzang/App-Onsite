@@ -88,40 +88,43 @@ sub parse {
 
 	my @templates;
     foreach my $source (@sources) {
-		my $template;
-		if (ref $source) {
-			# Already parsed
-			if ($source->isa('App::Onsite::Support::TemplateBlock')) {
-				$template = $source;
-			} else {
-				die ref($source) .  " is not a template\n";
-			}
-
-		} elsif ($self->is_template($source)) {
-			# Source is in a string
-			my $tokens = $self->{lexer}->tokenize($source);
-			my $tb = App::Onsite::Support::TemplateBlock->new($self->{lexer});
-			$template = $tb->parse($tokens);
-
-		} elsif (defined($self->{cache}->fetch($source))) {
+		if (defined($self->{cache}->fetch($source))) {
 			# Parsed source has been cached
-			$template = $self->{cache}->fetch($source);
+			push(@templates, $self->{cache}->fetch($source));
+            
+        } elsif (ref $source &&
+                 $source->isa('App::Onsite::Support::TemplateBlock')) {
+    		# Already parsed
+            push(@templates, $source);
+            
+        } else {
+            my $key = $source;
+            
+            if (ref $source) {
+                if ($source->isa('IO::Handle')) {
+                    # Uploaded file
+                    $source = do {local $/; <$source>};
 
-		} else {
-			# Source is in a file
-			my $filename = $source;
-			$source = $self->{wf}->reader($filename);
+                } else {
+                    die ref($source) .  " is not a template\n";
+                }
 
-			my $tokens = $self->{lexer}->tokenize($source);
-			my $tb = App::Onsite::Support::TemplateBlock->new($self->{lexer});
-			$template = $tb->parse($tokens);
-
-			# Cache the parsed source for later use
-			$self->{cache}->save($filename, $template);
-		}
-
-		push (@templates, $template);
-   }
+			} elsif (! $self->is_template($source)) {
+                $source = $self->{wf}->reader($source)                
+            }
+        
+            # Parse string into template
+ 
+            my $tokens = $self->{lexer}->tokenize($source);
+            my $tb = App::Onsite::Support::TemplateBlock->new($self->{lexer});
+            my $template = $tb->parse($tokens);
+    
+            # Cache the parsed source for later use
+            
+            $self->{cache}->save($key, $template);
+            push (@templates, $template);
+        }
+    }
 
     return $self->subtemplate(@templates);
 }
