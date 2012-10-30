@@ -52,6 +52,8 @@ CLASS = App::Onsite::DirData
 SUPER = dir
 HAS_SUBFOLDERS = 1
 SUBTEMPLATE = dir.htm
+SINGULAR = page
+PLURAL = dir
         [list]
 CLASS = App::Onsite::ListData
 SUBTEMPLATE = list.htm

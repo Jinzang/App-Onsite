@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/local/bin/perl -T
 use strict;
 
 use lib 't';
@@ -65,6 +65,12 @@ COMMANDS = edit
 COMMANDS = remove
 COMMANDS = search
 COMMANDS = view
+        [news]
+CLASS = App::Onsite::NewsData
+SUBTEMPLATE = news.htm
+SUPER = page
+PLURAL = news
+INDEX_LENGTH = 6
 EOQ
 
 $wf->writer("$template_dir/$data_registry", $registry);
@@ -91,7 +97,7 @@ The Content
 An author
 <!-- end author --></div>
 <!-- end primary -->
-<!-- begin secondary type="list" -->
+<!-- begin secondary type="news" -->
 <!-- begin data -->
 <!-- set id [[0001]] -->
 <h3><!-- begin title -->
@@ -184,7 +190,7 @@ my $subpage_template = <<'EOQ';
 <head>
 </head>
 <body>
-<!-- begin secondary  type="list" -->
+<!-- begin secondary  type="news" -->
 <!-- begin data -->
 <!-- set id [[]] -->
 <h3><!-- begin title -->
@@ -241,8 +247,8 @@ my $elinks = [{
              url => "test.cgi?cmd=edit&id=a-title",
             },
             {
-             title => 'Add List',
-             url => "test.cgi?cmd=add&id=a-title&subtype=list",
+             title => 'Add News',
+             url => "test.cgi?cmd=add&id=a-title&subtype=news",
             }];
 
 my $links = $data->build_commandlinks($pagename, {id =>'a-title'});
@@ -356,7 +362,7 @@ $r = {title => "A title",
       summary => "The Content",
       author => "An author",
       id => 'a-title:0001',
-      type => 'list',
+      type => 'news',
       url => 'http://www.onsite.org/a-title.html#0001',
      };
 
@@ -423,15 +429,15 @@ is_deeply($results, [$r], "Browse subpage"); # test 22
 #----------------------------------------------------------------------
 # Search subpage
 
-my $list = $data->search_data({author => 'author'}, 'a-title');
-is_deeply($list, [$r], "Search subpage"); # test 23
+my $news = $data->search_data({author => 'author'}, 'a-title');
+is_deeply($news, [$r], "Search subpage"); # test 23
 
-$list = $data->search_data({author => 'author'}, 'a-title', 1);
-is_deeply($list, [$r], "Search subpage with limit"); # test 24
+$news = $data->search_data({author => 'author'}, 'a-title', 1);
+is_deeply($news, [$r], "Search subpage with limit"); # test 24
 
-$list = $data->search_data({author => 'An'}, 'a-title');
-is_deeply($list, [$r], "Search subpage single term"); # test 25
+$news = $data->search_data({author => 'An'}, 'a-title');
+is_deeply($news, [$r], "Search subpage single term"); # test 25
 
-$list = $data->search_data({body =>'The', title => 'A'}, 'a-title');
-is_deeply($list, [$r], "Search subpage multiple terms"); # test 26
+$news = $data->search_data({body =>'The', title => 'A'}, 'a-title');
+is_deeply($news, [$r], "Search subpage multiple terms"); # test 26
 

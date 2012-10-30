@@ -122,8 +122,12 @@ sub run {
     $subobject->add_data($id, $request);
 
     $id = $request->{id};
-    my $data = $self->{data}->read_data($id);
-    $self->{data}->write_data($id, $data);
+    my ($filename, $extra) = $self->{data}->id_to_filename($id);
+
+    if ($extra) {
+        my $data = $self->{data}->read_data($id);
+        $self->{data}->write_data($id, $data);
+    }
 
     return $self->set_response($id, 302);
 }

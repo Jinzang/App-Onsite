@@ -176,11 +176,19 @@ sub command_links {
         
         my $query = {cmd => $cmd, id => $id};  
 
-        if ($cmd eq 'add' || $self->is_parent_command($cmd)) {
+        if ($cmd eq 'add') {
             my $type =$self->has_one_subtype($id);
             if ($type) {
                 $query->{type} = $type;
-                $query->{subtype} = $type if $cmd eq 'add';
+                $query->{subtype} = $type;
+            }
+            
+        } elsif ($self->is_parent_command($cmd)) {
+            my $type =$self->has_one_subtype($id);
+            if ($type) {
+                $query->{type} = $type;
+            } else {
+                $query->{type} = $self->get_type();                
             }
 
         } else {
@@ -207,22 +215,32 @@ sub command_title {
         if ($args->{type}) {
             my $type = $args->{type};
 
-            if ($self->is_parent_command($args->{cmd})) {
-                my $object;
-                if ($type eq $self->get_type()) {
-                    $object = $self;
+            my $object = $self;
+            ##if ($type eq $self->get_type()) {
+                ##$object = $self;
 
-                } else {
-                    $object =
-                        $self->{reg}->create_subobject($self,
-                                                       $self->{data_registry},
-                                                       $type);
-                }
+            ##} else {
+                ##eval {
+                ##$object =
+                    ##$self->{reg}->create_subobject($self,
+                                                   ##$self->{data_registry},
+                                                   ##$type);
+                ##};
+
+                ##$object = $self if $@;
+            ##}
  
+            if ($self->is_parent_command($args->{cmd})) {
                 if ($object->{plural}) {
                     $type = $object->{plural};
                 } else {
+                    $type = $object->{singular} if $object->{singular};
                     $type .= 's';
+                }
+
+            } else {
+                if ($object->{singular}) {
+                    $type = $object->{singular};
                 }
             }
        
