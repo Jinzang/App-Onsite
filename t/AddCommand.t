@@ -321,7 +321,7 @@ my $r = {
         body => $data->{body},
         summary => $data->{body},
         title => $data->{title},
-        type => 'dir',
+        type => 'page',
         url => "$params->{base_url}/$pagename",
         id => $id,
 };

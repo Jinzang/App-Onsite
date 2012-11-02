@@ -588,6 +588,21 @@ sub update_files {
 }
 
 #----------------------------------------------------------------------
+# Update links after add
+
+sub update_links {
+    my ($self, $request) = @_;
+    
+    my ($filename, $extra) = $self->id_to_filename($request->{id});
+    
+    my $data = {};
+    $data->{commandlinks} = $self->build_commandlinks($filename, $request);
+    $self->write_file($filename, $data);
+    
+    return;
+}
+
+#----------------------------------------------------------------------
 # Validate uploaded file
 
 sub validate_file {

@@ -727,6 +727,15 @@ sub summarize {
 }
 
 #----------------------------------------------------------------------
+# Update links after add (no-op)
+
+sub update_links {
+    my ($self, $id, $request) = @_;
+    
+    return;
+}
+
+#----------------------------------------------------------------------
 # Validate uploaded file (stub)
 
 sub validate_file {
