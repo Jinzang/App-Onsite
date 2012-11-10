@@ -216,19 +216,19 @@ sub command_title {
             my $type = $args->{type};
 
             my $object = $self;
-            ##if ($type eq $self->get_type()) {
-                ##$object = $self;
+            if ($type eq $self->get_type()) {
+                $object = $self;
 
-            ##} else {
-                ##eval {
-                ##$object =
-                    ##$self->{reg}->create_subobject($self,
-                                                   ##$self->{data_registry},
-                                                   ##$type);
-                ##};
+            } else {
+                eval {
+                $object =
+                    $self->{reg}->create_subobject($self,
+                                                   $self->{data_registry},
+                                                   $type);
+                };
 
-                ##$object = $self if $@;
-            ##}
+                $object = $self if $@;
+            }
  
             if ($self->is_parent_command($args->{cmd})) {
                 if ($object->{plural}) {

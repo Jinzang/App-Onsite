@@ -591,10 +591,11 @@ sub update_files {
 # Update links after add
 
 sub update_links {
-    my ($self, $request) = @_;
+    my ($self, $id, $request) = @_;
     
     my ($filename, $extra) = $self->id_to_filename($request->{id});
-    
+    $request->{id} = $id if $extra;
+
     my $data = {};
     $data->{commandlinks} = $self->build_commandlinks($filename, $request);
     $self->write_file($filename, $data);

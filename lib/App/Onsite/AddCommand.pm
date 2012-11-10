@@ -120,10 +120,7 @@ sub run {
 
     my $id = $request->{id};
     $subobject->add_data($id, $request);
-
-    $id = $request->{id};
-    my ($filename, $extra) = $self->{data}->id_to_filename($id);
-    $self->{data}->update_links($request);
+    $self->{data}->update_links($id, $request);
 
     return $self->set_response($id, 302);
 }
