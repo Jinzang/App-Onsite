@@ -4,7 +4,7 @@ use strict;
 use lib 't';
 use lib 'lib';
 
-use Test::More tests => 50;
+use Test::More tests => 49;
 
 #----------------------------------------------------------------------
 # Create object
@@ -155,29 +155,27 @@ do {
 	my $fv = App::Onsite::FieldValidator->new(valid => $valid);
 	my $r = {limits => '[5,]'};
 	is_deeply($fv, $r, "String limits"); # Test 43
-	my $str = $fv->canonize(' <b> </b>');
-	is($str, '&#60;b&#62; &#60;&#47;b&#62;', "Convert html"); # Test 44
 	my $b = $fv->validate('12345');
-	is($b, 1, "Validate valid string length"); # Test 45
+	is($b, 1, "Validate valid string length"); # Test 44
 	$b = $fv->validate('1234');
-	is($b, undef, "Validate invalid string length"); # Test 46
+	is($b, undef, "Validate invalid string length"); # Test 45
 };
 
 do {
 	my $fv = App::Onsite::FieldValidator->new(valid => 'string');
 	my $field = $fv->build_field('foo', 'bar');
 	is($field, '<input type="text" name="foo" value="bar" id="foo-field" />',
-	   "Form text field"); # Test 47
+	   "Form text field"); # Test 46
 
 	$fv = App::Onsite::FieldValidator->new(valid => 'html');
 	$field = $fv->build_field('foo', 'bar');
 	is($field, '<textarea name="foo" id="foo-field">bar</textarea>',
-	   "Form textarea"); # Test 48
+	   "Form textarea"); # Test 47
 
 	$field = $fv->build_field('foo', 'bar', 'rows=20;cols=64');
 	is($field,
 	   '<textarea name="foo" rows="20" cols="64" id="foo-field">bar</textarea>',
-	   "Form textarea with style"); # Test 49
+	   "Form textarea with style"); # Test 48
 
 	$fv = App::Onsite::FieldValidator->new(valid => 'string|bar|biz|baz|');
 	$field = $fv->build_field('foo', 'bar');
@@ -189,5 +187,5 @@ do {
 </select>
 EOQ
 	chomp $r;
-	is($field, $r, "Form selection"); # Test 50
+	is($field, $r, "Form selection"); # Test 49
 };

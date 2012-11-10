@@ -4,6 +4,7 @@ use warnings;
 package App::Onsite::FieldValidator;
 
 use CGI ':form';
+
 use base qw(App::Onsite::Support::ConfiguredObject);
 
 #----------------------------------------------------------------------
@@ -256,6 +257,7 @@ sub valid_regexp {
 package App::Onsite::NumberFieldValidator;
 
 use base qw(App::Onsite::FieldValidator);
+use Scalar::Util qw(looks_like_number);
 
 #----------------------------------------------------------------------
 # Check if the value is a number
@@ -263,7 +265,7 @@ use base qw(App::Onsite::FieldValidator);
 sub valid_type {
     my ($self, $value) = @_;
 
-    return $value =~ /^-?(?:\d+(?:\.\d*)?|\.\d+)$/;
+    return looks_like_number($value);
 }
 
 #----------------------------------------------------------------------
@@ -303,16 +305,6 @@ package App::Onsite::StringFieldValidator;
 use base qw(App::Onsite::FieldValidator);
 
 #----------------------------------------------------------------------
-# Sanitize html
-
-sub canonize {
-    my ($self, $value) = @_;
-
-    $value =~ s/([^\s\w.,&#;-])/'&#'.ord($1).';'/ge;
-    return $self->App::Onsite::FieldValidator::canonize($value);
-}
-
-#----------------------------------------------------------------------
 # Anything is a string
 
 sub valid_type {
@@ -335,19 +327,6 @@ sub valid_limits {
 package App::Onsite::HtmlFieldValidator;
 
 use base qw(App::Onsite::StringFieldValidator);
-
-#----------------------------------------------------------------------
-# Override html escaping
-
-sub canonize {
-    my ($self, $value) = @_;
-
-    $value =~ s/^\s+//;
-    $value =~ s/\s+$//;
-    $value =~ s/[\t ]+/ /g;
-
-    return $value;
-}
 
 #----------------------------------------------------------------------
 # Set field defaults from validation rules
