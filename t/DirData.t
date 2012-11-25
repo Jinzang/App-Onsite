@@ -193,7 +193,7 @@ DETAIL_ERRORS = 0
 # Length of summary
 SUMMARY_LENGTH = 300
 # Group that owns files
-GROUP = admin
+GROUP = adm
 EOQ
 
 # Write dir as templates and pages

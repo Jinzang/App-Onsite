@@ -120,7 +120,6 @@ sub run {
 
     my $id = $request->{id};
     $subobject->add_data($id, $request);
-    $self->{data}->update_links($id, $request);
 
     return $self->set_response($id, 302);
 }

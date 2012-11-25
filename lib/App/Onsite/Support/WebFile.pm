@@ -238,6 +238,18 @@ sub is_absolute {
 }
 
 #----------------------------------------------------------------------
+# Check if filename is a directory
+
+sub is_directory {
+    my ($self, $filename) = @_;
+
+    my ($dir, $basename) = $self->split_filename($filename);
+    my ($root, $ext) = split(/\./, $basename);
+
+    return $root eq $self->{index_name};
+}
+
+#----------------------------------------------------------------------
 # Get the parent file of the specified file
 
 sub parent_file {
@@ -377,6 +389,8 @@ sub set_group  {
     return unless $self->{group};
 
     my $group_id = getgrnam($self->{group});
+    return unless $group_id;
+    
     my ($gid) = $group_id =~ /^(\d+)$/; # untaint
     return unless $gid;
 

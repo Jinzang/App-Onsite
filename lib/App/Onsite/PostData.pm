@@ -386,7 +386,7 @@ sub remove_data {
 
     $self->App::Onsite::FileData::remove_data($id, $request);
     my ($filename, $extra) = $self->id_to_filename($id);
-    $self->update_files($filename, $request);
+    $self->update_directory_links($id, $request);
 
     return;    
 }
@@ -438,15 +438,15 @@ sub update_blogindex {
 #----------------------------------------------------------------------
 # Update indexes after a post has been changed
 
-sub update_files {
-    my ($self, $filename, $request, $skip) = @_;
+sub update_directory_links {
+    my ($self, $id, $request) = @_;
 
+    my ($filename, $extra) = $self->id_to_filename($id);
     my $record = $self->update_postindex($filename, $request, 1);
     $record = $self->update_postindex($filename, $record, 2);
     
     $self->update_blogindex($filename, $request, $record);
 
-    my $id = $self->filename_to_id($filename);
     my ($parentid, $seq) = $self->{wf}->split_id($id);
     $self->write_rss($parentid);
 
@@ -512,7 +512,7 @@ sub write_primary {
  
     my $skip = 0;
     $self->write_file($filename, $data);
-    $self->update_files($filename, $request, $skip);
+    $self->update_directory_links($request->{id}, $request);
   
     return;
 }

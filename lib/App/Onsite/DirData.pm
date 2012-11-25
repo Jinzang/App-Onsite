@@ -78,26 +78,6 @@ sub browse_data {
 }
 
 #----------------------------------------------------------------------
-# Set up data for parentlinks block
-
-sub build_parentlinks {
-    my ($self, $filename, $request) = @_;
-
-    my $links;
-    my $parent_file = $self->{wf}->parent_file($filename);
-
-    if ($filename eq $parent_file) {
-        $links = [];
-
-    } else {
-        $request = $self->read_primary($parent_file);
-        $links = $self->build_links('parentlinks', $parent_file, $request); 
-    }
-    
-    return $links;
-}
-
-#----------------------------------------------------------------------
 # Change the filename to match request TODO: rewrite
 
 sub change_filename {
@@ -113,8 +93,6 @@ sub change_filename {
     my ($newname, $extra) = $self->id_to_filename($id);
     
     if ($filename ne $newname) {
-        die "Renaming directories is not supported yet\n";
-        
         my $index;
         ($filename, $index) = $self->{wf}->split_filename($filename);
         ($newname, $index) = $self->{wf}->split_filename($newname);
@@ -298,8 +276,7 @@ sub remove_data {
         my $directory = $self->get_repository($id);
         $self->{wf}->remove_directory($directory);
 
-        my $skip = 0;
-        $self->update_files($repository, $data, $skip);
+        $self->update_directory_links($id, $request);
 
     } else {
         my $filename = $self->id_to_filename('');
@@ -321,20 +298,10 @@ sub write_primary {
     $data->{pagelinks} = $self->build_pagelinks($filename, $request);
     $data->{parentlinks} = $self->build_parentlinks($filename, $request);
     $data->{commandlinks} = $self->build_commandlinks($filename, $request);
-    $self->write_file($filename, $data);
- 
-    if ($data->{parentlinks}) {
-        my $parent_file = $self->{wf}->parent_file($filename);
-        
-        if ($filename ne $parent_file) {
-            my $update_data = {};
-            $update_data->{pagelinks} =
-                $self->build_pagelinks($parent_file, $request);
 
-            $self->update_files($parent_file, $update_data);
-        }
-    }
-    
+    $self->write_file($filename, $data);
+    $self->update_directory_links($request->{id}, $request);
+     
     return;
 }
 

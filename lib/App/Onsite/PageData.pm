@@ -43,6 +43,20 @@ sub add_data {
 }
 
 #----------------------------------------------------------------------
+# Test for existence of links
+
+sub any_links {
+    my ($self, $data, $field) = @_;
+    
+    return unless exists $data->{$field};
+    return unless ref $data->{$field} eq 'HASH';
+    return unless exists $data->{$field}{data};
+    return unless ref $data->{$field}{data} eq 'ARRAY';
+    
+    return @{$data->{$field}{data}};
+}
+
+#----------------------------------------------------------------------
 # Return a specific item from the info for a file
 
 sub block_info {
@@ -106,6 +120,26 @@ sub build_pagelinks {
     my ($self, $filename, $request) = @_;
 
     return $self->build_links('pagelinks', $filename, $request);    
+}
+
+#----------------------------------------------------------------------
+# Set up data for parentlinks block
+
+sub build_parentlinks {
+    my ($self, $filename, $request) = @_;
+
+    my $links;
+    my $parent_file = $self->{wf}->parent_file($filename);
+
+    if ($filename eq $parent_file) {
+        $links = [];
+
+    } else {
+        $request = $self->read_primary($parent_file);
+        $links = $self->build_links('parentlinks', $parent_file, $request); 
+    }
+    
+    return $links;
 }
 
 #----------------------------------------------------------------------
@@ -536,11 +570,9 @@ sub remove_data {
     my $data = {};
     delete $request->{id};
     $request->{oldid} = $id;
-    $data->{pagelinks} = $self->build_pagelinks($filename, $request)
-        unless $extra;
 
     $self->SUPER::remove_data($id, $request);
-    $self->update_files($filename, $data) if $data->{pagelinks};
+    $self->update_directory_links($id, $request);
 
     return;    
 }
@@ -565,41 +597,62 @@ sub template_info {
 }
 
 #----------------------------------------------------------------------
-# Update navigation links after a file is changed
+# Update navigation links after a directory name is changed
 
-sub update_files {
-    my ($self, $filename, $data, $skip) = @_;
+sub update_directory_links {
+    my ($self, $id, $request) = @_;
 
-    my $subfolders = 0;
-    my ($repository, $basename) = $self->{wf}->split_filename($filename);    
+    my ($filename, $extra) = $self->id_to_filename($id);
+    
+    my $data = {};
+    if ($extra) {
+        $request->{id} = $id;
+        $data->{commandlinks} = $self->build_commandlinks($filename, $request);
+        $self->update_file_links($filename, $data);
 
-    my $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
+    } else {
+        my $parent_name = $self->{wf}->parent_file($filename);
+        $data->{pagelinks} = $self->build_pagelinks($parent_name, $request);
+        $data->{parentlinks} = $self->build_parentlinks($parent_name, $request);
 
-    while (my $file = &$visitor()) {
-        next unless $self->valid_filename($file);
-        next if $skip && $file eq $filename;
-
-        my $url = $self->filename_to_url($file);
-        $data =  $self->link_class($data, $url);
-        $self->write_file($file, $data);
+        return unless $self->any_links($data, 'pagelinks') ||
+                      $self->any_links($data, 'parentlinks');
+    
+        my $subfolders = 0;
+        my ($repository, $basename) = $self->{wf}->split_filename($parent_name);    
+    
+        my $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
+    
+        while (my $file = &$visitor()) {
+            next unless $self->valid_filename($file);
+            next if $file eq $filename;
+    
+            $data->{commandlinks} =
+                $self->build_commandlinks($file, $request);
+            $self->update_file_links($file, $data);
+ 
+            if ($self->{wf}->is_directory($file) &&
+                $self->any_links($data, 'parentlinks')) {
+    
+                my $id = $self->filename_to_id($file);
+                $self->update_directory_links($id, $request);
+            }
+        }
     }
 
     return;
 }
 
-#----------------------------------------------------------------------
-# Update links after add
+#---------------------------------------------------------------------------
+# Update the links
 
-sub update_links {
-    my ($self, $id, $request) = @_;
-    
-    my ($filename, $extra) = $self->id_to_filename($request->{id});
-    $request->{id} = $id if $extra;
+sub update_file_links {
+    my ($self, $filename, $data) = @_;
 
-    my $data = {};
-    $data->{commandlinks} = $self->build_commandlinks($filename, $request);
+    my $url = $self->filename_to_url($filename);
+    $data =  $self->link_class($data, $url);
     $self->write_file($filename, $data);
-    
+
     return;
 }
 
@@ -647,15 +700,10 @@ sub write_primary {
     $data->{primary} = $self->build_primary($filename, $request);
     $data->{pagelinks} = $self->build_pagelinks($filename, $request);
     $data->{commandlinks} = $self->build_commandlinks($filename, $request);
+
     $self->write_file($filename, $data);
- 
-    if ($data->{pagelinks}) {
-        my $skip = 1;
-        my $update_data = {};
-        $update_data->{pagelinks} = $data->{pagelinks};
-        $self->update_files( $filename, $update_data, $skip);
-    }
-    
+    $self->update_directory_links($request->{id}, $request);
+        
     return;
 }
 
@@ -689,7 +737,7 @@ sub write_rss {
 sub write_secondary {
     my ($self, $filename, $request) = @_;
 
-    my $data ={};
+    my $data = {};
     $data->{secondary} = $self->build_secondary($filename, $request);
 
     $self->write_file($filename, $data);
