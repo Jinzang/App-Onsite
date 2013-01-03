@@ -611,7 +611,10 @@ sub update_directory_links {
         $self->update_file_links($filename, $data);
 
     } else {
-        my $parent_name = $self->{wf}->parent_file($filename);
+        my $parent_name;
+        my ($parentid, $seq) = $self->{wf}->split_id($id);
+        ($parent_name, $extra) = $self->id_to_filename($parentid);
+        
         $data->{pagelinks} = $self->build_pagelinks($parent_name, $request);
         $data->{parentlinks} = $self->build_parentlinks($parent_name, $request);
 
@@ -625,11 +628,12 @@ sub update_directory_links {
     
         while (my $file = &$visitor()) {
             next unless $self->valid_filename($file);
-            next if $file eq $filename;
     
             $data->{commandlinks} =
                 $self->build_commandlinks($file, $request);
-            $self->update_file_links($file, $data);
+                
+            $self->update_file_links($file, $data)
+                unless $file eq $filename;
  
             if ($self->{wf}->is_directory($file) &&
                 $self->any_links($data, 'parentlinks')) {

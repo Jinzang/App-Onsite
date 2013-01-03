@@ -30,19 +30,19 @@ sub parameters {
 # Construct parent links for page
 
 sub build_parentlinks {
-    my ($self, $index_name, $index_data) = @_;
+    my ($self, $filename, $request) = @_;
    
-    my ($parentid, $seq) = $self->{wf}->split_id($index_data->{id});
+    my ($parentid, $seq) = $self->{wf}->split_id($request->{id});
     my ($blog_index_file, $extra) = $self->id_to_filename($parentid);
 
     my @links;
     my $current_links = $self->read_records('parentlinks', $blog_index_file);
     push(@links, @$current_links);
 
-    my $uplinks = $self->build_uplinks($index_name);
+    my $uplinks = $self->build_uplinks($filename);
     push(@links, @$uplinks);
        
-    my $url = $self->filename_to_url($index_name);
+    my $url = $self->filename_to_url($filename);
     my $links = $self->link_class(\@links, $url);
    
     return {data => $links};
@@ -52,7 +52,7 @@ sub build_parentlinks {
 # Build a  list of links for breadcrumb trail
 
 sub build_uplinks {
-    my ($self, $filename, $request) = @_;
+    my ($self, $filename) = @_;
 
     my @links;
     foreach my $index_file ($self->get_index_files($filename)) {

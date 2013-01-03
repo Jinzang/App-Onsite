@@ -7,7 +7,7 @@ use integer;
 
 package App::Onsite::BlogData;
 
-use base qw(App::Onsite::DirData);
+use base qw(App::Onsite::DirData App::Onsite::PostData);
 
 #----------------------------------------------------------------------
 # Set default values
