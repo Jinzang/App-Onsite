@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -T
+#!/usr/local/bin/perl
 use strict;
 
 use lib 't';
@@ -68,6 +68,7 @@ COMMANDS = remove
 COMMANDS = search
 		[page]
 EXTENSION = html
+INDEX_NAME = index
 CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id

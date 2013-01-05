@@ -61,6 +61,7 @@ COMMANDS = remove
 COMMANDS = search
 		[page]
 EXTENSION = html
+INDEX_NAME = index
 CLASS = App::Onsite::PageData
 SUPER = dir
 SORT_FIELD = id

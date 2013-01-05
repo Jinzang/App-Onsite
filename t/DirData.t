@@ -3,7 +3,7 @@ use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 21;
+use Test::More tests => 22;
 
 use Cwd qw(abs_path getcwd);
 use App::Onsite::Support::WebFile;
@@ -375,8 +375,22 @@ $s->{summary} = $d->{summary};
 is_deeply($d, $s, "Edit data"); # Test 20
 
 #----------------------------------------------------------------------
+# Rename directory
+
+$d->{title} = 'The Title';
+%$s = %$d;
+
+$data->edit_data('a-title', $d);
+$d = $data->read_data('the-title');
+$s->{id} = 'the-title';
+$s->{summary} = $d->{summary};
+$s->{url} = $d->{url};
+
+is_deeply($d, $s, "Edit data"); # Test 21
+
+#----------------------------------------------------------------------
 # Remove data
 
 $data->remove_data('new-title', $e);
 my $found = -e $dirname2 ? 1 : 0;
-is($found, 0, "Remove data"); # Test 21
+is($found, 0, "Remove data"); # Test 22

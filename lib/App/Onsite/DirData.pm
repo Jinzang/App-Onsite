@@ -259,6 +259,26 @@ sub has_one_subtype {
 }
 
 #----------------------------------------------------------------------
+# Convert directory id to filemane
+
+sub id_to_filename {
+    my ($self, $id) = @_;
+    
+    my ($filename, $extra) = $self->SUPER::id_to_filename($id);
+    return ($filename, $extra) if -e $filename;
+    
+    $filename = join('.', $self->{index_name}, $self->{extension});
+
+    if ($id) {
+        my @path = $self->{wf}->id_to_path($id);
+        $filename = join('/', @path, $filename);
+    }
+    
+    $filename = $self->{wf}->rel2abs($filename);
+    return ($filename);
+}
+
+#----------------------------------------------------------------------
 # Remove a directory
 
 sub remove_data {
