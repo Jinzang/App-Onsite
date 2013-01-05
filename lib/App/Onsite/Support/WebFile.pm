@@ -374,7 +374,8 @@ sub rename_file {
     $oldname = $self->validate_filename($oldname, 'r');
     $newname = $self->validate_filename($newname, 'w');
     
-    rename($oldname, $newname) or die "Couldn't rename $oldname: $!\n";
+    move($oldname, $newname)
+        or die "Couldn't rename $oldname to $newname: $!\n";
 
     return;
 }
