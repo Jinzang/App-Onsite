@@ -77,7 +77,7 @@ sub block_info {
 sub build_commandlinks {
     my ($self, $filename, $request) = @_;
 
-    my $id = $request->{id};
+    my $id = $self->filename_to_id($filename);
     my $subtypes = $self->get_subtypes($id);
 
     my @commands = ($self->{default_command});
@@ -628,7 +628,7 @@ sub update_directory_links {
     
         while (my $file = &$visitor()) {
             next unless $self->valid_filename($file);
-    
+            
             $data->{commandlinks} =
                 $self->build_commandlinks($file, $request);
                 
