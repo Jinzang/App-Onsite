@@ -1,4 +1,4 @@
-Finish directory rename code
+Separate dirlinks from pagelinks
 Write blog conversion script
 Improve default template
 Write bundle.pl / unbundle.pl scripts

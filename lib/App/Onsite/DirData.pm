@@ -306,6 +306,60 @@ sub remove_data {
     return;
 }
 
+#----------------------------------------------------------------------
+# Update navigation links after a directory name is changed
+
+sub update_all_links {
+    my ($self, $filename) = @_;
+
+    my $data = {};
+    $data->{parentlinks} = $self->build_parentlinks($filename);
+
+    my $subfolders = 0;
+    my ($repository, $basename) = $self->{wf}->split_filename($filename);
+    
+    # Need to completely rebuild the page links, all urls are changed
+    
+    my @pagelinks;
+    my $visitor = $self->{wf}->visitor($repository, $subfolders, 'id');
+
+    while (my $file = &$visitor()) {
+        next unless $self->valid_filename($file);
+
+        my $record = $self->read_primary($file);
+        $record = $self->extra_data($record);
+        push(@pagelinks, $record);
+    }
+    
+    $data->{pagelinks} = {data => \@pagelinks};
+    
+    # Rewrite the links of all the pages
+    
+    $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
+    while (my $file = &$visitor()) {
+        next unless $self->valid_filename($file);
+
+        my $id = $self->filename_to_id($file);
+        my $record = {id => $id};
+        
+        $data->{commandlinks} = $self->build_commandlinks($file, $record);
+        $self->update_file_links($file, $data);
+    }
+
+    # Do this recursively for all subdirectories
+    
+    $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
+    while (my $file = &$visitor()) {
+        next if $file eq $filename;
+        next unless -d $file;
+
+        $file .= "/$self->{index_name}.$self->{extension}";
+        $self->update_all_links($file);
+    }
+
+    return;
+}
+
 #---------------------------------------------------------------------------
 # Write a record to disk as a file
 
@@ -320,8 +374,14 @@ sub write_primary {
     $data->{commandlinks} = $self->build_commandlinks($filename, $request);
 
     $self->write_file($filename, $data);
-    $self->update_directory_links($request->{id}, $request);
-     
+
+    if (exists $request->{oldid}) {
+        $self->update_directory_links($request->{id}, $request);
+
+        $self->update_all_links($filename)
+            if $request->{id} && $request->{oldid};
+    }
+    
     return;
 }
 

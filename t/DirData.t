@@ -3,7 +3,7 @@ use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 22;
+use Test::More tests => 24;
 
 use Cwd qw(abs_path getcwd);
 use App::Onsite::Support::WebFile;
@@ -321,6 +321,25 @@ $s->{summary} = $e->{summary};
 
 is_deeply($e, $s, "Add second directory"); # Test 14
 
+my $f = {};
+%$f = %$d;
+$f->{title} = 'Lower';
+$f->{body} =~ s/The/Lower/;
+$f->{author} =~ s/An/Lower/;
+
+my $t = {};
+%$t = %$f;
+$t->{id} = 'a-title:lower';
+
+$dirname2 = 'a-title/lower/index.html';
+$t->{url} = join('/', $params->{base_url}, $dirname2);
+
+$data->add_data('a-title', $f, 'dir');
+$f = $data->read_data('a-title:lower');
+$t->{summary} = $f->{summary};
+
+is_deeply($f, $t, "Add subdirectory"); # Test 15
+
 #----------------------------------------------------------------------
 # Browse data
 
@@ -341,7 +360,7 @@ my $c = {
         };
 
 my $results = $data->browse_data();
-is_deeply($results, [$i], "Browse data"); # test 15
+is_deeply($results, [$i], "Browse data"); # test 16
 
 #----------------------------------------------------------------------
 # Search data
@@ -350,16 +369,16 @@ $indexname = $data->{wf}->abs2rel($indexname);
 $i->{url} = join('/', $params->{base_url}, $indexname);
 
 my $list = $data->search_data({author => 'author'});
-is_deeply($list, [$i, $r, $s], "Search data"); # test 16
+is_deeply($list, [$i, $r, $t, $s], "Search data"); # test 17
 
 $list = $data->search_data({author => 'author'}, '', 2);
-is_deeply($list, [$i, $r], "Search data with limit"); # test 17
+is_deeply($list, [$i, $r], "Search data with limit"); # test 18
 
 $list = $data->search_data({author => 'An'});
-is_deeply($list, [$i, $r], "Search data single term"); # test 18
+is_deeply($list, [$i, $r], "Search data single term"); # test 19
 
 $list = $data->search_data({body =>'New', title => 'New'});
-is_deeply($list, [$s], "Search data multiple terms"); # test 19
+is_deeply($list, [$s], "Search data multiple terms"); # test 20
 
 #----------------------------------------------------------------------
 # Edit data
@@ -372,7 +391,7 @@ $data->edit_data('a-title', $d);
 $d = $data->read_data('a-title');
 $s->{summary} = $d->{summary};
 
-is_deeply($d, $s, "Edit data"); # Test 20
+is_deeply($d, $s, "Edit data"); # Test 21
 
 #----------------------------------------------------------------------
 # Rename directory
@@ -386,11 +405,20 @@ $s->{id} = 'the-title';
 $s->{summary} = $d->{summary};
 $s->{url} = $d->{url};
 
-is_deeply($d, $s, "Edit data"); # Test 21
+is_deeply($d, $s, "Rename data"); # Test 22
+
+my $file;
+($file, $extra) = $data->id_to_filename('the-title:lower');
+$d = $data->read_records('parentlinks', $file);
+
+my $l = [{id => $i->{id}, title => $i->{title}, url => $i->{url}},
+         {id => $s->{id}, title => $s->{title}, url => $s->{url}}];
+         
+is_deeply($d, $l, "Renamed directory links"); # Test 23
 
 #----------------------------------------------------------------------
 # Remove data
 
 $data->remove_data('new-title', $e);
 my $found = -e $dirname2 ? 1 : 0;
-is($found, 0, "Remove data"); # Test 22
+is($found, 0, "Remove data"); # Test 24

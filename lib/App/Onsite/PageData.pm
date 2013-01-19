@@ -126,7 +126,7 @@ sub build_pagelinks {
 # Set up data for parentlinks block
 
 sub build_parentlinks {
-    my ($self, $filename, $request) = @_;
+    my ($self, $filename) = @_;
 
     my $links;
     my $parent_file = $self->{wf}->parent_file($filename);
@@ -135,7 +135,9 @@ sub build_parentlinks {
         $links = [];
 
     } else {
-        $request = $self->read_primary($parent_file);
+        my $request = $self->read_primary($parent_file);
+        $request = $self->extra_data($request);
+        
         $links = $self->build_links('parentlinks', $parent_file, $request); 
     }
     
@@ -597,51 +599,32 @@ sub template_info {
 }
 
 #----------------------------------------------------------------------
-# Update navigation links after a directory name is changed
+# Update navigation links after a file is changed
 
 sub update_directory_links {
     my ($self, $id, $request) = @_;
 
     my ($filename, $extra) = $self->id_to_filename($id);
-    
+    return if $extra;
+
     my $data = {};
-    if ($extra) {
-        $request->{id} = $id;
-        $data->{commandlinks} = $self->build_commandlinks($filename, $request);
-        $self->update_file_links($filename, $data);
+    $data->{pagelinks} = $self->build_pagelinks($filename, $request);
+    $data->{parentlinks} = $self->build_parentlinks($filename);
+    
+    return unless $self->any_links($data, 'pagelinks') ||
+                  $self->any_links($data, 'parentlinks');
 
-    } else {
-        my $parent_name;
-        my ($parentid, $seq) = $self->{wf}->split_id($id);
-        ($parent_name, $extra) = $self->id_to_filename($parentid);
+
+    my $subfolders = 0;
+    my $parent_file = $self->{wf}->parent_file($filename);
+    my ($repository, $basename) = $self->{wf}->split_filename($parent_file);
+    my $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
+
+    while (my $file = &$visitor()) {
+        next unless $self->valid_filename($file);
+        next if $file eq $filename;
         
-        $data->{pagelinks} = $self->build_pagelinks($parent_name, $request);
-        $data->{parentlinks} = $self->build_parentlinks($parent_name, $request);
-
-        return unless $self->any_links($data, 'pagelinks') ||
-                      $self->any_links($data, 'parentlinks');
-    
-        my $subfolders = 0;
-        my ($repository, $basename) = $self->{wf}->split_filename($parent_name);    
-    
-        my $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
-    
-        while (my $file = &$visitor()) {
-            next unless $self->valid_filename($file);
-            
-            $data->{commandlinks} =
-                $self->build_commandlinks($file, $request);
-                
-            $self->update_file_links($file, $data)
-                unless $file eq $filename;
- 
-            if ($self->{wf}->is_directory($file) &&
-                $self->any_links($data, 'parentlinks')) {
-    
-                my $id = $self->filename_to_id($file);
-                $self->update_directory_links($id, $request);
-            }
-        }
+        $self->update_file_links($file, $data);
     }
 
     return;
@@ -653,6 +636,8 @@ sub update_directory_links {
 sub update_file_links {
     my ($self, $filename, $data) = @_;
 
+    return unless -e $filename;
+    
     my $url = $self->filename_to_url($filename);
     $data =  $self->link_class($data, $url);
     $self->write_file($filename, $data);
