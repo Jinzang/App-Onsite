@@ -77,12 +77,11 @@ sub block_info {
 sub build_commandlinks {
     my ($self, $filename, $request) = @_;
 
-    my $id = $self->filename_to_id($filename);
-    my $subtypes = $self->get_subtypes($id);
-
     my @commands = ($self->{default_command});
-    push(@commands, 'add') if @$subtypes == 1;
+    my $item = $self->block_info('secondary', $filename);
+    push(@commands, 'add') if exists $item->{type};
 
+    my $id = $self->filename_to_id($filename);
     my $links =  $self->command_links($id, \@commands);
     return {data => $links};
 }
@@ -132,7 +131,7 @@ sub build_parentlinks {
     my $parent_file = $self->{wf}->parent_file($filename);
 
     if ($filename eq $parent_file) {
-        $links = [];
+        $links = {data => []};
 
     } else {
         my $request = $self->read_primary($parent_file);
@@ -315,15 +314,20 @@ sub extra_info {
 sub extract_from_data {
     my ($self, $records) = @_;
 
+    # TODO: fix
     if (ref $records eq 'HASH') {
         my @keys = keys %$records;
 
         if (@keys == 1 && $keys[0] eq 'data') {
             $records =  $records->{$keys[0]};
+            $records = [] unless ref $records;
         }
 
     } elsif (ref $records eq 'ARRAY') {
         @$records = map {$self->extract_from_data($_)} @$records;       
+
+    } else {
+        $records = {};
     }
 
     return $records;
@@ -607,16 +611,14 @@ sub update_directory_links {
     my ($filename, $extra) = $self->id_to_filename($id);
     return if $extra;
 
+    # TODO: pagelinks or dirlinks
     my $data = {};
-    $data->{pagelinks} = $self->build_pagelinks($filename, $request);
-    $data->{parentlinks} = $self->build_parentlinks($filename);
+    my $parent_file = $self->{wf}->parent_file($filename);
+    $data->{pagelinks} = $self->build_pagelinks($parent_file, $request);
     
-    return unless $self->any_links($data, 'pagelinks') ||
-                  $self->any_links($data, 'parentlinks');
-
+    return unless $self->any_links($data, 'pagelinks');
 
     my $subfolders = 0;
-    my $parent_file = $self->{wf}->parent_file($filename);
     my ($repository, $basename) = $self->{wf}->split_filename($parent_file);
     my $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
 
@@ -635,8 +637,11 @@ sub update_directory_links {
 
 sub update_file_links {
     my ($self, $filename, $data) = @_;
-
     return unless -e $filename;
+    
+    foreach my $key (keys %$data) {
+        delete $data->{$key} unless defined $data->{$key};
+    }
     
     my $url = $self->filename_to_url($filename);
     $data =  $self->link_class($data, $url);
