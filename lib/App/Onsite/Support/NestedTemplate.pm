@@ -88,15 +88,15 @@ sub parse {
 
 	my @templates;
     foreach my $source (@sources) {
-		if (defined($self->{cache}->fetch($source))) {
-			# Parsed source has been cached
-			push(@templates, $self->{cache}->fetch($source));
-            
-        } elsif (ref $source &&
+        if (ref $source &&
                  $source->isa('App::Onsite::Support::TemplateBlock')) {
     		# Already parsed
             push(@templates, $source);
-            
+
+ 		} elsif (defined($self->{cache}->fetch($source))) {
+			# Parsed source has been cached
+			push(@templates, $self->{cache}->fetch($source));
+                       
         } else {
             my $key = $source;
             
