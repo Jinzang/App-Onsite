@@ -32,9 +32,9 @@ $target =~ s/\/$//;
 my $templates = rel2abs('../templates');
 
 # Set reasonable defaults for parameters that aren't set above
+# TODO: set base_url from script url
 
 my %defaults = (
-                base_url => '',
                 script_url => '*.cgi',
                 data_dir => $target,
                 config_file => "$target/*.cfg",
