@@ -208,7 +208,6 @@ sub search {
 __END__
 =head1 NAME
 
-TODO: rewite
 App::Onsite::Support::RegistryFile reads and searches the type registry file
 
 =head1 SYNOPSIS
