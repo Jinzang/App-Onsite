@@ -77,7 +77,6 @@ sub browse_data {
     }
 
     return \@list;
-    ##return $self->{lo}->list_sort(\@list);
 }
 
 #----------------------------------------------------------------------
@@ -841,7 +840,6 @@ Return id corresponding to filename
 =item generate_id $parentid
 
 Return id one greater than largest id
-TODO: replaces next_id
 
 ==item get_subtypes
 
