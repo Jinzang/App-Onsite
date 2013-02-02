@@ -78,8 +78,10 @@ sub build_commandlinks {
     my ($self, $filename, $request) = @_;
 
     my @commands = ($self->{default_command});
-    my $item = $self->block_info('secondary', $filename);
-    push(@commands, 'add') if exists $item->{type};
+    if (-e $filename) {
+        my $item = $self->block_info('secondary', $filename);
+        push(@commands, 'add') if exists $item->{type};
+    }
 
     my $id = $self->filename_to_id($filename);
     my $links =  $self->command_links($id, \@commands);
@@ -92,11 +94,9 @@ sub build_commandlinks {
 sub build_links {
     my ($self, $blockname, $filename, $request) = @_;
 
-    $filename = $self->{wf}->parent_file($filename) unless -e $filename;
     my $links = $self->build_records($blockname, $filename, $request);
-    return unless $links;
-    
     $links =  $self->link_class($links, $request->{url});
+
     return $links;
 }
 
@@ -471,11 +471,12 @@ sub id_to_url {
 sub link_class {
     my ($self, $data, $url) = @_;
 
-    my $ref = ref $data;
+    my $ref = defined $data ? ref $data : '';
+    
     if ($ref eq 'ARRAY') {
-	foreach my $item (@$data) {
-	    $item = $self->link_class($item, $url);
-	}
+        foreach my $item (@$data) {
+            $item = $self->link_class($item, $url);
+        }
 
     } elsif ($ref eq 'HASH') {
         if (exists $data->{url}) {
