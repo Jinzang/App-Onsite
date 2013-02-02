@@ -43,19 +43,6 @@ sub add_data {
 }
 
 #----------------------------------------------------------------------
-# Build navigation links
-
-sub build_links {
-    my ($self, $blockname, $filename, $request) = @_;
-
-    my $links = $self->build_records($blockname, $filename, $request);
-    return unless $links;
-    
-    $links =  $self->link_class($links, $request->{url});
-    return $links;
-}
-
-#----------------------------------------------------------------------
 # Retrieve all records
 
 sub browse_data {
@@ -78,7 +65,7 @@ sub browse_data {
 }
 
 #----------------------------------------------------------------------
-# Change the filename to match request TODO: rewrite
+# Change the filename to match request 
 
 sub change_filename {
     my ($self, $id, $filename, $request) = @_;
@@ -374,14 +361,10 @@ sub write_primary {
     $data->{commandlinks} = $self->build_commandlinks($filename, $request);
 
     $self->write_file($filename, $data);
-
-    if (exists $request->{oldid}) {
-        $self->update_directory_links($request->{id}, $request);
-
-        $self->update_all_links($filename)
-            if $request->{id} && $request->{oldid};
-    }
     
+    $self->update_directory_links($request->{id}, $request);
+    $self->update_all_links($filename) if $request->{id} && $request->{oldid};
+
     return;
 }
 
