@@ -122,25 +122,12 @@ sub build_pagelinks {
 }
 
 #----------------------------------------------------------------------
-# Set up data for parentlinks block
+# Set up data for pagelinks block
 
 sub build_parentlinks {
-    my ($self, $filename) = @_;
+    my ($self, $filename, $request) = @_;
 
-    my $links;
-    my $parent_file = $self->{wf}->parent_file($filename);
-
-    if ($filename eq $parent_file) {
-        $links = {data => []};
-
-    } else {
-        my $request = $self->read_primary($parent_file);
-        $request = $self->extra_data($request);
-        
-        $links = $self->build_links('parentlinks', $parent_file, $request); 
-    }
-    
-    return $links;
+    return $self->build_links('parentlinks', $filename, $request);    
 }
 
 #----------------------------------------------------------------------
@@ -238,6 +225,14 @@ sub dump {
     $logfile =~ s/[^\/]+$/onsite.log/;
      $self->{wf}->writer($logfile, $output);   
     return;
+}
+
+#----------------------------------------------------------------------
+# Return a list containing no elements
+
+sub empty_list {
+    my ($self) = @_;
+    return {data => []};
 }
 
 #----------------------------------------------------------------------
@@ -696,6 +691,10 @@ sub write_primary {
     $data->{pagelinks} = $self->build_pagelinks($filename, $request);
     $data->{commandlinks} = $self->build_commandlinks($filename, $request);
 
+    if (exists $request->{cmd} && $request->{cmd} eq 'add') {
+        $data->{secondary} = $self->empty_list();
+    }
+    
     $self->write_file($filename, $data);
     $self->update_directory_links($request->{id}, $request);
         

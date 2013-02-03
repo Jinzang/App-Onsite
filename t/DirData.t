@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -T
+#!/usr/local/bin/perl
 use strict;
 
 use lib 't';
@@ -107,14 +107,16 @@ An author
 <div id="sidebar">
 <ul>
 <!-- begin parentlinks -->
-<!-- end parentlinks -->
-<!-- begin pagelinks -->
 <!-- begin data -->
 <!-- set id [[]] -->
 <!-- set url [[http://www.onsite.org/index.html]] -->
 <li><a href="http://www.onsite.org/index.html"><!--begin title -->
-Home
+A title
 <!-- end title --></a></li>
+<!-- end data -->
+<!-- end parentlinks -->
+<!-- begin pagelinks -->
+<!-- begin data -->
 <!-- end data -->
 <!-- end pagelinks -->
 </ul>
@@ -409,10 +411,15 @@ is_deeply($d, $s, "Rename data"); # Test 22
 
 my $file;
 ($file, $extra) = $data->id_to_filename('the-title:lower');
+
+$t = $data->read_primary($file);
+$t = $data->extra_data($t);
 $d = $data->read_records('parentlinks', $file);
 
 my $l = [{id => $i->{id}, title => $i->{title}, url => $i->{url}},
-         {id => $s->{id}, title => $s->{title}, url => $s->{url}}];
+         {id => $s->{id}, title => $s->{title}, url => $s->{url}},
+         {id => $t->{id}, title => $t->{title}, url => $t->{url}},
+        ];
          
 is_deeply($d, $l, "Renamed directory links"); # Test 23
 

@@ -311,8 +311,8 @@ sub render {
     $data->{primary} = $results;
     $data->{meta} = $results;
     $data->{meta}{base_url} = $self->{base_url};
-    $data->{secondary} = '';
-    $data->{pagelinks} = '';
+    $data->{secondary} = {data => []};
+    $data->{pagelinks} = {data => []};
     $data->{commandlinks} = $self->build_commandlinks($request);
 
     # Render data and return results

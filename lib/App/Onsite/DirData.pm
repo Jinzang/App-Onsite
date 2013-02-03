@@ -299,30 +299,16 @@ sub remove_data {
 sub update_all_links {
     my ($self, $filename) = @_;
 
-    my $data = {};
-    $data->{parentlinks} = $self->build_parentlinks($filename);
-
-    my $subfolders = 0;
     my ($repository, $basename) = $self->{wf}->split_filename($filename);
     
-    # Need to completely rebuild the page links, all urls are changed
-    
-    my @pagelinks;
-    my $visitor = $self->{wf}->visitor($repository, $subfolders, 'id');
-
-    while (my $file = &$visitor()) {
-        next unless $self->valid_filename($file);
-
-        my $record = $self->read_primary($file);
-        $record = $self->extra_data($record);
-        push(@pagelinks, $record);
-    }
-    
-    $data->{pagelinks} = {data => \@pagelinks};
-    
+    my $data = {};
+    $data->{parentlinks} = $self->update_parentlinks($filename);
+    $data->{pagelinks} = $self->update_pagelinks($repository);
+        
     # Rewrite the links of all the pages
     
-    $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
+    my $subfolders = 0;
+    my $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
     while (my $file = &$visitor()) {
         next unless $self->valid_filename($file);
 
@@ -347,6 +333,44 @@ sub update_all_links {
     return;
 }
 
+#----------------------------------------------------------------------
+# Update data in pagelinks block
+
+sub update_pagelinks {
+    my ($self, $repository) = @_;
+
+    # Need to completely rebuild the page links, all urls are changed
+    
+    my @pagelinks;
+    my $subfolders = 0;
+    my $visitor = $self->{wf}->visitor($repository, $subfolders, 'id');
+
+    while (my $file = &$visitor()) {
+        next unless $self->valid_filename($file);
+
+        my $record = $self->read_primary($file);
+        $record = $self->extra_data($record);
+        push(@pagelinks, $record);
+    }
+    
+    return  {data => \@pagelinks};
+}
+
+#----------------------------------------------------------------------
+# Update data in parentlinks block
+
+sub update_parentlinks {
+    my ($self, $filename) = @_;
+
+    my $request = $self->read_primary($filename);
+    $request = $self->extra_data($request);
+        
+    my $parent_file = $self->{wf}->parent_file($filename);
+    my $links = $self->build_links('parentlinks', $parent_file, $request);    
+
+    return $links;
+}
+
 #---------------------------------------------------------------------------
 # Write a record to disk as a file
 
@@ -356,9 +380,13 @@ sub write_primary {
     my $data = {};
     $data->{meta} = $self->build_meta($filename, $request);
     $data->{primary} = $self->build_primary($filename, $request);
-    $data->{pagelinks} = $self->build_pagelinks($filename, $request);
     $data->{parentlinks} = $self->build_parentlinks($filename, $request);
     $data->{commandlinks} = $self->build_commandlinks($filename, $request);
+
+    if (exists $request->{cmd} && $request->{cmd} eq 'add') {
+        $data->{secondary} = $self->empty_list();
+        $data->{pagelinks} = $self->empty_list();
+    }
 
     $self->write_file($filename, $data);
     
