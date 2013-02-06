@@ -43,20 +43,6 @@ sub add_data {
 }
 
 #----------------------------------------------------------------------
-# Test for existence of links
-
-sub any_links {
-    my ($self, $data, $field) = @_;
-    
-    return unless exists $data->{$field};
-    return unless ref $data->{$field} eq 'HASH';
-    return unless exists $data->{$field}{data};
-    return unless ref $data->{$field}{data} eq 'ARRAY';
-    
-    return @{$data->{$field}{data}};
-}
-
-#----------------------------------------------------------------------
 # Return a specific item from the info for a file
 
 sub block_info {
@@ -610,9 +596,9 @@ sub update_directory_links {
     # TODO: pagelinks or dirlinks
     my $data = {};
     my $parent_file = $self->{wf}->parent_file($filename);
+
     $data->{pagelinks} = $self->build_pagelinks($parent_file, $request);
-    
-    return unless $self->any_links($data, 'pagelinks');
+    return unless $data->{pagelinks};
 
     my $subfolders = 0;
     my ($repository, $basename) = $self->{wf}->split_filename($parent_file);
@@ -666,7 +652,7 @@ sub validate_file {
     return @missing;
 }
 
-#--------------s-------------------------------------------------------------
+#---------------------------------------------------------------------------
 # Write a list of records to disk as a file
 
 sub write_file {
