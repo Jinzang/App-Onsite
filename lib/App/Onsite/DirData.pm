@@ -299,16 +299,16 @@ sub remove_data {
 sub update_all_links {
     my ($self, $filename) = @_;
 
-    my ($repository, $basename) = $self->{wf}->split_filename($filename);
-    
     my $data = {};
     $data->{parentlinks} = $self->update_parentlinks($filename);
-    $data->{pagelinks} = $self->update_pagelinks($repository);
+    $data->{pagelinks} = $self->update_pagelinks($filename);
         
     # Rewrite the links of all the pages
     
     my $subfolders = 0;
+    my ($repository, $basename) = $self->{wf}->split_filename($filename);
     my $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
+
     while (my $file = &$visitor()) {
         next unless $self->valid_filename($file);
 
@@ -337,17 +337,19 @@ sub update_all_links {
 # Update data in pagelinks block
 
 sub update_pagelinks {
-    my ($self, $repository) = @_;
+    my ($self, $filename) = @_;
 
     # Need to completely rebuild the page links, all urls are changed
     
     my @pagelinks;
     my $subfolders = 0;
+    my ($repository, $basename) = $self->{wf}->split_filename($filename);
     my $visitor = $self->{wf}->visitor($repository, $subfolders, 'id');
 
     while (my $file = &$visitor()) {
         next unless $self->valid_filename($file);
-
+        next if $file eq $filename;
+        
         my $record = $self->read_primary($file);
         $record = $self->extra_data($record);
         push(@pagelinks, $record);
