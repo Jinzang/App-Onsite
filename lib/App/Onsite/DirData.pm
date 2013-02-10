@@ -378,9 +378,11 @@ sub write_primary {
     my ($self, $filename, $request) = @_;
 
     my $data = {};
+    my $parentname = $self->{wf}->parent_file($filename);
+    
     $data->{meta} = $self->build_meta($filename, $request);
     $data->{primary} = $self->build_primary($filename, $request);
-    $data->{parentlinks} = $self->build_parentlinks($filename, $request);
+    $data->{parentlinks} = $self->build_parentlinks($parentname, $request);
     $data->{commandlinks} = $self->build_commandlinks($filename, $request);
 
     if (exists $request->{cmd} && $request->{cmd} eq 'add') {
