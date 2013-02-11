@@ -308,14 +308,9 @@ sub render {
     my $results = $response->{results} || {};
        
     my $data = {};
-    my $empty = {data => []};
-    
     $data->{primary} = $results;
     $data->{meta} = $results;
     $data->{meta}{base_url} = $self->{base_url};
-    $data->{secondary} = $empty;
-    $data->{parentlinks} = $empty;
-    $data->{pagelinks} = $empty;
     $data->{commandlinks} = $self->build_commandlinks($request);
 
     # Render data and return results
