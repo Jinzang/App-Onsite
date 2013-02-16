@@ -600,9 +600,9 @@ sub update_directory_links {
     $data->{pagelinks} = $self->build_pagelinks($parent_file, $request);
     return unless $data->{pagelinks};
 
-    my $subfolders = 0;
+    my $maxlevel = 0;
     my ($repository, $basename) = $self->{wf}->split_filename($parent_file);
-    my $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
+    my $visitor = $self->{wf}->visitor($repository, $maxlevel, 'any');
 
     while (my $file = &$visitor()) {
         next unless $self->valid_filename($file);

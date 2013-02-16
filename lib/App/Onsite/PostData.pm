@@ -155,7 +155,7 @@ sub filename_to_id {
 sub generate_id {
     my ($self, $parentid, $field) = @_;
 
-    my $subfolders = 0;
+    my $maxlevel = 0;
     my $sort_field = '-id';
 
     my $seq = '0' x $self->{index_length};
@@ -165,7 +165,7 @@ sub generate_id {
     my $dir = $self->get_repository($parentid);
     $dir = join('/', $dir, "y$date->{year}", "m$date->{monthnum}");
 
-    my $visitor = $self->{wf}->visitor($dir, $subfolders, $sort_field);
+    my $visitor = $self->{wf}->visitor($dir, $maxlevel, $sort_field);
 
     while (defined (my $file = &$visitor)) {
         next unless $self->valid_filename($file);

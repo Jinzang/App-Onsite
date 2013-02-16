@@ -115,11 +115,11 @@ sub check_command {
 sub copy_data {
     my ($self, $id, $request) = @_;
 
-    my $subfolders = 1;
+    my $maxlevel = 100;
     my $input_filename = $request->{filename};
     my ($repository, $basename) = $self->{wf}->split_filename($input_filename);    
 
-    my $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
+    my $visitor = $self->{wf}->visitor($repository, $maxlevel, 'any');
 
     while (my $file = &$visitor()) {
         next unless $self->valid_filename($file);
@@ -135,13 +135,13 @@ sub copy_data {
 sub get_browsable {
     my ($self, $parentid) = @_;
 
-    my $subfolders = 0;
+    my $maxlevel = 0;
     my $sort_field = 'ext';
     my $dir = $self->get_repository($parentid);
     my $types = $self->{reg}->project($self->{data_registry}, 'extension');
 
     my %extensions = reverse %$types;
-    my $visitor = $self->{wf}->visitor($dir, $subfolders, $sort_field);
+    my $visitor = $self->{wf}->visitor($dir, $maxlevel, $sort_field);
 
     return sub {
         my $ext;
@@ -196,10 +196,8 @@ sub get_next {
     }
 
     my $dir = $self->get_repository($parentid);
-
-    my $visitor = $self->{wf}->visitor($dir,
-                                       $self->{has_subfolders},
-                                       $self->{sort_field});
+    my $maxlevel = $self->{has_subfolders} ? 100 : 0;
+    my $visitor = $self->{wf}->visitor($dir, $maxlevel, $self->{sort_field});
 
     return sub {
         my $ext;
@@ -301,13 +299,20 @@ sub update_all_links {
 
     my $data = {};
     $data->{parentlinks} = $self->update_parentlinks($filename);
+    $data->{dirlinks} = $self->update_dirlinks($filename);
     $data->{pagelinks} = $self->update_pagelinks($filename);
         
+    ## Temporary
+    my $dirlinks = $data->{dirlinks}{data};
+    my $pagelinks = $data->{pagelinks}{data};
+    my @pagelinks = (@$dirlinks, @$pagelinks);
+    $data->{pagelinks} = {data => \@pagelinks};
+
     # Rewrite the links of all the pages
     
-    my $subfolders = 0;
+    my $maxlevel = 0;
     my ($repository, $basename) = $self->{wf}->split_filename($filename);
-    my $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
+    my $visitor = $self->{wf}->visitor($repository, $maxlevel, 'any');
 
     while (my $file = &$visitor()) {
         next unless $self->valid_filename($file);
@@ -321,7 +326,7 @@ sub update_all_links {
 
     # Do this recursively for all subdirectories
     
-    $visitor = $self->{wf}->visitor($repository, $subfolders, 'any');
+    $visitor = $self->{wf}->visitor($repository, $maxlevel, 'any');
     while (my $file = &$visitor()) {
         next if $file eq $filename;
         next unless -d $file;
@@ -334,6 +339,31 @@ sub update_all_links {
 }
 
 #----------------------------------------------------------------------
+# Update data in dirlinks block
+
+sub update_dirlinks {
+    my ($self, $filename) = @_;
+
+    # Need to completely rebuild the directory links, all urls are changed
+    
+    my @dirlinks;
+    my $maxlevel = 1;
+    my ($repository, $basename) = $self->{wf}->split_filename($filename);
+    my $visitor = $self->{wf}->visitor($repository, $maxlevel, 'id');
+
+    while (my $file = &$visitor()) {
+        next unless $self->{wf}->is_directory($file);
+        next unless $filename eq $self->{wf}->parent_file($file);
+        
+        my $record = $self->read_primary($file);
+        $record = $self->extra_data($record);
+        push(@dirlinks, $record);
+    }
+    
+    return  {data => \@dirlinks};
+}
+
+#----------------------------------------------------------------------
 # Update data in pagelinks block
 
 sub update_pagelinks {
@@ -342,9 +372,9 @@ sub update_pagelinks {
     # Need to completely rebuild the page links, all urls are changed
     
     my @pagelinks;
-    my $subfolders = 0;
+    my $maxlevel = 0;
     my ($repository, $basename) = $self->{wf}->split_filename($filename);
-    my $visitor = $self->{wf}->visitor($repository, $subfolders, 'id');
+    my $visitor = $self->{wf}->visitor($repository, $maxlevel, 'id');
 
     while (my $file = &$visitor()) {
         next unless $self->valid_filename($file);

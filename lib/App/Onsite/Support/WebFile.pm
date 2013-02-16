@@ -569,15 +569,15 @@ sub validate_filename {
 # Return a closure that visits files in a directory in reverse order
 
 sub visitor {
-    my ($self, $dir, $subfolders, $sort_field) = @_;
+    my ($self, $top_dir, $maxlevel, $sort_field) = @_;
 
     my @dirlist;
     my @filelist;
-    $dir = $self->validate_filename($dir, 'r');
+    $top_dir = $self->validate_filename($top_dir, 'r');
 
-    if (-e $dir) {
-        push(@dirlist, $dir);
-        push(@filelist, $dir) if $subfolders;
+    if (-e $top_dir) {
+        push(@dirlist, '');
+        push(@filelist, $top_dir) if $maxlevel;
     }
 
     return sub {
@@ -585,24 +585,30 @@ sub visitor {
             my $file = shift @filelist;
             return $file if defined $file;
 
-            my $dir = shift @dirlist;
-            return unless defined $dir;
+            my $path = shift @dirlist;
+            return unless defined $path;
 
+            my $level = $path ? scalar split(/\//, $path) : 0;
+            next if $level > $maxlevel;
+            
+            my $dir = $path ? "$top_dir/$path" : $top_dir;
             my $dd = IO::Dir->new($dir) or die "Couldn't open $dir: $!\n";
 
             # Find matching files and directories
-			my $valid_name = VALID_NAME;
+            my $valid_name = VALID_NAME;
             while (defined (my $file = $dd->read())) {
                 next unless $file =~ /$valid_name/;
 
-                my $path = "$dir/$1";
-                push(@filelist, $path);
-				push(@dirlist, $path) if $subfolders && -d $path;
+                my $newfile = "$dir/$1";
+                push(@filelist, $newfile);
+
+                if (-d $newfile) {
+                    my $newdir = $path ? "$path/$1" : $1;
+                    push(@dirlist, $newdir);
+                }
             }
 
             $dd->close;
-
-	    # Sort files so that most recently modified are first
 
             @filelist = $self->sorted_files($sort_field, @filelist);
             @dirlist = $self->sorted_files($sort_field, @dirlist);
@@ -672,10 +678,10 @@ App::Onsite::Support::WebFile encapsulates file i/o for App::Onsite
 
     use App::Onsite::Support::WebFile;
     my $binmode = 0;
-    my $subfolders = 1;
+    my $maxlevel= 0;
     my $sort_field = 'id';
     my $obj = App::Onsite::Support::WebFile->new(valid_write => [$dir]);
-    my $visitor = $obj->visitor($dir, $subfolders, $sort_field);
+    my $visitor = $obj->visitor($dir, $maxlevel, $sort_field);
     while (my $file = &$visitor()) {
         my $text = $obj->reader($file, $binmode);
         $obj->writer($file, $data, $binmode);
