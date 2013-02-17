@@ -113,7 +113,10 @@ sub build_pagelinks {
 sub build_parentlinks {
     my ($self, $filename, $request) = @_;
 
-    return $self->build_links('parentlinks', $filename, $request);    
+    my ($parent_id, $seq) = $self->{wf}->split_id($request->{id});
+    my ($parent_file, $extra) = $self->id_to_filename($parent_id);
+
+    return $self->build_links('parentlinks', $parent_file, $request);    
 }
 
 #----------------------------------------------------------------------
@@ -131,6 +134,8 @@ sub build_primary {
 sub build_records {
     my ($self, $blockname, $filename, $request) = @_;
    
+    $filename = $self->{wf}->parent_file($filename) unless -e $filename;
+
     my $new_records;
     if (-e $filename) {
         my $current_records = $self->read_records($blockname, $filename);
@@ -142,8 +147,9 @@ sub build_records {
         $new_records = $self->{lo}->list_sort($new_records, $sort_field);
 
     } else {
-        $new_records = [$request];
+        $new_records = [$request];        
     }
+
     return {data => $new_records};       
 }
 
@@ -154,6 +160,19 @@ sub build_secondary {
     my ($self, $filename, $request) = @_;
     
     return $self->build_records('secondary', $filename, $request);
+}
+
+#----------------------------------------------------------------------
+# Build the links used in updating the page
+
+sub build_update_links {
+    my ($self, $parent_file, $request) = @_;
+    
+    my $data = {};
+    $data->{pagelinks} = $self->build_pagelinks($parent_file, $request);
+    return unless $data->{pagelinks};
+    
+    return $data;
 }
 
 #----------------------------------------------------------------------
@@ -211,14 +230,6 @@ sub dump {
     $logfile =~ s/[^\/]+$/onsite.log/;
      $self->{wf}->writer($logfile, $output);   
     return;
-}
-
-#----------------------------------------------------------------------
-# Return a list containing no elements
-
-sub empty_list {
-    my ($self) = @_;
-    return {data => []};
 }
 
 #----------------------------------------------------------------------
@@ -593,17 +604,15 @@ sub update_directory_links {
     my ($filename, $extra) = $self->id_to_filename($id);
     return if $extra;
 
-    # TODO: pagelinks or dirlinks
-    my $data = {};
     my $parent_file = $self->{wf}->parent_file($filename);
-
-    $data->{pagelinks} = $self->build_pagelinks($parent_file, $request);
-    return unless $data->{pagelinks};
 
     my $maxlevel = 0;
     my ($repository, $basename) = $self->{wf}->split_filename($parent_file);
     my $visitor = $self->{wf}->visitor($repository, $maxlevel, 'any');
 
+    my $data = $self->build_update_links($parent_file, $request);
+    return unless $data;
+    
     while (my $file = &$visitor()) {
         next unless $self->valid_filename($file);
         next if $file eq $filename;
@@ -657,7 +666,7 @@ sub validate_file {
 
 sub write_file {
     my ($self, $filename, $data) = @_;
-    
+  
     my $template = $self->get_templates($filename, $data);
     my $output = $self->{nt}->render($data, $template); 
     $self->{wf}->writer($filename, $output);
@@ -678,7 +687,7 @@ sub write_primary {
     $data->{commandlinks} = $self->build_commandlinks($filename, $request);
 
     if (exists $request->{cmd} && $request->{cmd} eq 'add') {
-        $data->{secondary} = $self->empty_list();
+        $data->{secondary} = {data => []};
     }
     
     $self->write_file($filename, $data);

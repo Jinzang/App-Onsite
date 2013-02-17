@@ -250,23 +250,27 @@ sub is_directory {
 }
 
 #----------------------------------------------------------------------
-# Get the parent file of the specified file
+# Get an existing parent file of the specified file
 
 sub parent_file {
     my ($self, $filename) = @_;
-    
+ 
     my ($dir, $basename) = $self->split_filename($filename);
-    $dir = $self->abs2rel($dir);
-    
     my ($root, $ext) = split(/\./, $basename);
-
-    ($dir, $basename) = $self->split_filename($dir)
-        if $dir && $root eq $self->{index_name};
-
-    $dir = $self->rel2abs($dir);
     $basename = "$self->{index_name}.$ext";
-
-    return "$dir/$basename";
+    $dir = $self->abs2rel($dir);
+    my $parent_name;
+    
+    for (;;) {
+        $parent_name = $dir ? "$dir/$basename" : $basename;
+        $parent_name = $self->rel2abs($parent_name);
+        last if ! $dir || -e $parent_name;
+        
+        my $subdir;
+        ($dir, $subdir) = $self->split_filename($dir);
+    } 
+    
+    return $parent_name;
 }
 
 #----------------------------------------------------------------------

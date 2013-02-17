@@ -116,6 +116,15 @@ An author
 <ul>
 <!-- begin parentlinks -->
 <!-- end parentlinks -->
+<!-- begin dirlinks -->
+<!-- begin data -->
+<!-- set id [[a-title]] -->
+<!-- set url [[http://www.onsite.org/a-title.html]] -->
+<li><a href="http://www.onsite.org/a-title.html"><!--begin title -->
+A Title
+<!-- end title --></a></li>
+<!-- end data -->
+<!-- end dirlinks -->
 <!-- begin pagelinks -->
 <!-- begin data -->
 <!-- set id [[a-title]] -->

@@ -1,9 +1,9 @@
-#!/usr/bin/env perl -T
+#!/usr/bin/env perl
 use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 21;
+use Test::More tests => 19;
 
 use IO::File;
 use Cwd qw(abs_path getcwd);
@@ -94,29 +94,19 @@ is($filename, 'index.html', "Split filename: basename"); # test 11
 
 $filename = "$data_dir/subdir/file.html";
 $filename = $wf->parent_file($filename);
-is($filename, "$data_dir/subdir/index.html",
-   "Parent dir file in subdir"); # test 12
-
-$filename = "$data_dir/subdir/index.html";
-$filename = $wf->parent_file($filename);
 is($filename, "$data_dir/index.html",
-   "Parent dir index in subdir"); # test 13
-
-$filename = "$data_dir/file.html";
-$filename = $wf->parent_file($filename);
-is($filename, "$data_dir/index.html",
-   "Parent dir file in  root dir"); # test 14
+   "Parent filename"); # test 12
 
 $filename = "$data_dir/index.html";
 $filename = $wf->parent_file($filename);
 is($filename, "$data_dir/index.html",
-   "Parent dir index in root dir"); # test 15
+   "Parent dir index in root dir"); # test 13
 
 #----------------------------------------------------------------------
 # Clear directory
 
 $wf->remove_directory($script_dir);
-ok(! -e $script_dir, "Remove directory"); # test 16
+ok(! -e $script_dir, "Remove directory"); # test 14
 
 #----------------------------------------------------------------------
 # Create test files
@@ -202,14 +192,14 @@ my $r = {
          sidebar => "<p>A sidebar</p>",
         };
 
-is_deeply($hash, $r, "Read/Write"); #test 17
+is_deeply($hash, $r, "Read/Write"); #test 15
 
 my $nestedname = "data/dir002/dir001/dir001/page001.html";
 $wf->writer($nestedname, $page);
 
 $src = $wf->reader($nestedname);
 $hash = $nt->data($src);
-is_deeply($hash, $r, "Write nested directories"); # test 18
+is_deeply($hash, $r, "Write nested directories"); # test 16
 
 #----------------------------------------------------------------------
 # Test file visitor
@@ -231,7 +221,7 @@ my $visit_result = [
                     "$data_dir/data/dir002/dir001/dir001/page001.html",
                     "$data_dir/script/page.htm",
                     ];
-is_deeply($files, $visit_result, "File visitor"); # test 19
+is_deeply($files, $visit_result, "File visitor"); # test 17
 
 #----------------------------------------------------------------------
 # Test rename file
@@ -239,10 +229,10 @@ is_deeply($files, $visit_result, "File visitor"); # test 19
 my $new_nested = $nestedname;
 $new_nested =~ s/page001/page002/;
 $wf->rename_file($nestedname, $new_nested);
-ok(-e $new_nested, "Rename file"); # test 20
+ok(-e $new_nested, "Rename file"); # test 18
 
 #----------------------------------------------------------------------
 # Test remove file
 
 $wf->remove_file($pagename);
-ok(! -e $pagename, "Remove file"); #test 21
+ok(! -e $pagename, "Remove file"); #test 19

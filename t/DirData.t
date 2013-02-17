@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl
+#!/usr/local/bin/perl -T
 use strict;
 
 use lib 't';
@@ -115,6 +115,10 @@ A title
 <!-- end title --></a></li>
 <!-- end data -->
 <!-- end parentlinks -->
+<!-- begin dirlinks -->
+<!-- begin data -->
+<!-- end data -->
+<!-- end dirlinks -->
 <!-- begin pagelinks -->
 <!-- begin data -->
 <!-- end data -->
@@ -161,6 +165,14 @@ my $dir_template = <<'EOQ';
 <!--end title --></a></li>
 <!-- end data -->
 <!-- end parentlinks -->
+<!-- begin dirlinks -->
+<!-- begin data -->
+<!-- set id [[]] -->
+<!-- set url [[]] -->
+<li><a href="{{url}}"><!-- begin title -->
+<!--end title --></a></li>
+<!-- end data -->
+<!-- end dirlinks -->
 <!-- begin pagelinks -->
 <!-- begin data -->
 <!-- set id [[]] -->

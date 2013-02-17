@@ -139,6 +139,15 @@ Home
 <!-- end title --></a></li>
 <!-- end data -->
 <!-- end parentlinks -->
+<!-- begin dirlinks -->
+<!-- begin data -->
+<!-- set id [[]] -->
+<!-- set url [[http://www.stsci.edu/blog/index.html]] -->
+<li><a href="http://www.stsci.edu/blog/index.html"><!--begin title -->
+Blog
+<!-- end title --></a></li>
+<!-- end data -->
+<!-- end dirlinks -->
 <!-- begin pagelinks -->
 <!-- begin data -->
 <!-- set id [[]] -->

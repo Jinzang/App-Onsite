@@ -65,6 +65,91 @@ sub browse_data {
 }
 
 #----------------------------------------------------------------------
+# Rebuild data in dirlinks block
+
+sub build_all_dirlinks {
+    my ($self, $filename) = @_;
+
+    # Need to completely rebuild the directory links, all urls are changed
+    
+    my @dirlinks;
+    my $maxlevel = 1;
+    my ($repository, $basename) = $self->{wf}->split_filename($filename);
+    my $visitor = $self->{wf}->visitor($repository, $maxlevel, 'id');
+
+    while (my $file = &$visitor()) {
+        next unless $self->{wf}->is_directory($file);
+        next if $filename eq $self->{wf}->parent_file($file);
+        
+        my $record = $self->read_primary($file);
+        $record = $self->extra_data($record);
+        push(@dirlinks, $record);
+    }
+    
+    return  {data => \@dirlinks};
+}
+
+#----------------------------------------------------------------------
+# Reubuild data in pagelinks block
+
+sub build_all_pagelinks {
+    my ($self, $filename) = @_;
+
+    # Need to completely rebuild the page links, all urls are changed
+    
+    my @pagelinks;
+    my $maxlevel = 0;
+    my ($repository, $basename) = $self->{wf}->split_filename($filename);
+    my $visitor = $self->{wf}->visitor($repository, $maxlevel, 'id');
+
+    while (my $file = &$visitor()) {
+        next unless $self->valid_filename($file);
+        next if $file eq $filename;
+        
+        my $record = $self->read_primary($file);
+        $record = $self->extra_data($record);
+        push(@pagelinks, $record);
+    }
+    
+    return  {data => \@pagelinks};
+}
+
+#----------------------------------------------------------------------
+# Rebuild data in parentlinks block
+
+sub build_all_parentlinks {
+    my ($self, $filename) = @_;
+
+    my $request = $self->read_primary($filename);
+    $request = $self->extra_data($request);
+    my $links = $self->build_parentlinks($filename, $request);
+
+    return $links;
+}
+
+#----------------------------------------------------------------------
+# Set up data for pagelinks block
+
+sub build_dirlinks {
+    my ($self, $filename, $request) = @_;
+
+    return $self->build_links('dirlinks', $filename, $request);    
+}
+
+#----------------------------------------------------------------------
+# Build the links used in updating the page
+
+sub build_update_links {
+    my ($self, $parent_file, $request) = @_;
+    
+    my $data = {};
+    $data->{dirlinks} = $self->build_dirlinks($parent_file, $request);
+    return unless $data->{dirlinks};
+    
+    return $data;
+}
+
+#----------------------------------------------------------------------
 # Change the filename to match request 
 
 sub change_filename {
@@ -298,16 +383,10 @@ sub update_all_links {
     my ($self, $filename) = @_;
 
     my $data = {};
-    $data->{parentlinks} = $self->update_parentlinks($filename);
-    $data->{dirlinks} = $self->update_dirlinks($filename);
-    $data->{pagelinks} = $self->update_pagelinks($filename);
+    $data->{parentlinks} = $self->build_all_parentlinks($filename);
+    $data->{dirlinks} = $self->build_all_dirlinks($filename);
+    $data->{pagelinks} = $self->build_all_pagelinks($filename);
         
-    ## Temporary
-    my $dirlinks = $data->{dirlinks}{data};
-    my $pagelinks = $data->{pagelinks}{data};
-    my @pagelinks = (@$dirlinks, @$pagelinks);
-    $data->{pagelinks} = {data => \@pagelinks};
-
     # Rewrite the links of all the pages
     
     my $maxlevel = 0;
@@ -338,71 +417,6 @@ sub update_all_links {
     return;
 }
 
-#----------------------------------------------------------------------
-# Update data in dirlinks block
-
-sub update_dirlinks {
-    my ($self, $filename) = @_;
-
-    # Need to completely rebuild the directory links, all urls are changed
-    
-    my @dirlinks;
-    my $maxlevel = 1;
-    my ($repository, $basename) = $self->{wf}->split_filename($filename);
-    my $visitor = $self->{wf}->visitor($repository, $maxlevel, 'id');
-
-    while (my $file = &$visitor()) {
-        next unless $self->{wf}->is_directory($file);
-        next unless $filename eq $self->{wf}->parent_file($file);
-        
-        my $record = $self->read_primary($file);
-        $record = $self->extra_data($record);
-        push(@dirlinks, $record);
-    }
-    
-    return  {data => \@dirlinks};
-}
-
-#----------------------------------------------------------------------
-# Update data in pagelinks block
-
-sub update_pagelinks {
-    my ($self, $filename) = @_;
-
-    # Need to completely rebuild the page links, all urls are changed
-    
-    my @pagelinks;
-    my $maxlevel = 0;
-    my ($repository, $basename) = $self->{wf}->split_filename($filename);
-    my $visitor = $self->{wf}->visitor($repository, $maxlevel, 'id');
-
-    while (my $file = &$visitor()) {
-        next unless $self->valid_filename($file);
-        next if $file eq $filename;
-        
-        my $record = $self->read_primary($file);
-        $record = $self->extra_data($record);
-        push(@pagelinks, $record);
-    }
-    
-    return  {data => \@pagelinks};
-}
-
-#----------------------------------------------------------------------
-# Update data in parentlinks block
-
-sub update_parentlinks {
-    my ($self, $filename) = @_;
-
-    my $request = $self->read_primary($filename);
-    $request = $self->extra_data($request);
-        
-    my $parent_file = $self->{wf}->parent_file($filename);
-    my $links = $self->build_links('parentlinks', $parent_file, $request);    
-
-    return $links;
-}
-
 #---------------------------------------------------------------------------
 # Write a record to disk as a file
 
@@ -410,16 +424,15 @@ sub write_primary {
     my ($self, $filename, $request) = @_;
 
     my $data = {};
-    my $parentname = $self->{wf}->parent_file($filename);
-    
     $data->{meta} = $self->build_meta($filename, $request);
     $data->{primary} = $self->build_primary($filename, $request);
-    $data->{parentlinks} = $self->build_parentlinks($parentname, $request);
+    $data->{parentlinks} = $self->build_parentlinks($filename, $request);
     $data->{commandlinks} = $self->build_commandlinks($filename, $request);
 
     if (exists $request->{cmd} && $request->{cmd} eq 'add') {
-        $data->{secondary} = $self->empty_list();
-        $data->{pagelinks} = $self->empty_list();
+        my $empty_list = {data => []};
+        $data->{secondary} = $empty_list;
+        $data->{pagelinks} = $empty_list;
     }
 
     $self->write_file($filename, $data);
