@@ -604,7 +604,9 @@ sub update_directory_links {
     my ($filename, $extra) = $self->id_to_filename($id);
     return if $extra;
 
-    my $parent_file = $self->{wf}->parent_file($filename);
+    my $parent_file;
+    my ($parent_id, $seq) = $self->{wf}->split_id($id);
+    ($parent_file, $extra) = $self->id_to_filename($parent_id);
 
     my $maxlevel = 0;
     my ($repository, $basename) = $self->{wf}->split_filename($parent_file);
