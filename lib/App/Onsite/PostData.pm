@@ -29,14 +29,14 @@ sub parameters {
 #----------------------------------------------------------------------
 # Construct parent links for page
 
-sub build_parentlinks {
+sub build_pagelinks {
     my ($self, $filename, $request) = @_;
    
     my ($parentid, $seq) = $self->{wf}->split_id($request->{id});
     my ($blog_index_file, $extra) = $self->id_to_filename($parentid);
 
     my @links;
-    my $current_links = $self->read_records('parentlinks', $blog_index_file);
+    my $current_links = $self->read_records('pagelinks', $blog_index_file);
     push(@links, @$current_links);
 
     my $uplinks = $self->build_uplinks($filename);
@@ -466,10 +466,8 @@ sub update_postindex {
     $data->{meta} = $self->build_meta($index_file, $index_data);
     $data->{primary} = $self->build_primary($index_file, $index_data);
     $data->{secondary} = $self->build_secondary($index_file, $record);
-
-    $data->{pagelinks} = '';
+    $data->{pagelinks} = $self->build_pagelinks($index_file, $index_data);
     $data->{commandlinks} = '';
-    $data->{parentlinks} = $self->build_parentlinks($index_file, $index_data);
 
     if ($data->{secondary}) {  
         if (@{$data->{secondary}{data}} == 0) {
@@ -506,8 +504,7 @@ sub write_primary {
     $data->{meta} = $self->build_meta($filename, $request);
     $data->{primary} = $self->build_primary($filename, $request);
     $data->{secondary} = '';
-    $data->{pagelinks} = '';
-    $data->{parentlinks} = $self->build_parentlinks($filename, $request);
+    $data->{pagelinks} = $self->build_pagelinks($filename, $request);
     $data->{commandlinks} = $self->build_commandlinks($filename, $request);
  
     my $skip = 0;
