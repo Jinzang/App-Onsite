@@ -57,6 +57,15 @@ sub cull_data {
 }
 
 #----------------------------------------------------------------------
+# Return true if there is only one subtype
+
+sub has_one_subtype {
+    my ($self, $id) = @_;
+
+    return $self->get_type();
+}
+
+#----------------------------------------------------------------------
 # Get field information by reading template file
 
 sub template_info {
