@@ -1,4 +1,4 @@
-#!/usr/local/bin/perl -T
+#!/usr/local/bin/perl
 use strict;
 
 use lib 't';
@@ -329,7 +329,7 @@ my $blogtemplate = <<'EOQ';
 <div  id="content">
 <!-- begin primary -->
 <!-- end primary -->
-<!-- begin secondary sort="-id" -->
+<!-- begin secondary sort="-id" type="post" -->
 <!-- begin data -->
 <h1><!-- begin title -->
 <!-- end title --></h1>
