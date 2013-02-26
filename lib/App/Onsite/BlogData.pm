@@ -30,7 +30,46 @@ sub parameters {
 sub browse_data {
     my ($self, $parentid, $limit) = @_;
 
-    return $self->App::Onsite::FileData::browse_data($parentid, $limit);
+    return $self->App::Onsite::PageData::browse_data($parentid, $limit);
+}
+
+#----------------------------------------------------------------------
+# Return a closure that returns each record in the file
+
+sub get_next {
+    my ($self, $parentid) = @_;
+
+    my ($filename, $extra) = $self->id_to_filename($parentid); 
+    my $item = $self->block_info('secondary', $filename);
+    
+    my $sort = $item->{sort} || '-id';
+    my $subtype = $item->{type} if exists $item->{type};
+    die "Cannot determine subtype of $parentid\n" unless $subtype;
+    
+    my $obj = $self->{reg}->create_subobject($self,
+                                             $self->{data_registry},
+                                             $subtype);
+
+    my $maxlevel = 3;
+    my $dir = $self->get_repository($parentid);
+    my $visitor = $self->{wf}->visitor($dir, $maxlevel, $sort);
+    
+    return sub {
+        my $ext;
+    	my $filename;
+
+    	for (;;) {
+    	    $filename = &$visitor();
+            return unless defined $filename;
+
+            last if $obj->valid_filename($filename);
+        }
+
+        my $data = $obj->read_primary($filename);
+        $data = $obj->extra_data($data);
+        
+        return $data;
+    };
 }
 
 #----------------------------------------------------------------------
@@ -48,7 +87,7 @@ sub get_subtypes {
 sub has_one_subtype {
     my ($self, $id) = @_;
 
-    return $self->App::Onsite::FileData::has_one_subtype($id);
+    return $self->App::Onsite::PageData::has_one_subtype($id);
 }
 
 1;
