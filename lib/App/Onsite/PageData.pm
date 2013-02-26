@@ -433,15 +433,16 @@ sub id_to_type {
 
     if (-e $filename) {
         my $blockname = $extra ? 'secondary' : 'primary';
-        
         my $item = $self->block_info($blockname, $filename);
-        die "Cannot determine type for $id\n" unless exists $item->{type};
-        $type = $item->{type};
 
-    } else {
-        $type = $self->get_type();
+        if (exists $item->{type}) {
+            $type = $item->{type};
+        } else {
+            die "Can't determine type of $id\n" if $blockname eq 'secondary';
+        }
     }
 
+    $type ||= $self->SUPER::id_to_type($id);
     return $type;
 }
 
@@ -730,6 +731,7 @@ sub write_secondary {
 
     my $data = {};
     $data->{secondary} = $self->build_secondary($filename, $request);
+    $data->{commandlinks} = $self->build_commandlinks($filename, $request);
 
     $self->write_file($filename, $data);
 
