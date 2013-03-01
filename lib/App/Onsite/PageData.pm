@@ -645,6 +645,20 @@ sub update_file_links {
 }
 
 #----------------------------------------------------------------------
+# Update links after add
+
+sub update_links {
+    my ($self, $id, $request) = @_;
+    
+    my $data = {};
+    my ($filename, $extra) = $self->id_to_filename($id);
+    $data->{commandlinks} = $self->build_commandlinks($filename, $request);
+    $self->write_file($filename, $data);
+
+    return;
+}
+
+#----------------------------------------------------------------------
 # Validate uploaded file
 
 sub validate_file {
@@ -731,7 +745,6 @@ sub write_secondary {
 
     my $data = {};
     $data->{secondary} = $self->build_secondary($filename, $request);
-    $data->{commandlinks} = $self->build_commandlinks($filename, $request);
 
     $self->write_file($filename, $data);
 
