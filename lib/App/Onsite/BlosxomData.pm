@@ -95,9 +95,9 @@ sub filename_to_id {
 sub get_next {
     my ($self, $directory) = @_;
 
-    my $subfolders = 1;
+    my $maxlevel = 100;
     my $sort_order = 'date';
-    my $visitor = $self->{wf}->($directory, $subfolders, $sort_order);
+    my $visitor = $self->{wf}->($directory, $maxlevel, $sort_order);
     
     return sub {
         my $ext;
@@ -128,6 +128,7 @@ sub read_primary {
     my %data;
     $data{id} = $self->filename_to_id($filename);
     $data{title} = shift(@input);
+    # TODO: read header comments
     $data{body} = join("\n", @input);
 
     return \%data;
