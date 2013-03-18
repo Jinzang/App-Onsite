@@ -17,9 +17,9 @@ my $output = 'scripts/unbundle.cgi';
 my $script = 'scripts/unbundle.pl';
 
 my $include = {
-               'lib' => 'lib',
                'site' => '',
                'templates' => 'templates',
+               'lib' => 'Lib',
                };
 
 #----------------------------------------------------------------------
@@ -27,8 +27,9 @@ my $include = {
 
 chdir("$Bin/..") or die "Couldn't cd to $Bin directory\n";
 
-my $out = IO::File->new($output, 'a');
+my $out = IO::File->new($output, 'w');
 copy_script($out, $script);
+include_dirs($out, $include);
 
 my $visitor = get_visitor($include);
 
@@ -37,12 +38,12 @@ while (my $file = &$visitor) {
 }
 
 close($out);
-chmod(0775, $script);
+chmod(0775, $output);
 
 #----------------------------------------------------------------------
 # Append a text file to the bundle
 
-sub append_bin_file {
+sub append_binary_file {
     my ($out, $file) = @_;
     
     my $in = IO::File->new($file, 'r') or
@@ -52,7 +53,7 @@ sub append_bin_file {
     my $buf;
         
     while (read($in, $buf, 60*57)) {
-        print $out, encode_base64($buf);
+        print $out encode_base64($buf);
     }
 
     close($in);
@@ -72,6 +73,7 @@ sub append_text_file {
         print $out $line;
     }
     
+    print $out "\n";
     close($in);
     return;
 }
@@ -83,8 +85,7 @@ sub bundle_file {
     my ($mapping, $out, $file) = @_;
     
     my $bin = -B $file ? 'b' : 't';
-    my $new_name = map_filename($mapping, $file);
-    print $out "#--%X--%X $bin $new_name\n";
+    print $out "#--%X--%X $bin $file\n";
 
     if ($bin eq 'b') {
         append_binary_file($out, $file);
@@ -100,7 +101,7 @@ sub copy_script {
     my ($out, $script) = @_;
     
     append_text_file($out, $script);
-    print $out "__DATA__";
+    print $out "__DATA__\n";
     return;
 }
 
@@ -140,18 +141,14 @@ sub get_visitor {
 }
 
 #----------------------------------------------------------------------
-# Map filename to name on new system
+# Save names of directories to output file
 
-sub map_filename {
-    my ($mapping, $file) = @_;
+sub include_dirs {
+    my ($out, $include) = @_;
     
-    my @path = split(/\//, $file);
-    my $dir = shift(@path);
-    
-    if (exists $mapping->{$dir}) {
-        unshift(@path, $mapping->{$dir}) if $mapping->{$dir};
-        $file = join('/', @path);
+    while (my ($source, $target) = each %$include) {
+        print $out "#++%X++%X $source $target\n";
     }
-        
-    return $file;
+    
+    return;
 }
