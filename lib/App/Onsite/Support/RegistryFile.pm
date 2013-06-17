@@ -241,7 +241,7 @@ The registry file is divided into sections preceded by a type name in brackets:
     [TYPENAME]
 
 The type name may be in either case and is converted to lower case. All following
-field names and valurs are traits of that type until the next type name. The type
+field names and values are traits of that type until the next type name. The type
 name may be preceded by blanks on the line.
 
 =head1 AUTHOR
