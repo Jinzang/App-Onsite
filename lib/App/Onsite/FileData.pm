@@ -69,7 +69,7 @@ sub browse_data {
     die "Invalid search limit: $limit\n" if $limit <= 0;
 
     my @list;
-    my $get_next = $self->get_next($parentid);
+    my $get_next = $self->get_browsable($parentid);
 
     while (defined(my $data = &$get_next)) {
         push(@list, $data);
@@ -366,12 +366,21 @@ sub get_default_command {
 }
 
 #----------------------------------------------------------------------
+# Return a closure for browse_data
+
+sub get_browsable {
+    my ($self, $parentid) = @_;
+    return $self->get_next($parentid);    
+}
+
+#----------------------------------------------------------------------
 # Return a closure that returns each record in the file
 
 sub get_next {
     my ($self, $parentid) = @_;
 
     my ($filename, $extra) = $self->id_to_filename($parentid);
+    my $obj = $self->get_subobject($parentid) || $self;
     my $records = $self->read_secondary($filename);
 
     return sub {
@@ -382,7 +391,7 @@ sub get_next {
         my $id = $self->{wf}->path_to_id($parentid, $seq);
         $record->{id} = $id;
         
-        $record = $self->extra_data($record);
+        $record = $obj->extra_data($record);
         
         return $record;
     };
@@ -407,6 +416,32 @@ sub get_repository {
 
     die "Invalid id: $id\n" unless -e $repository;
     return $repository;
+}
+
+#----------------------------------------------------------------------
+# Return a closure for search_data
+
+sub get_searchable {
+    my ($self, $parentid) = @_;
+    return $self->get_next($parentid);    
+}
+
+#---------------------------------------------------------------------------
+# Return type as subtype of parent
+
+sub get_subobject {
+    my ($self, $parentid) = @_;
+    
+    my $obj;
+    if ($self->has_one_subtype($parentid)) {
+        my $subtypes = $self->get_subtypes($parentid);
+        
+        $obj = $self->{reg}->create_subobject($self,
+                                              $self->{data_registry},
+                                              $subtypes->[0]);
+    }
+
+    return $obj;
 }
 
 #---------------------------------------------------------------------------
@@ -633,7 +668,7 @@ sub search_data {
     }
 
     my @list;
-    my $get_next = $self->get_next($parentid);
+    my $get_next = $self->get_searchable($parentid);
 
     while (defined(my $data = &$get_next)) {
         my $match;

@@ -269,19 +269,9 @@ sub get_browsable {
 sub get_next {
     my ($self, $parentid, $subfolders) = @_;
    
-    my $obj;
-    if ($self->has_one_subtype($parentid)) {
-        my $subtypes = $self->get_subtypes($parentid);
-        
-        $obj = $self->{reg}->create_subobject($self,
-                                              $self->{data_registry},
-                                              $subtypes->[0]);
-    } else {
-        $obj = $self;
-    }
-
     my $dir = $self->get_repository($parentid);
     my $maxlevel = $self->{has_subfolders} ? 100 : 0;
+    my $obj = $self->get_subobject($parentid) || $self;
     my $visitor = $self->{wf}->visitor($dir, $maxlevel, $self->{sort_field});
 
     return sub {
