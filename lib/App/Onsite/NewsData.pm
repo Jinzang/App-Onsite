@@ -60,15 +60,6 @@ sub cull_data {
 }
 
 #----------------------------------------------------------------------
-# Add extra data to the data read from file
-
-sub extra_data {
-    my ($self, $hash, $filename) = @_;
-
-    return $self->App::Onsite::FileData::extra_data($hash, $filename);
-}
-
-#----------------------------------------------------------------------
 # Create rss file
 
 sub update_files {
