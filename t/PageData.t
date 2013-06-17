@@ -1,13 +1,25 @@
-#!/usr/local/bin/perl -T
+#!/usr/local/bin/perl
 use strict;
 
 use lib 't';
 use lib 'lib';
-use Test::More tests => 26;
+use Test::More tests => 25;
 
 use Cwd qw(abs_path getcwd);
-use App::Onsite::Support::WebFile;
-use App::Onsite::Support::RegistryFile;
+
+#----------------------------------------------------------------------
+# Load package
+
+my @path = split(/\//, $0);
+pop(@path);
+
+my $bin = abs_path(join('/', @path));
+my $lib = "$bin/../lib";
+unshift(@INC, $lib, $bin);
+
+require App::Onsite::Support::WebFile;
+require App::Onsite::Support::RegistryFile;
+require App::Onsite::PageData;
 
 #----------------------------------------------------------------------
 # Initialize test directory
@@ -64,6 +76,12 @@ COMMANDS = add
 COMMANDS = edit
 COMMANDS = remove
 COMMANDS = search
+COMMANDS = view
+        [list]
+CLASS = App::Onsite::ListData
+SUBTEMPLATE = list.htm
+COMMANDS = edit
+COMMANDS = remove
 COMMANDS = view
         [news]
 CLASS = App::Onsite::NewsData
@@ -237,14 +255,12 @@ $wf->writer($templatename, $subpage_template);
 #----------------------------------------------------------------------
 # Create object
 
-BEGIN {use_ok("App::Onsite::PageData");} # test 1
-
 my $reg = App::Onsite::Support::RegistryFile->new(%$params);
 my $data = $reg->create_subobject($params, $data_registry, 'page');
 
-isa_ok($data, "App::Onsite::PageData"); # test 2
+isa_ok($data, "App::Onsite::PageData"); # test 1
 can_ok($data, qw(add_data browse_data edit_data read_data remove_data
-                 search_data check_id)); # test 3
+                 search_data check_id)); # test 2
 
 $data->{wf}->relocate($data_dir);
 
@@ -261,7 +277,7 @@ my $elinks = [{
             }];
 
 my $links = $data->build_commandlinks($pagename, {id =>'a-title'});
-is_deeply($links, {data => $elinks}, "Page command links"); # test 4
+is_deeply($links, {data => $elinks}, "Page command links"); # test 3
 
 #----------------------------------------------------------------------
 # Read data
@@ -273,13 +289,13 @@ my $r = {title => "A title",
      };
 
 my $d = $data->read_primary($pagename);
-is_deeply($d, $r, "Read primary"); # Test 5
+is_deeply($d, $r, "Read primary"); # Test 4
 
 my $s = {};
 %$s = %$r;
 $s->{id} = '0001';
 $d = $data->read_secondary($pagename);
-is_deeply($d, [$s], "Read secondary"); # Test 6
+is_deeply($d, [$s], "Read secondary"); # Test 5
 
 #----------------------------------------------------------------------
 # summarize
@@ -288,7 +304,7 @@ my $text = "<p>" . "abcd <b>efgh</b>" x 300 . "</p>";
 my $summary = $data->summarize($text);
 my $required_summary = "abcd efgh " x 29 . "abcd ...";
 
-is($summary, $required_summary, "Summarize page"); # test 7
+is($summary, $required_summary, "Summarize page"); # test 6
 
 #----------------------------------------------------------------------
 # extra_data
@@ -298,7 +314,7 @@ $hash = $data->extra_data($hash);
 
 is_deeply([sort keys %$hash],
           [qw(body id summary type url)],
-          "Page extra data"); # test 8
+          "Page extra data"); # test 7
 
 #----------------------------------------------------------------------
 # File Visitor
@@ -308,22 +324,22 @@ $hash = &$get_next();
 my @keys = sort keys %$hash;
 
 is_deeply(\@keys, [qw(author body id summary 
-                   title type url)], "File visitor"); # test 9
+                   title type url)], "File visitor"); # test 8
 
 #----------------------------------------------------------------------
 # Check id
 
 my $test = $data->check_id('a-title') ? 1 : 0;
-is ($test, 1, "Page has id");  # test 10
+is ($test, 1, "Page has id");  # test 9
 
 $test = $data->check_id('new-title') ? 1 : 0;
-is ($test, 0, "Page doesn't have id");  # test 11
+is ($test, 0, "Page doesn't have id");  # test 10
 
 #----------------------------------------------------------------------
 # Generate id
 
 my $id2 = $data->generate_id('', 'New Title');
-is ($id2, 'new-title', "Generate page id");  # test 12
+is ($id2, 'new-title', "Generate page id");  # test 11
 
 #----------------------------------------------------------------------
 # Read data
@@ -341,7 +357,7 @@ $r = {title => "A title",
      };
 
 $d = $data->read_data('a-title');
-is_deeply($d, $r, "Read page"); # Test 13
+is_deeply($d, $r, "Read page"); # Test 12
 
 #----------------------------------------------------------------------
 # Edit data
@@ -353,15 +369,15 @@ $data->edit_data('a-title', $d);
 $d = $data->read_data('a-title');
 $s->{summary} = $d->{summary};
 
-is_deeply($d, $s, "Edit"); # Test 14
+is_deeply($d, $s, "Edit"); # Test 13
 
 my $pagedata = $data->{nt}->data("$data_dir/a-title.html");
 
 my $meta = $pagedata->{meta};
-is_deeply($meta, {title => $d->{title}}, "Page meta"); # Test 15
+is_deeply($meta, {title => $d->{title}}, "Page meta"); # Test 14
 
 is_deeply($pagedata->{commandlinks}, {data => $elinks},
-          "Page command Links"); # Test 16
+          "Page command Links"); # Test 15
 
 #----------------------------------------------------------------------
 # Read data
@@ -376,7 +392,7 @@ $r = {title => "A title",
      };
 
 $d = $data->read_data('a-title:0001');
-is_deeply($d, $r, "Read subpage"); # Test 17
+is_deeply($d, $r, "Read subpage"); # Test 16
 
 #----------------------------------------------------------------------
 # Add Second Page
@@ -394,14 +410,14 @@ $s->{url}= 'http://www.onsite.org/new-title.html';
 
 $data->add_data('', $d);
 $d = $data->read_data('new-title');
-is_deeply($d, $s, "Add second page"); # Test 18
+is_deeply($d, $s, "Add second page"); # Test 17
 
 #----------------------------------------------------------------------
 # Redirect url
 
 my $url = $data->redirect_url('a-title');
 is($url, "$params->{base_url}/a-title.html",
-         "Redirect page url"); # test 19
+         "Redirect page url"); # test 18
    
 #----------------------------------------------------------------------
 # Rename page
@@ -419,7 +435,7 @@ delete $d->{class};
 delete $d->{oldid};
 delete $d->{cmd};
 
-is_deeply($s, $d, "Rename page"); # Test 20
+is_deeply($s, $d, "Rename page"); # Test 19
 
 #----------------------------------------------------------------------
 # Remove page
@@ -427,26 +443,26 @@ is_deeply($s, $d, "Rename page"); # Test 20
 $d->{cmd} = 'remove';
 $data->remove_data('strange-title', $d);
 my $file = $data->id_to_filename('strange-title');
-ok(! -e $file, "Remove page"); # Test 21
+ok(! -e $file, "Remove page"); # Test 20
 
 #----------------------------------------------------------------------
 # Browse subpage
 
 my $results = $data->browse_data('a-title');
-is_deeply($results, [$r], "Browse subpage"); # test 22
+is_deeply($results, [$r], "Browse subpage"); # test 21
 
 #----------------------------------------------------------------------
 # Search subpage
 
 my $news = $data->search_data({author => 'author'}, 'a-title');
-is_deeply($news, [$r], "Search subpage"); # test 23
+is_deeply($news, [$r], "Search subpage"); # test 22
 
 $news = $data->search_data({author => 'author'}, 'a-title', 1);
-is_deeply($news, [$r], "Search subpage with limit"); # test 24
+is_deeply($news, [$r], "Search subpage with limit"); # test 23
 
 $news = $data->search_data({author => 'An'}, 'a-title');
-is_deeply($news, [$r], "Search subpage single term"); # test 25
+is_deeply($news, [$r], "Search subpage single term"); # test 24
 
 $news = $data->search_data({body =>'The', title => 'A'}, 'a-title');
-is_deeply($news, [$r], "Search subpage multiple terms"); # test 26
+is_deeply($news, [$r], "Search subpage multiple terms"); # test 25
 
