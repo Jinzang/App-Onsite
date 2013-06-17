@@ -81,3 +81,8 @@ SUBTEMPLATE = post.htm
 MONTHINDEX = monthindex.htm
 YEARINDEX = yearindex.htm
 BLOGINDEX = blogindex.htm
+        [gallery]
+CLASS = App::Onsite::GalleryData
+SUPER = dir
+SUBTEMPLATE = gallery.htm
+ 
