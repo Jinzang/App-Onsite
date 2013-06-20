@@ -30,7 +30,15 @@ sub parameters {
 sub browse_data {
     my ($self, $parentid, $limit) = @_;
 
-    return $self->App::Onsite::PageData::browse_data($parentid, $limit);
+    return $self->App::Onsite::FileData::browse_data($parentid, $limit);
+}
+
+#----------------------------------------------------------------------
+# Return a closure for browse_data
+
+sub get_browsable {
+    my ($self, $parentid) = @_;
+    return $self->get_next($parentid);    
 }
 
 #----------------------------------------------------------------------
