@@ -233,6 +233,7 @@ my $r = {
          body => "The Content",
          type => 'news',
          summary => "The Content",
+         url => 'http://www.onsite.org/a-title.html#0001'
         };
 
 my $d = $news->read_data('a-title:0001');
@@ -252,6 +253,7 @@ my $s;
 %$s = %$d;
 $d->{subtype} = 'news';
 $s->{id} = 'a-title:0002';
+$s->{url} = 'http://www.onsite.org/a-title.html#0002';
 
 $news->add_data('a-title', $d);
 $d = $news->read_data('a-title:0002');
@@ -261,9 +263,6 @@ is_deeply($d, $s, "Add second entry"); # Test 5
 
 #----------------------------------------------------------------------
 # Browse data
-
-$r->{url} = 'http://www.onsite.org/a-title.html#0001';
-$s->{url} = 'http://www.onsite.org/a-title.html#0002';
 
 my $results = $page->browse_data('a-title');
 delete $_->{time} foreach @$results;
@@ -295,6 +294,7 @@ $d->{id} = 'a-title:0001';
 $d->{time} = 2265810786;
 $d->{link} = 'http://www.website.net/';
 %$s = %$d;
+$s->{url} = 'http://www.onsite.org/a-title.html#0001';
 
 $news->edit_data('a-title:0001', $d);
 $d = $news->read_data('a-title:0001');
