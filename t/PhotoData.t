@@ -216,6 +216,7 @@ $s->{type} = 'photo';
 $s->{photo} = "$gallery_url/photo0001.jpg";
 $s->{thumb} = "$gallery_url/thumb0001.jpg";
 $s->{url} = "$gallery_url/index.html#0001";
+delete $s->{filename};
 
 $photo->add_data('gallery', $d);
 my $r = $photo->read_data('gallery:0001');
