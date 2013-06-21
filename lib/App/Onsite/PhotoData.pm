@@ -105,8 +105,10 @@ sub read_data {
 sub read_photo {
     my ($self, $id, $record) = @_;
 
-    for my $field (qw(photo thumb)) {
-        $record->{$field} = $self->id_to_photo_url($id, $field);
+    if (defined $record) {
+        for my $field (qw(photo thumb)) {
+            $record->{$field} = $self->id_to_photo_url($id, $field);
+        }
     }
 
     return $record;
