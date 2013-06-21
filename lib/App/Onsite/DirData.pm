@@ -43,28 +43,6 @@ sub add_data {
 }
 
 #----------------------------------------------------------------------
-# Retrieve all records
-
-sub browse_data {
-    my ($self, $parentid, $limit) = @_;
-
-    $limit = 1.0e9 unless $limit;
-    die "Invalid search limit: $limit\n" if $limit <= 0;
-
-    my @list;
-    my $subfolders = 0;
-
-    my $get_next = $self->get_browsable($parentid);
-
-    while (defined(my $data = &$get_next)) {
-        push(@list, $data);
-        last unless -- $limit;
-    }
-
-    return $self->{lo}->list_sort(\@list);
-}
-
-#----------------------------------------------------------------------
 # Rebuild data in dirlinks block
 
 sub build_all_dirlinks {
