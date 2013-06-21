@@ -34,6 +34,22 @@ sub browse_data {
 }
 
 #----------------------------------------------------------------------
+# Return a closure for browse_data
+
+sub get_browsable {
+    my ($self, $parentid) = @_;
+    return $self->App::Onsite::FileData::get_next($parentid);    
+}
+
+#----------------------------------------------------------------------
+# Return a closure for search_data
+
+sub get_searchable {
+    my ($self, $parentid) = @_;
+    return $self->App::Onsite::FileData::get_next($parentid);    
+}
+
+#----------------------------------------------------------------------
 # Return the names of the subdata objects contained in the file
 
 sub get_subtypes {
