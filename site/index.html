@@ -9,21 +9,23 @@
 <title>Welcome</title>
 <meta name="robots" content="index, follow" />
 <!-- end meta -->
-<link rel="stylesheet" type="text/css" href="Style.css" />
+<link rel="stylesheet" type="text/css" href="Css/style.css" />
+<link rel="stylesheet" type="text/css" href="Css/widgEditor.css" />
+<script type="text/javascript" src="Scripts/widgEditor.js"></script>
 </head>
 <body>
 <div id="container">
 <div id="header">
 <h1><a href="">Onsite Editor</a></h1>
 </div>
-<div id="wrapper">
+<div id="body">
 <div id="content">
 <div id="primary">
 <!-- begin primary type="dir" -->
 <h1><!-- begin title valid="&" -->
 Welcome<!-- end title --></h1>
 
-<!-- begin body required valid="&html" style="rows=10;cols=80" -->
+<!-- begin body valid="&html" style="rows=10;cols=80" -->
 <p>Welcome to your new web site. You can start changing it by clicking this
 <a href="editor.cgi?cmd=edit">edit link</a>.</p>
 <!-- end body -->
@@ -34,10 +36,8 @@ Welcome<!-- end title --></h1>
 <!-- end secondary -->
 </div>
 </div>
-</div>
 <div id="navigation">
 <div id="searchbox">
-<h2>Search</h2>
 <form method="post" action="search.cgi">
 <div id="fields">
 <input type="text" name="query" class="textbox" size="12" value="" />
@@ -73,8 +73,6 @@ Edit<!--end title --></a><!-- set url [[editor.cgi?cmd=edit]] --></li>
 </ul>
 <!-- end commandlinks -->
 </div>
-<div id="footer"><p>The Onsite Editor is free software,
-licensed on the same terms as Perl.</p></div>
 </div>
 </body>
 </html>
