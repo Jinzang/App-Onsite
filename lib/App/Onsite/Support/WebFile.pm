@@ -473,7 +473,7 @@ sub sorted_files {
 
     if (@augmented) {
         @augmented = sort {$a->[0] cmp $b->[0]
-                   || $b->[1] cmp $a->[1]} @augmented;
+                   || $a->[1] cmp $b->[1]} @augmented;
         
         @sorted =  map {$_->[1]} @augmented;
 
