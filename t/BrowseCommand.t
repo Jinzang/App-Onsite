@@ -293,19 +293,25 @@ for my $count (qw(First Second Third)) {
 
 my $request = {nonce => $params->{nonce}, cmd => 'browse', id => ''};
 my $response = $con->run($request);
-my $results = $response->{results}{data};
-shift(@$results);
 
-is_deeply($results, \@data, "Browse all"); # Test 4
+my @results;
+foreach my $data (@{$response->{results}{data}}) {
+    push(@results, $data) if $data->{id};
+}
+
+is_deeply(\@results, \@data, "Browse all"); # Test 4
 
 my @subset = @data[0..1];
 my $max = $con->{items};
 $con->{items} = 3;
 
 $response = $con->run($request);
-$results = $response->{results}{data};
-shift(@$results);
 
-is_deeply($results, \@subset, "Browse with limit"); # Test 5
+@results = ();
+foreach my $data (@{$response->{results}{data}}) {
+    push(@results, $data) if $data->{id};
+}
+
+is_deeply(\@results, \@subset, "Browse with limit"); # Test 5
 $con->{items} = $max;
 
