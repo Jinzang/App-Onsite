@@ -255,7 +255,7 @@ sub untaint_filename {
     my ($self, $filename) = @_;
 
     $filename = rel2abs($filename);
-    ($filename) = $filename =~ m{^([\w\./]+)$};
+    ($filename) = $filename =~ m{^([\w\.\-/]+)$};
 
     return rel2abs($filename);
 }
